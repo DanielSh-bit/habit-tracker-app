@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>מעקב הרגלים</title>
+  <title>LevelUp</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#111827">
@@ -11,36 +11,45 @@
 <body>
   <main class="app">
 
-    <header class="top-bar">
-      <div>
-        <h1>מעקב הרגלים</h1>
-        <p>האתגרים האישיים שלך</p>
+    <header class="home-header">
+      <div class="brand">
+        <div class="brand-icon">🪜☁️</div>
+        <div>
+          <h1>LevelUp</h1>
+          <p>Home Screen</p>
+        </div>
       </div>
-
-      <button class="add-button">+</button>
     </header>
 
     <section class="goals-grid">
 
-      <article class="goal-card">
-        <h2>אימון</h2>
-        <p>כן / לא</p>
-        <button>פתח</button>
+      <article class="goal-card progress-low">
+        <div class="goal-fill" style="height: 15%;"></div>
+        <div class="goal-content">
+          <h2>Workout</h2>
+          <span>15%</span>
+        </div>
       </article>
 
-      <article class="goal-card">
-        <h2>מים</h2>
-        <p>מונה יומי</p>
-        <button>פתח</button>
+      <article class="goal-card progress-mid">
+        <div class="goal-fill" style="height: 45%;"></div>
+        <div class="goal-content">
+          <h2>Water</h2>
+          <span>45%</span>
+        </div>
       </article>
 
-      <article class="goal-card">
-        <h2>שינה</h2>
-        <p>שעות שינה</p>
-        <button>פתח</button>
+      <article class="goal-card progress-high">
+        <div class="goal-fill" style="height: 72%;"></div>
+        <div class="goal-content">
+          <h2>Sleep</h2>
+          <span>72%</span>
+        </div>
       </article>
 
     </section>
+
+    <button class="floating-add-button">+</button>
 
   </main>
 
