@@ -8,21 +8,71 @@ body {
 
 .app {
   min-height: 100vh;
-  padding: 24px;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
-.card {
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.top-bar h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.top-bar p {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.add-button {
+  width: 52px;
+  height: 52px;
+  border: none;
+  border-radius: 50%;
+  background: #111827;
+  color: white;
+  font-size: 32px;
+  line-height: 52px;
+  cursor: pointer;
+}
+
+.goals-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.goal-card {
   background: white;
-  border-radius: 18px;
+  border-radius: 20px;
   padding: 20px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 }
 
-h1 {
-  margin-top: 0;
-  font-size: 28px;
+.goal-card h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
 }
 
-p {
-  font-size: 18px;
+.goal-card p {
+  margin: 0 0 18px;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.goal-card button {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+  background: #111827;
+  color: white;
+  font-size: 17px;
+  cursor: pointer;
 }
