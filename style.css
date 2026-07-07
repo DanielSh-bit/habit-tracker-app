@@ -66,7 +66,7 @@ body {
 }
 
 .goal-status {
-  width: 64px;
+  width: 70px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -75,7 +75,7 @@ body {
 }
 
 .goal-status strong {
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: 17px;
   font-weight: 900;
   color: #0f172a;
@@ -83,16 +83,18 @@ body {
 
 .flame {
   position: relative;
-  width: 44px;
-  height: 34px;
+  width: 52px;
+  height: 52px;
+  overflow: visible;
   transform: rotate(-90deg);
+  transform-origin: center center;
 }
 
 .flame span {
   position: absolute;
-  bottom: 0;
+  bottom: 7px;
   left: 50%;
-  width: 30px;
+  width: 28px;
   height: 38px;
   transform: translateX(-50%) rotate(45deg);
   border-radius: 50% 0 50% 50%;
@@ -102,59 +104,51 @@ body {
 .flame::after {
   content: "";
   position: absolute;
-  bottom: 8px;
+  bottom: 14px;
   left: 50%;
-  width: 14px;
-  height: 20px;
+  width: 10px;
+  height: 17px;
   transform: translateX(-50%) rotate(45deg);
   border-radius: 50% 0 50% 50%;
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.55);
   animation: innerFlameMove 0.7s infinite alternate ease-in-out;
 }
 
-/* 0% - 14% */
 .flame-0 span {
   background: linear-gradient(135deg, #ffffff, #e5e7eb, #cbd5e1);
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
 }
 
-/* 15% - 29% */
 .flame-15 span {
   background: linear-gradient(135deg, #fff7cc, #fde68a, #facc15);
-  box-shadow: 0 0 14px rgba(250, 204, 21, 0.55);
+  box-shadow: 0 0 14px rgba(250, 204, 21, 0.65);
 }
 
-/* 30% - 44% */
 .flame-30 span {
   background: linear-gradient(135deg, #fef08a, #facc15, #eab308);
-  box-shadow: 0 0 16px rgba(234, 179, 8, 0.65);
+  box-shadow: 0 0 16px rgba(234, 179, 8, 0.7);
 }
 
-/* 45% - 59% */
 .flame-45 span {
   background: linear-gradient(135deg, #fed7aa, #fb923c, #ea580c);
-  box-shadow: 0 0 18px rgba(249, 115, 22, 0.7);
+  box-shadow: 0 0 18px rgba(249, 115, 22, 0.75);
 }
 
-/* 60% - 74% */
 .flame-60 span {
   background: linear-gradient(135deg, #fca5a5, #ef4444, #dc2626);
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.75);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.8);
 }
 
-/* 75% - 89% */
 .flame-75 span {
   background: linear-gradient(135deg, #ef4444, #991b1b, #450a0a);
-  box-shadow: 0 0 22px rgba(153, 27, 27, 0.8);
+  box-shadow: 0 0 22px rgba(153, 27, 27, 0.85);
 }
 
-/* 90% - 99% */
 .flame-90 span {
   background: linear-gradient(135deg, #ddd6fe, #a78bfa, #7c3aed);
-  box-shadow: 0 0 24px rgba(124, 58, 237, 0.8);
+  box-shadow: 0 0 24px rgba(124, 58, 237, 0.85);
 }
 
-/* 100% */
 .flame-100 span {
   background: linear-gradient(135deg, #f5d0fe, #7e22ce, #3b0764);
   box-shadow: 0 0 28px rgba(126, 34, 206, 0.9);
@@ -172,11 +166,11 @@ body {
 @keyframes innerFlameMove {
   from {
     transform: translateX(-50%) rotate(42deg) scale(0.85);
-    opacity: 0.7;
+    opacity: 0.55;
   }
   to {
     transform: translateX(-50%) rotate(48deg) scale(1.05);
-    opacity: 1;
+    opacity: 0.9;
   }
 }
 
