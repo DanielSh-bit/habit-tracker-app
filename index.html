@@ -6,16 +6,44 @@
   <title>מעקב הרגלים</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#111827">
+  <meta name="theme-color" content="#111827">
 </head>
 <body>
   <main class="app">
-    <section class="card">
-      <h1>מעקב הרגלים</h1>
-      <p>האפליקציה עובדת ומחוברת לעיצוב.</p>
+
+    <header class="top-bar">
+      <div>
+        <h1>מעקב הרגלים</h1>
+        <p>האתגרים האישיים שלך</p>
+      </div>
+
+      <button class="add-button">+</button>
+    </header>
+
+    <section class="goals-grid">
+
+      <article class="goal-card">
+        <h2>אימון</h2>
+        <p>כן / לא</p>
+        <button>פתח</button>
+      </article>
+
+      <article class="goal-card">
+        <h2>מים</h2>
+        <p>מונה יומי</p>
+        <button>פתח</button>
+      </article>
+
+      <article class="goal-card">
+        <h2>שינה</h2>
+        <p>שעות שינה</p>
+        <button>פתח</button>
+      </article>
+
     </section>
+
   </main>
-  
+
   <script src="script.js"></script>
 </body>
 </html>
