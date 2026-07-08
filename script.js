@@ -1,5 +1,8 @@
 const STORAGE_KEY = "levelup_goals";
 
+let currentScreenId = "homeScreen";
+let currentGoalId = null;
+
 function getTodayKey() {
   const date = new Date();
   const year = date.getFullYear();
@@ -81,7 +84,9 @@ function getGoalTypeName(type) {
   return "לא ידוע";
 }
 
-function showScreen(screenId) {
+function showScreen(screenId, addToHistory = true) {
+  currentScreenId = screenId;
+
   document.querySelectorAll(".screen").forEach(function(screen) {
     screen.classList.remove("active");
   });
@@ -89,12 +94,37 @@ function showScreen(screenId) {
   document.getElementById(screenId).classList.add("active");
 
   if (screenId === "homeScreen") {
+    currentGoalId = null;
     renderHome();
   }
 
   if (screenId === "settingsScreen") {
+    currentGoalId = null;
     renderSettings();
   }
+
+  if (screenId === "addScreen") {
+    currentGoalId = null;
+  }
+
+  if (addToHistory) {
+    history.pushState(
+      {
+        screenId: screenId,
+        goalId: currentGoalId
+      },
+      "",
+      ""
+    );
+  }
+}
+
+function goBack() {
+  if (currentScreenId === "homeScreen") {
+    return;
+  }
+
+  history.back();
 }
 
 function renderHome() {
@@ -129,12 +159,14 @@ function renderHome() {
   });
 }
 
-function openGoal(goalId) {
+function openGoal(goalId, addToHistory = true) {
   const goal = goals.find(function(item) {
     return item.id === goalId;
   });
 
   if (!goal) return;
+
+  currentGoalId = goalId;
 
   const value = getTodayValue(goal);
   const progress = getProgress(goal);
@@ -176,22 +208,22 @@ function openGoal(goalId) {
     </div>
   `;
 
-  showScreen("goalScreen");
+  showScreen("goalScreen", addToHistory);
 
   if (goal.type === "yesno") {
     document.getElementById("markYesNoButton").addEventListener("click", function() {
       setTodayValue(goal.id, value >= 1 ? 0 : 1);
-      openGoal(goal.id);
+      openGoal(goal.id, false);
     });
   } else {
     document.getElementById("increaseButton").addEventListener("click", function() {
       setTodayValue(goal.id, value + 1);
-      openGoal(goal.id);
+      openGoal(goal.id, false);
     });
 
     document.getElementById("decreaseButton").addEventListener("click", function() {
       setTodayValue(goal.id, Math.max(0, value - 1));
-      openGoal(goal.id);
+      openGoal(goal.id, false);
     });
   }
 }
@@ -264,7 +296,32 @@ function addGoal(event) {
   showScreen("homeScreen");
 }
 
+window.addEventListener("popstate", function(event) {
+  const state = event.state;
+
+  if (!state || state.screenId === "homeScreen") {
+    showScreen("homeScreen", false);
+    return;
+  }
+
+  if (state.screenId === "goalScreen" && state.goalId) {
+    openGoal(state.goalId, false);
+    return;
+  }
+
+  showScreen(state.screenId, false);
+});
+
 document.addEventListener("DOMContentLoaded", function() {
+  history.replaceState(
+    {
+      screenId: "homeScreen",
+      goalId: null
+    },
+    "",
+    ""
+  );
+
   renderHome();
 
   document.getElementById("openAddButton").addEventListener("click", function() {
@@ -276,9 +333,7 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   document.querySelectorAll(".back-button").forEach(function(button) {
-    button.addEventListener("click", function() {
-      showScreen(button.dataset.target);
-    });
+    button.addEventListener("click", goBack);
   });
 
   document.getElementById("addGoalForm").addEventListener("submit", addGoal);
