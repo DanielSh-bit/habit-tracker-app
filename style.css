@@ -92,6 +92,14 @@ body {
   overflow-x: hidden;
   padding-bottom: 90px;
   overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.goals-grid::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .goal-card {
