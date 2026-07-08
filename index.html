@@ -12,7 +12,7 @@
   <main class="app">
 
     <section class="screen active" id="homeScreen">
-      <button class="menu-button" id="openSettingsButton">☰</button>
+      <button class="menu-button" id="openMenuButton">☰</button>
 
       <header class="home-header">
         <div class="brand">
@@ -22,9 +22,17 @@
       </header>
 
       <section class="goals-grid" id="goalsGrid"></section>
-
-      <button class="floating-add-button" id="openAddButton">+</button>
     </section>
+
+    <aside class="side-menu" id="sideMenu">
+      <button class="side-menu-close" id="closeMenuButton">☰</button>
+
+      <nav class="side-menu-options">
+        <button id="openStatsFromMenu">סטטיסטיקות</button>
+        <button id="openPodiumFromMenu">פודיום</button>
+        <button id="openAddFromMenu">הוספת אתגר</button>
+      </nav>
+    </aside>
 
     <section class="screen" id="addScreen">
       <button class="back-button" data-target="homeScreen">←</button>
@@ -91,10 +99,10 @@
       <button class="delete-button" id="deleteGoalButton">מחק אתגר</button>
     </section>
 
-    <section class="screen" id="settingsScreen">
+    <section class="screen" id="statsScreen">
       <button class="back-button" data-target="homeScreen">←</button>
 
-      <h1 class="screen-title">הגדרות כלליות</h1>
+      <h1 class="screen-title">סטטיסטיקות</h1>
 
       <div class="stats-card">
         <h2>סטטיסטיקה כוללת</h2>
@@ -102,6 +110,12 @@
         <p id="completedGoalsText"></p>
         <p id="averageProgressText"></p>
       </div>
+    </section>
+
+    <section class="screen" id="podiumScreen">
+      <button class="back-button" data-target="homeScreen">←</button>
+
+      <h1 class="screen-title">פודיום</h1>
 
       <div class="stats-card">
         <h2>פודיום משפחתי</h2>
