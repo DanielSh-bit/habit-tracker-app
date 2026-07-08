@@ -55,9 +55,40 @@
       </form>
     </section>
 
-    <section class="screen" id="goalScreen">
+    <section class="screen goal-screen" id="goalScreen">
       <button class="back-button" data-target="homeScreen">←</button>
-      <div id="goalDetails"></div>
+      <div class="goal-details-wrapper" id="goalDetails"></div>
+    </section>
+
+    <section class="screen" id="goalSettingsScreen">
+      <button class="back-button" data-target="goalScreen">←</button>
+
+      <h1 class="screen-title">הגדרות אתגר</h1>
+
+      <form class="form-card" id="editGoalForm">
+        <label>
+          שם האתגר
+          <input type="text" id="editGoalNameInput" required>
+        </label>
+
+        <label>
+          סוג אתגר
+          <select id="editGoalTypeInput">
+            <option value="yesno">כן / לא</option>
+            <option value="counter">מונה</option>
+            <option value="number">מספר</option>
+          </select>
+        </label>
+
+        <label>
+          יעד
+          <input type="number" id="editGoalTargetInput" min="1" required>
+        </label>
+
+        <button type="submit">שמור שינויים</button>
+      </form>
+
+      <button class="delete-button" id="deleteGoalButton">מחק אתגר</button>
     </section>
 
     <section class="screen" id="settingsScreen">
