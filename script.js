@@ -1,4 +1,288 @@
-console.log("האפליקציה נטענה בהצלחה");
+const STORAGE_KEY = "levelup_goals";
+
+function getTodayKey() {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getDefaultGoals() {
+  return [
+    {
+      id: "workout",
+      title: "אימון",
+      type: "yesno",
+      target: 1,
+      records: {}
+    },
+    {
+      id: "water",
+      title: "מים",
+      type: "counter",
+      target: 8,
+      records: {}
+    },
+    {
+      id: "sleep",
+      title: "שינה",
+      type: "number",
+      target: 8,
+      records: {}
+    }
+  ];
+}
+
+function loadGoals() {
+  const savedGoals = localStorage.getItem(STORAGE_KEY);
+
+  if (!savedGoals) {
+    const defaultGoals = getDefaultGoals();
+    saveGoals(defaultGoals);
+    return defaultGoals;
+  }
+
+  return JSON.parse(savedGoals);
+}
+
+function saveGoals(goalsToSave) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(goalsToSave));
+}
+
+let goals = loadGoals();
+
+function getTodayValue(goal) {
+  const today = getTodayKey();
+  return Number(goal.records[today] || 0);
+}
+
+function getProgress(goal) {
+  const value = getTodayValue(goal);
+  const progress = Math.round((value / goal.target) * 100);
+  return Math.min(progress, 100);
+}
+
+function getFlameClass(progress) {
+  if (progress >= 100) return "flame-100";
+  if (progress >= 90) return "flame-90";
+  if (progress >= 75) return "flame-75";
+  if (progress >= 60) return "flame-60";
+  if (progress >= 45) return "flame-45";
+  if (progress >= 30) return "flame-30";
+  if (progress >= 15) return "flame-15";
+  return "flame-0";
+}
+
+function getGoalTypeName(type) {
+  if (type === "yesno") return "כן / לא";
+  if (type === "counter") return "מונה";
+  if (type === "number") return "מספר";
+  return "לא ידוע";
+}
+
+function showScreen(screenId) {
+  document.querySelectorAll(".screen").forEach(function(screen) {
+    screen.classList.remove("active");
+  });
+
+  document.getElementById(screenId).classList.add("active");
+
+  if (screenId === "homeScreen") {
+    renderHome();
+  }
+
+  if (screenId === "settingsScreen") {
+    renderSettings();
+  }
+}
+
+function renderHome() {
+  const goalsGrid = document.getElementById("goalsGrid");
+  goalsGrid.innerHTML = "";
+
+  goals.forEach(function(goal) {
+    const progress = getProgress(goal);
+    const flameClass = getFlameClass(progress);
+
+    const card = document.createElement("article");
+    card.className = "goal-card";
+
+    card.innerHTML = `
+      <div class="goal-title">
+        <h2>${goal.title}</h2>
+      </div>
+
+      <div class="goal-status">
+        <div class="flame ${flameClass}">
+          <span></span>
+        </div>
+        <strong>${progress}%</strong>
+      </div>
+    `;
+
+    card.addEventListener("click", function() {
+      openGoal(goal.id);
+    });
+
+    goalsGrid.appendChild(card);
+  });
+}
+
+function openGoal(goalId) {
+  const goal = goals.find(function(item) {
+    return item.id === goalId;
+  });
+
+  if (!goal) return;
+
+  const value = getTodayValue(goal);
+  const progress = getProgress(goal);
+  const flameClass = getFlameClass(progress);
+  const details = document.getElementById("goalDetails");
+
+  let actionHtml = "";
+
+  if (goal.type === "yesno") {
+    actionHtml = `
+      <button class="action-button" id="markYesNoButton">
+        ${value >= 1 ? "בטל סימון היום" : "סמן שבוצע היום"}
+      </button>
+    `;
+  } else {
+    actionHtml = `
+      <div class="detail-actions">
+        <button id="decreaseButton">-</button>
+        <button id="increaseButton">+</button>
+      </div>
+    `;
+  }
+
+  details.innerHTML = `
+    <div class="detail-card">
+      <h1 class="screen-title">${goal.title}</h1>
+
+      <div class="goal-status">
+        <div class="flame ${flameClass}">
+          <span></span>
+        </div>
+        <strong>${progress}%</strong>
+      </div>
+
+      <p>היום: ${value} מתוך ${goal.target}</p>
+      <p>סוג: ${getGoalTypeName(goal.type)}</p>
+
+      ${actionHtml}
+    </div>
+  `;
+
+  showScreen("goalScreen");
+
+  if (goal.type === "yesno") {
+    document.getElementById("markYesNoButton").addEventListener("click", function() {
+      setTodayValue(goal.id, value >= 1 ? 0 : 1);
+      openGoal(goal.id);
+    });
+  } else {
+    document.getElementById("increaseButton").addEventListener("click", function() {
+      setTodayValue(goal.id, value + 1);
+      openGoal(goal.id);
+    });
+
+    document.getElementById("decreaseButton").addEventListener("click", function() {
+      setTodayValue(goal.id, Math.max(0, value - 1));
+      openGoal(goal.id);
+    });
+  }
+}
+
+function setTodayValue(goalId, newValue) {
+  const today = getTodayKey();
+
+  goals = goals.map(function(goal) {
+    if (goal.id !== goalId) return goal;
+
+    return {
+      ...goal,
+      records: {
+        ...goal.records,
+        [today]: newValue
+      }
+    };
+  });
+
+  saveGoals(goals);
+}
+
+function renderSettings() {
+  const totalGoals = goals.length;
+
+  const completedGoals = goals.filter(function(goal) {
+    return getProgress(goal) >= 100;
+  }).length;
+
+  const averageProgress = totalGoals === 0
+    ? 0
+    : Math.round(
+        goals.reduce(function(sum, goal) {
+          return sum + getProgress(goal);
+        }, 0) / totalGoals
+      );
+
+  document.getElementById("totalGoalsText").textContent = `מספר אתגרים: ${totalGoals}`;
+  document.getElementById("completedGoalsText").textContent = `הושלמו היום: ${completedGoals}`;
+  document.getElementById("averageProgressText").textContent = `ממוצע התקדמות: ${averageProgress}%`;
+
+  document.getElementById("podiumList").innerHTML = `
+    <li>אתה — ${averageProgress} נקודות</li>
+    <li>משפחה — יתחבר בהמשך</li>
+    <li>משפחה — יתחבר בהמשך</li>
+  `;
+}
+
+function addGoal(event) {
+  event.preventDefault();
+
+  const title = document.getElementById("goalNameInput").value.trim();
+  const type = document.getElementById("goalTypeInput").value;
+  const target = Number(document.getElementById("goalTargetInput").value);
+
+  if (!title || target <= 0) return;
+
+  const newGoal = {
+    id: `goal-${Date.now()}`,
+    title: title,
+    type: type,
+    target: target,
+    records: {}
+  };
+
+  goals.push(newGoal);
+  saveGoals(goals);
+
+  document.getElementById("addGoalForm").reset();
+  showScreen("homeScreen");
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  renderHome();
+
+  document.getElementById("openAddButton").addEventListener("click", function() {
+    showScreen("addScreen");
+  });
+
+  document.getElementById("openSettingsButton").addEventListener("click", function() {
+    showScreen("settingsScreen");
+  });
+
+  document.querySelectorAll(".back-button").forEach(function(button) {
+    button.addEventListener("click", function() {
+      showScreen(button.dataset.target);
+    });
+  });
+
+  document.getElementById("addGoalForm").addEventListener("submit", addGoal);
+});
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
