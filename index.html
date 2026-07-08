@@ -11,57 +11,72 @@
 <body>
   <main class="app">
 
-    <header class="home-header">
-      <div class="brand">
-        <h1>LevelUp</h1>
-        <p>Home Screen</p>
-      </div>
-    </header>
+    <button class="menu-button" id="openSettingsButton">☰</button>
 
-    <section class="goals-grid">
-
-      <article class="goal-card">
-        <div class="goal-title">
-          <h2>אימון</h2>
+    <section class="screen active" id="homeScreen">
+      <header class="home-header">
+        <div class="brand">
+          <h1>LevelUp</h1>
+          <p>Home Screen</p>
         </div>
+      </header>
 
-        <div class="goal-status">
-          <div class="flame flame-15">
-            <span></span>
-          </div>
-          <strong>15%</strong>
-        </div>
-      </article>
+      <section class="goals-grid" id="goalsGrid"></section>
 
-      <article class="goal-card">
-        <div class="goal-title">
-          <h2>מים</h2>
-        </div>
-
-        <div class="goal-status">
-          <div class="flame flame-45">
-            <span></span>
-          </div>
-          <strong>45%</strong>
-        </div>
-      </article>
-
-      <article class="goal-card">
-        <div class="goal-title">
-          <h2>שינה</h2>
-        </div>
-
-        <div class="goal-status">
-          <div class="flame flame-75">
-            <span></span>
-          </div>
-          <strong>75%</strong>
-        </div>
-      </article>
-
+      <button class="floating-add-button" id="openAddButton">+</button>
     </section>
 
-    <button class="floating-add-button">+</button>
+    <section class="screen" id="addScreen">
+      <button class="back-button" data-target="homeScreen">חזרה</button>
+
+      <h1 class="screen-title">אתגר חדש</h1>
+
+      <form class="form-card" id="addGoalForm">
+        <label>
+          שם האתגר
+          <input type="text" id="goalNameInput" placeholder="לדוגמה: ריצה" required>
+        </label>
+
+        <label>
+          סוג אתגר
+          <select id="goalTypeInput">
+            <option value="yesno">כן / לא</option>
+            <option value="counter">מונה</option>
+            <option value="number">מספר</option>
+          </select>
+        </label>
+
+        <label>
+          יעד
+          <input type="number" id="goalTargetInput" value="1" min="1" required>
+        </label>
+
+        <button type="submit">צור אתגר</button>
+      </form>
+    </section>
+
+    <section class="screen" id="goalScreen">
+      <button class="back-button" data-target="homeScreen">חזרה</button>
+      <div id="goalDetails"></div>
+    </section>
+
+    <section class="screen" id="settingsScreen">
+      <button class="back-button" data-target="homeScreen">חזרה</button>
+
+      <h1 class="screen-title">הגדרות כלליות</h1>
+
+      <div class="stats-card">
+        <h2>סטטיסטיקה כוללת</h2>
+        <p id="totalGoalsText"></p>
+        <p id="completedGoalsText"></p>
+        <p id="averageProgressText"></p>
+      </div>
+
+      <div class="stats-card">
+        <h2>פודיום משפחתי</h2>
+        <ol class="podium-list" id="podiumList"></ol>
+      </div>
+    </section>
 
   </main>
 
