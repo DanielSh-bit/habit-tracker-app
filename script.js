@@ -192,6 +192,8 @@ function openGoal(goalId, addToHistory = true) {
 
   details.innerHTML = `
     <div class="detail-card">
+      <button class="goal-options-button" id="openGoalSettingsButton">⋮</button>
+
       <h1 class="screen-title">${goal.title}</h1>
 
       <div class="goal-status">
@@ -210,6 +212,11 @@ function openGoal(goalId, addToHistory = true) {
 
   showScreen("goalScreen", addToHistory);
 
+  document.getElementById("openGoalSettingsButton").addEventListener("click", function(event) {
+    event.stopPropagation();
+    openGoalSettings(goal.id);
+  });
+
   if (goal.type === "yesno") {
     document.getElementById("markYesNoButton").addEventListener("click", function() {
       setTodayValue(goal.id, value >= 1 ? 0 : 1);
@@ -226,6 +233,22 @@ function openGoal(goalId, addToHistory = true) {
       openGoal(goal.id, false);
     });
   }
+}
+
+function openGoalSettings(goalId, addToHistory = true) {
+  const goal = goals.find(function(item) {
+    return item.id === goalId;
+  });
+
+  if (!goal) return;
+
+  currentGoalId = goalId;
+
+  document.getElementById("editGoalNameInput").value = goal.title;
+  document.getElementById("editGoalTypeInput").value = goal.type;
+  document.getElementById("editGoalTargetInput").value = goal.target;
+
+  showScreen("goalSettingsScreen", addToHistory);
 }
 
 function setTodayValue(goalId, newValue) {
@@ -296,6 +319,47 @@ function addGoal(event) {
   showScreen("homeScreen");
 }
 
+function editGoal(event) {
+  event.preventDefault();
+
+  if (!currentGoalId) return;
+
+  const title = document.getElementById("editGoalNameInput").value.trim();
+  const type = document.getElementById("editGoalTypeInput").value;
+  const target = Number(document.getElementById("editGoalTargetInput").value);
+
+  if (!title || target <= 0) return;
+
+  goals = goals.map(function(goal) {
+    if (goal.id !== currentGoalId) return goal;
+
+    return {
+      ...goal,
+      title: title,
+      type: type,
+      target: target
+    };
+  });
+
+  saveGoals(goals);
+  openGoal(currentGoalId, false);
+}
+
+function deleteCurrentGoal() {
+  if (!currentGoalId) return;
+
+  const shouldDelete = confirm("למחוק את האתגר הזה?");
+
+  if (!shouldDelete) return;
+
+  goals = goals.filter(function(goal) {
+    return goal.id !== currentGoalId;
+  });
+
+  saveGoals(goals);
+  showScreen("homeScreen");
+}
+
 window.addEventListener("popstate", function(event) {
   const state = event.state;
 
@@ -306,6 +370,11 @@ window.addEventListener("popstate", function(event) {
 
   if (state.screenId === "goalScreen" && state.goalId) {
     openGoal(state.goalId, false);
+    return;
+  }
+
+  if (state.screenId === "goalSettingsScreen" && state.goalId) {
+    openGoalSettings(state.goalId, false);
     return;
   }
 
@@ -337,6 +406,8 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   document.getElementById("addGoalForm").addEventListener("submit", addGoal);
+  document.getElementById("editGoalForm").addEventListener("submit", editGoal);
+  document.getElementById("deleteGoalButton").addEventListener("click", deleteCurrentGoal);
 });
 
 if ("serviceWorker" in navigator) {
