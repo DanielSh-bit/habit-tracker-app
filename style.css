@@ -27,17 +27,17 @@ body {
   position: fixed;
   right: 22px;
   top: 22px;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border: none;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #111827;
-  font-size: 28px;
+  background: transparent;
+  color: #000000;
+  font-size: 32px;
   font-weight: 900;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
   cursor: pointer;
   z-index: 100;
+  padding: 0;
+  line-height: 44px;
 }
 
 .home-header {
@@ -218,19 +218,24 @@ body {
 }
 
 .back-button {
+  position: fixed;
+  left: 22px;
+  top: 22px;
+  width: 44px;
+  height: 44px;
   border: none;
-  border-radius: 14px;
-  padding: 12px 18px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #111827;
-  font-size: 16px;
-  font-weight: 800;
+  background: transparent;
+  color: #000000;
+  font-size: 38px;
+  font-weight: 900;
   cursor: pointer;
-  margin-bottom: 20px;
+  z-index: 100;
+  padding: 0;
+  line-height: 44px;
 }
 
 .screen-title {
-  margin: 0 0 18px;
+  margin: 70px 0 18px;
   font-size: 32px;
   font-weight: 900;
   color: #0f172a;
