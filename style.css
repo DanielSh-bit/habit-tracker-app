@@ -1,3 +1,17 @@
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input,
+select,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -234,11 +248,53 @@ body {
   line-height: 44px;
 }
 
+.goal-screen {
+  min-height: calc(100vh - 126px);
+}
+
+.goal-details-wrapper {
+  min-height: calc(100vh - 126px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.goal-details-wrapper .detail-card {
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 190px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.goal-options-button {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 36px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: #000000;
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 36px;
+  cursor: pointer;
+  padding: 0;
+}
+
 .screen-title {
   margin: 70px 0 18px;
   font-size: 32px;
   font-weight: 900;
   color: #0f172a;
+}
+
+.goal-details-wrapper .screen-title {
+  margin: 0 0 24px;
+  text-align: center;
 }
 
 .form-card,
@@ -297,6 +353,18 @@ body {
   color: white;
   font-size: 20px;
   font-weight: 900;
+}
+
+.delete-button {
+  width: 100%;
+  border: none;
+  border-radius: 16px;
+  padding: 15px;
+  background: #991b1b;
+  color: white;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
 }
 
 .podium-list {
