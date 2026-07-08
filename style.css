@@ -45,6 +45,17 @@ body {
   overflow: hidden;
 }
 
+.screen:not(#homeScreen).active {
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.screen:not(#homeScreen).active::-webkit-scrollbar {
+  display: none;
+}
+
 .menu-button {
   position: fixed;
   right: 22px;
@@ -60,6 +71,62 @@ body {
   z-index: 100;
   padding: 0;
   line-height: 44px;
+}
+
+.side-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 72vw;
+  max-width: 310px;
+  height: 100vh;
+  background: #050505;
+  z-index: 300;
+  transform: translateX(100%);
+  transition: transform 0.28s ease;
+  padding: 22px 18px;
+  box-sizing: border-box;
+  box-shadow: -12px 0 30px rgba(0, 0, 0, 0.35);
+}
+
+.side-menu.open {
+  transform: translateX(0);
+}
+
+.side-menu-close {
+  position: absolute;
+  left: 16px;
+  top: 20px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 32px;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 0;
+  line-height: 44px;
+}
+
+.side-menu-options {
+  margin-top: 86px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.side-menu-options button {
+  width: 100%;
+  border: none;
+  border-radius: 20px;
+  padding: 18px;
+  background: #242424;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 900;
+  text-align: right;
+  cursor: pointer;
 }
 
 .home-header {
@@ -90,7 +157,7 @@ body {
   gap: 14px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: 90px;
+  padding-bottom: 22px;
   overscroll-behavior: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -234,23 +301,6 @@ body {
     transform: translateX(-50%) rotate(48deg) scale(1.05);
     opacity: 0.9;
   }
-}
-
-.floating-add-button {
-  position: fixed;
-  right: 22px;
-  bottom: 24px;
-  width: 58px;
-  height: 58px;
-  border: none;
-  border-radius: 50%;
-  background: #111827;
-  color: white;
-  font-size: 36px;
-  line-height: 58px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
-  cursor: pointer;
-  z-index: 100;
 }
 
 .back-button {
