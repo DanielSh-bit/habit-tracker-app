@@ -107,32 +107,18 @@
       </header>
 
       <section class="ranking-list" id="rankingList"></section>
-
-      <button class="floating-add-button" id="openAddFriendButton">+</button>
     </section>
 
-    <section class="screen" id="addFriendScreen">
-      <button class="back-button" data-target="rankingScreen">←</button>
+    <section class="screen" id="nameScreen">
+      <h1 class="screen-title">איך קוראים לך?</h1>
 
-      <h1 class="screen-title">חבר חדש</h1>
-
-      <form class="form-card" id="addFriendForm">
+      <form class="form-card" id="nameForm">
         <label>
           שם
-          <input type="text" id="friendNameInput" placeholder="לדוגמה: נועם" required>
+          <input type="text" id="playerNameInput" placeholder="לדוגמה: דניאל" required>
         </label>
 
-        <label>
-          ציון נוכחי
-          <input type="number" id="friendCurrentScoreInput" value="0" min="0" required>
-        </label>
-
-        <label>
-          שיא אישי
-          <input type="number" id="friendBestScoreInput" value="0" min="0" required>
-        </label>
-
-        <button type="submit">הוסף לדירוג</button>
+        <button type="submit">המשך</button>
       </form>
     </section>
 
