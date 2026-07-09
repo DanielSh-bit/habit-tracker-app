@@ -28,8 +28,7 @@
 
     <aside class="side-menu" id="sideMenu">
       <nav class="side-menu-options">
-        <button id="openStatsFromMenu">סטטיסטיקות</button>
-        <button id="openPodiumFromMenu">פודיום</button>
+        <button id="openRankingFromMenu">דירוג</button>
         <button id="openAddFromMenu">הוספת אתגר</button>
       </nav>
     </aside>
@@ -99,28 +98,42 @@
       <button class="delete-button" id="deleteGoalButton">מחק אתגר</button>
     </section>
 
-    <section class="screen" id="statsScreen">
+    <section class="screen ranking-screen" id="rankingScreen">
       <button class="back-button" data-target="homeScreen">←</button>
 
-      <h1 class="screen-title">סטטיסטיקות</h1>
+      <header class="ranking-header">
+        <h1>דירוג</h1>
+        <button id="toggleRankingSortButton">נוכחי</button>
+      </header>
 
-      <div class="stats-card">
-        <h2>סטטיסטיקה כוללת</h2>
-        <p id="totalGoalsText"></p>
-        <p id="completedGoalsText"></p>
-        <p id="averageProgressText"></p>
-      </div>
+      <section class="ranking-list" id="rankingList"></section>
+
+      <button class="floating-add-button" id="openAddFriendButton">+</button>
     </section>
 
-    <section class="screen" id="podiumScreen">
-      <button class="back-button" data-target="homeScreen">←</button>
+    <section class="screen" id="addFriendScreen">
+      <button class="back-button" data-target="rankingScreen">←</button>
 
-      <h1 class="screen-title">פודיום</h1>
+      <h1 class="screen-title">חבר חדש</h1>
 
-      <div class="stats-card">
-        <h2>פודיום משפחתי</h2>
-        <ol class="podium-list" id="podiumList"></ol>
-      </div>
+      <form class="form-card" id="addFriendForm">
+        <label>
+          שם
+          <input type="text" id="friendNameInput" placeholder="לדוגמה: נועם" required>
+        </label>
+
+        <label>
+          ציון נוכחי
+          <input type="number" id="friendCurrentScoreInput" value="0" min="0" required>
+        </label>
+
+        <label>
+          שיא אישי
+          <input type="number" id="friendBestScoreInput" value="0" min="0" required>
+        </label>
+
+        <button type="submit">הוסף לדירוג</button>
+      </form>
     </section>
 
   </main>
