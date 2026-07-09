@@ -84,7 +84,17 @@ function getGoalTypeName(type) {
   return "לא ידוע";
 }
 
+function openMenu() {
+  document.getElementById("sideMenu").classList.add("open");
+}
+
+function closeMenu() {
+  document.getElementById("sideMenu").classList.remove("open");
+}
+
 function showScreen(screenId, addToHistory = true) {
+  closeMenu();
+
   currentScreenId = screenId;
 
   document.querySelectorAll(".screen").forEach(function(screen) {
@@ -98,9 +108,14 @@ function showScreen(screenId, addToHistory = true) {
     renderHome();
   }
 
-  if (screenId === "settingsScreen") {
+  if (screenId === "statsScreen") {
     currentGoalId = null;
-    renderSettings();
+    renderStats();
+  }
+
+  if (screenId === "podiumScreen") {
+    currentGoalId = null;
+    renderPodium();
   }
 
   if (screenId === "addScreen") {
@@ -120,6 +135,11 @@ function showScreen(screenId, addToHistory = true) {
 }
 
 function goBack() {
+  if (document.getElementById("sideMenu").classList.contains("open")) {
+    closeMenu();
+    return;
+  }
+
   if (currentScreenId === "homeScreen") {
     return;
   }
@@ -269,7 +289,7 @@ function setTodayValue(goalId, newValue) {
   saveGoals(goals);
 }
 
-function renderSettings() {
+function renderStats() {
   const totalGoals = goals.length;
 
   const completedGoals = goals.filter(function(goal) {
@@ -287,6 +307,18 @@ function renderSettings() {
   document.getElementById("totalGoalsText").textContent = `מספר אתגרים: ${totalGoals}`;
   document.getElementById("completedGoalsText").textContent = `הושלמו היום: ${completedGoals}`;
   document.getElementById("averageProgressText").textContent = `ממוצע התקדמות: ${averageProgress}%`;
+}
+
+function renderPodium() {
+  const totalGoals = goals.length;
+
+  const averageProgress = totalGoals === 0
+    ? 0
+    : Math.round(
+        goals.reduce(function(sum, goal) {
+          return sum + getProgress(goal);
+        }, 0) / totalGoals
+      );
 
   document.getElementById("podiumList").innerHTML = `
     <li>אתה — ${averageProgress} נקודות</li>
@@ -363,6 +395,11 @@ function deleteCurrentGoal() {
 window.addEventListener("popstate", function(event) {
   const state = event.state;
 
+  if (document.getElementById("sideMenu").classList.contains("open")) {
+    closeMenu();
+    return;
+  }
+
   if (!state || state.screenId === "homeScreen") {
     showScreen("homeScreen", false);
     return;
@@ -393,12 +430,19 @@ document.addEventListener("DOMContentLoaded", function() {
 
   renderHome();
 
-  document.getElementById("openAddButton").addEventListener("click", function() {
-    showScreen("addScreen");
+  document.getElementById("openMenuButton").addEventListener("click", openMenu);
+  document.getElementById("closeMenuButton").addEventListener("click", closeMenu);
+
+  document.getElementById("openStatsFromMenu").addEventListener("click", function() {
+    showScreen("statsScreen");
   });
 
-  document.getElementById("openSettingsButton").addEventListener("click", function() {
-    showScreen("settingsScreen");
+  document.getElementById("openPodiumFromMenu").addEventListener("click", function() {
+    showScreen("podiumScreen");
+  });
+
+  document.getElementById("openAddFromMenu").addEventListener("click", function() {
+    showScreen("addScreen");
   });
 
   document.querySelectorAll(".back-button").forEach(function(button) {
