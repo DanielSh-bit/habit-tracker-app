@@ -1,7 +1,10 @@
 const STORAGE_KEY = "levelup_goals";
+const FRIENDS_KEY = "levelup_friends";
+const USER_BEST_SCORE_KEY = "levelup_user_best_score";
 
 let currentScreenId = "homeScreen";
 let currentGoalId = null;
+let rankingSortMode = "current";
 
 function getTodayKey() {
   const date = new Date();
@@ -53,7 +56,24 @@ function saveGoals(goalsToSave) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(goalsToSave));
 }
 
+function loadFriends() {
+  const savedFriends = localStorage.getItem(FRIENDS_KEY);
+
+  if (!savedFriends) {
+    const defaultFriends = [];
+    saveFriends(defaultFriends);
+    return defaultFriends;
+  }
+
+  return JSON.parse(savedFriends);
+}
+
+function saveFriends(friendsToSave) {
+  localStorage.setItem(FRIENDS_KEY, JSON.stringify(friendsToSave));
+}
+
 let goals = loadGoals();
+let friends = loadFriends();
 
 function getTodayValue(goal) {
   const today = getTodayKey();
@@ -64,6 +84,26 @@ function getProgress(goal) {
   const value = getTodayValue(goal);
   const progress = Math.round((value / goal.target) * 100);
   return Math.min(progress, 100);
+}
+
+function getUserCurrentScore() {
+  if (goals.length === 0) return 0;
+
+  return Math.round(
+    goals.reduce(function(sum, goal) {
+      return sum + getProgress(goal);
+    }, 0) / goals.length
+  );
+}
+
+function getUserBestScore() {
+  const currentScore = getUserCurrentScore();
+  const savedBestScore = Number(localStorage.getItem(USER_BEST_SCORE_KEY) || 0);
+  const bestScore = Math.max(currentScore, savedBestScore);
+
+  localStorage.setItem(USER_BEST_SCORE_KEY, String(bestScore));
+
+  return bestScore;
 }
 
 function getFlameClass(progress) {
@@ -110,17 +150,16 @@ function showScreen(screenId, addToHistory = true) {
     renderHome();
   }
 
-  if (screenId === "statsScreen") {
+  if (screenId === "rankingScreen") {
     currentGoalId = null;
-    renderStats();
-  }
-
-  if (screenId === "podiumScreen") {
-    currentGoalId = null;
-    renderPodium();
+    renderRanking();
   }
 
   if (screenId === "addScreen") {
+    currentGoalId = null;
+  }
+
+  if (screenId === "addFriendScreen") {
     currentGoalId = null;
   }
 
@@ -291,42 +330,49 @@ function setTodayValue(goalId, newValue) {
   saveGoals(goals);
 }
 
-function renderStats() {
-  const totalGoals = goals.length;
+function renderRanking() {
+  const userCurrentScore = getUserCurrentScore();
+  const userBestScore = getUserBestScore();
 
-  const completedGoals = goals.filter(function(goal) {
-    return getProgress(goal) >= 100;
-  }).length;
+  const rankingItems = [
+    {
+      id: "me",
+      name: "אתה",
+      currentScore: userCurrentScore,
+      bestScore: userBestScore
+    },
+    ...friends
+  ];
 
-  const averageProgress = totalGoals === 0
-    ? 0
-    : Math.round(
-        goals.reduce(function(sum, goal) {
-          return sum + getProgress(goal);
-        }, 0) / totalGoals
-      );
+  rankingItems.sort(function(a, b) {
+    if (rankingSortMode === "best") {
+      return b.bestScore - a.bestScore;
+    }
 
-  document.getElementById("totalGoalsText").textContent = `מספר אתגרים: ${totalGoals}`;
-  document.getElementById("completedGoalsText").textContent = `הושלמו היום: ${completedGoals}`;
-  document.getElementById("averageProgressText").textContent = `ממוצע התקדמות: ${averageProgress}%`;
-}
+    return b.currentScore - a.currentScore;
+  });
 
-function renderPodium() {
-  const totalGoals = goals.length;
+  const rankingList = document.getElementById("rankingList");
+  rankingList.innerHTML = "";
 
-  const averageProgress = totalGoals === 0
-    ? 0
-    : Math.round(
-        goals.reduce(function(sum, goal) {
-          return sum + getProgress(goal);
-        }, 0) / totalGoals
-      );
+  rankingItems.forEach(function(item) {
+    const row = document.createElement("article");
+    row.className = "ranking-row";
 
-  document.getElementById("podiumList").innerHTML = `
-    <li>אתה — ${averageProgress} נקודות</li>
-    <li>משפחה — יתחבר בהמשך</li>
-    <li>משפחה — יתחבר בהמשך</li>
-  `;
+    row.innerHTML = `
+      <div class="ranking-name">${item.name}</div>
+
+      <div class="ranking-scores">
+        <div class="score current">${item.currentScore}</div>
+        <div class="score best">${item.bestScore}</div>
+      </div>
+    `;
+
+    rankingList.appendChild(row);
+  });
+
+  document.getElementById("toggleRankingSortButton").textContent =
+    rankingSortMode === "current" ? "נוכחי" : "שיא";
 }
 
 function addGoal(event) {
@@ -351,6 +397,30 @@ function addGoal(event) {
 
   document.getElementById("addGoalForm").reset();
   showScreen("homeScreen");
+}
+
+function addFriend(event) {
+  event.preventDefault();
+
+  const name = document.getElementById("friendNameInput").value.trim();
+  const currentScore = Number(document.getElementById("friendCurrentScoreInput").value);
+  const bestScoreInput = Number(document.getElementById("friendBestScoreInput").value);
+  const bestScore = Math.max(currentScore, bestScoreInput);
+
+  if (!name) return;
+
+  const newFriend = {
+    id: `friend-${Date.now()}`,
+    name: name,
+    currentScore: currentScore,
+    bestScore: bestScore
+  };
+
+  friends.push(newFriend);
+  saveFriends(friends);
+
+  document.getElementById("addFriendForm").reset();
+  showScreen("rankingScreen");
 }
 
 function editGoal(event) {
@@ -394,6 +464,11 @@ function deleteCurrentGoal() {
   showScreen("homeScreen");
 }
 
+function toggleRankingSort() {
+  rankingSortMode = rankingSortMode === "current" ? "best" : "current";
+  renderRanking();
+}
+
 window.addEventListener("popstate", function(event) {
   const state = event.state;
 
@@ -435,17 +510,19 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("openMenuButton").addEventListener("click", openMenu);
   document.getElementById("menuOverlay").addEventListener("click", closeMenu);
 
-  document.getElementById("openStatsFromMenu").addEventListener("click", function() {
-    showScreen("statsScreen");
-  });
-
-  document.getElementById("openPodiumFromMenu").addEventListener("click", function() {
-    showScreen("podiumScreen");
+  document.getElementById("openRankingFromMenu").addEventListener("click", function() {
+    showScreen("rankingScreen");
   });
 
   document.getElementById("openAddFromMenu").addEventListener("click", function() {
     showScreen("addScreen");
   });
+
+  document.getElementById("openAddFriendButton").addEventListener("click", function() {
+    showScreen("addFriendScreen");
+  });
+
+  document.getElementById("toggleRankingSortButton").addEventListener("click", toggleRankingSort);
 
   document.querySelectorAll(".back-button").forEach(function(button) {
     button.addEventListener("click", goBack);
@@ -454,6 +531,7 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("addGoalForm").addEventListener("submit", addGoal);
   document.getElementById("editGoalForm").addEventListener("submit", editGoal);
   document.getElementById("deleteGoalButton").addEventListener("click", deleteCurrentGoal);
+  document.getElementById("addFriendForm").addEventListener("submit", addFriend);
 });
 
 if ("serviceWorker" in navigator) {
