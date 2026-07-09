@@ -25,7 +25,7 @@ body {
 
 .app {
   height: 100vh;
-  padding: 26px 20px 100px;
+  padding: 26px 20px 22px;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -73,6 +73,19 @@ body {
   line-height: 44px;
 }
 
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 250;
+}
+
+.menu-overlay.open {
+  pointer-events: auto;
+}
+
 .side-menu {
   position: fixed;
   top: 0;
@@ -93,24 +106,8 @@ body {
   transform: translateX(0);
 }
 
-.side-menu-close {
-  position: absolute;
-  left: 16px;
-  top: 20px;
-  width: 44px;
-  height: 44px;
-  border: none;
-  background: transparent;
-  color: #ffffff;
-  font-size: 32px;
-  font-weight: 900;
-  cursor: pointer;
-  padding: 0;
-  line-height: 44px;
-}
-
 .side-menu-options {
-  margin-top: 86px;
+  margin-top: 72px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -157,7 +154,7 @@ body {
   gap: 14px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: 22px;
+  padding-bottom: 6px;
   overscroll-behavior: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -321,7 +318,7 @@ body {
 }
 
 .goal-screen {
-  margin: -26px -20px -100px;
+  margin: -26px -20px -22px;
   min-height: 100vh;
   padding: 84px 20px 22px;
   box-sizing: border-box;
