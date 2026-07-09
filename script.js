@@ -1,6 +1,10 @@
 const STORAGE_KEY = "levelup_goals";
-const FRIENDS_KEY = "levelup_friends";
+const PLAYER_NAME_KEY = "levelup_player_name";
+const DEVICE_ID_KEY = "levelup_device_id";
 const USER_BEST_SCORE_KEY = "levelup_user_best_score";
+
+const SUPABASE_URL = "https://gkkdwwprhfsgtzjpnwaj.supabase.co/rest/v1";
+const SUPABASE_KEY = "sb_publishable_zgmgY6On7ttFUxsuXWrEKA_zTYwJmim";
 
 let currentScreenId = "homeScreen";
 let currentGoalId = null;
@@ -12,6 +16,25 @@ function getTodayKey() {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function getDeviceId() {
+  let deviceId = localStorage.getItem(DEVICE_ID_KEY);
+
+  if (!deviceId) {
+    deviceId = `device-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    localStorage.setItem(DEVICE_ID_KEY, deviceId);
+  }
+
+  return deviceId;
+}
+
+function getPlayerName() {
+  return localStorage.getItem(PLAYER_NAME_KEY) || "";
+}
+
+function savePlayerName(name) {
+  localStorage.setItem(PLAYER_NAME_KEY, name);
 }
 
 function getDefaultGoals() {
@@ -56,24 +79,7 @@ function saveGoals(goalsToSave) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(goalsToSave));
 }
 
-function loadFriends() {
-  const savedFriends = localStorage.getItem(FRIENDS_KEY);
-
-  if (!savedFriends) {
-    const defaultFriends = [];
-    saveFriends(defaultFriends);
-    return defaultFriends;
-  }
-
-  return JSON.parse(savedFriends);
-}
-
-function saveFriends(friendsToSave) {
-  localStorage.setItem(FRIENDS_KEY, JSON.stringify(friendsToSave));
-}
-
 let goals = loadGoals();
-let friends = loadFriends();
 
 function getTodayValue(goal) {
   const today = getTodayKey();
@@ -159,7 +165,7 @@ function showScreen(screenId, addToHistory = true) {
     currentGoalId = null;
   }
 
-  if (screenId === "addFriendScreen") {
+  if (screenId === "nameScreen") {
     currentGoalId = null;
   }
 
@@ -328,43 +334,91 @@ function setTodayValue(goalId, newValue) {
   });
 
   saveGoals(goals);
+  syncPlayer();
 }
 
-function renderRanking() {
-  const userCurrentScore = getUserCurrentScore();
-  const userBestScore = getUserBestScore();
+async function syncPlayer() {
+  const name = getPlayerName();
 
-  const rankingItems = [
-    {
-      id: "me",
-      name: "אתה",
-      currentScore: userCurrentScore,
-      bestScore: userBestScore
-    },
-    ...friends
-  ];
+  if (!name) return;
 
-  rankingItems.sort(function(a, b) {
-    if (rankingSortMode === "best") {
-      return b.bestScore - a.bestScore;
+  const playerData = {
+    device_id: getDeviceId(),
+    name: name,
+    current_score: getUserCurrentScore(),
+    best_score: getUserBestScore(),
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    await fetch(`${SUPABASE_URL}/levelup_players?on_conflict=device_id`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates,return=minimal"
+      },
+      body: JSON.stringify(playerData)
+    });
+  } catch (error) {
+    console.log("שגיאה בסנכרון שחקן:", error);
+  }
+}
+
+async function fetchPlayers() {
+  try {
+    const response = await fetch(`${SUPABASE_URL}/levelup_players?select=name,current_score,best_score,updated_at`, {
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("Supabase fetch failed");
     }
 
-    return b.currentScore - a.currentScore;
-  });
+    return await response.json();
+  } catch (error) {
+    console.log("שגיאה בקריאת דירוג:", error);
 
+    return [
+      {
+        name: getPlayerName() || "אתה",
+        current_score: getUserCurrentScore(),
+        best_score: getUserBestScore()
+      }
+    ];
+  }
+}
+
+async function renderRanking() {
   const rankingList = document.getElementById("rankingList");
   rankingList.innerHTML = "";
 
-  rankingItems.forEach(function(item) {
+  await syncPlayer();
+
+  let players = await fetchPlayers();
+
+  players.sort(function(a, b) {
+    if (rankingSortMode === "best") {
+      return Number(b.best_score) - Number(a.best_score);
+    }
+
+    return Number(b.current_score) - Number(a.current_score);
+  });
+
+  players.forEach(function(player) {
     const row = document.createElement("article");
     row.className = "ranking-row";
 
     row.innerHTML = `
-      <div class="ranking-name">${item.name}</div>
+      <div class="ranking-name">${player.name}</div>
 
       <div class="ranking-scores">
-        <div class="score current">${item.currentScore}</div>
-        <div class="score best">${item.bestScore}</div>
+        <div class="score current">${player.current_score}</div>
+        <div class="score best">${player.best_score}</div>
       </div>
     `;
 
@@ -394,33 +448,22 @@ function addGoal(event) {
 
   goals.push(newGoal);
   saveGoals(goals);
+  syncPlayer();
 
   document.getElementById("addGoalForm").reset();
   showScreen("homeScreen");
 }
 
-function addFriend(event) {
+function saveName(event) {
   event.preventDefault();
 
-  const name = document.getElementById("friendNameInput").value.trim();
-  const currentScore = Number(document.getElementById("friendCurrentScoreInput").value);
-  const bestScoreInput = Number(document.getElementById("friendBestScoreInput").value);
-  const bestScore = Math.max(currentScore, bestScoreInput);
+  const name = document.getElementById("playerNameInput").value.trim();
 
   if (!name) return;
 
-  const newFriend = {
-    id: `friend-${Date.now()}`,
-    name: name,
-    currentScore: currentScore,
-    bestScore: bestScore
-  };
-
-  friends.push(newFriend);
-  saveFriends(friends);
-
-  document.getElementById("addFriendForm").reset();
-  showScreen("rankingScreen");
+  savePlayerName(name);
+  syncPlayer();
+  showScreen("homeScreen");
 }
 
 function editGoal(event) {
@@ -446,6 +489,7 @@ function editGoal(event) {
   });
 
   saveGoals(goals);
+  syncPlayer();
   openGoal(currentGoalId, false);
 }
 
@@ -461,6 +505,7 @@ function deleteCurrentGoal() {
   });
 
   saveGoals(goals);
+  syncPlayer();
   showScreen("homeScreen");
 }
 
@@ -505,7 +550,12 @@ document.addEventListener("DOMContentLoaded", function() {
     ""
   );
 
-  renderHome();
+  if (!getPlayerName()) {
+    showScreen("nameScreen", false);
+  } else {
+    renderHome();
+    syncPlayer();
+  }
 
   document.getElementById("openMenuButton").addEventListener("click", openMenu);
   document.getElementById("menuOverlay").addEventListener("click", closeMenu);
@@ -518,10 +568,6 @@ document.addEventListener("DOMContentLoaded", function() {
     showScreen("addScreen");
   });
 
-  document.getElementById("openAddFriendButton").addEventListener("click", function() {
-    showScreen("addFriendScreen");
-  });
-
   document.getElementById("toggleRankingSortButton").addEventListener("click", toggleRankingSort);
 
   document.querySelectorAll(".back-button").forEach(function(button) {
@@ -531,7 +577,7 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("addGoalForm").addEventListener("submit", addGoal);
   document.getElementById("editGoalForm").addEventListener("submit", editGoal);
   document.getElementById("deleteGoalButton").addEventListener("click", deleteCurrentGoal);
-  document.getElementById("addFriendForm").addEventListener("submit", addFriend);
+  document.getElementById("nameForm").addEventListener("submit", saveName);
 });
 
 if ("serviceWorker" in navigator) {
