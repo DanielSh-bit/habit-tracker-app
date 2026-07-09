@@ -86,10 +86,12 @@ function getGoalTypeName(type) {
 
 function openMenu() {
   document.getElementById("sideMenu").classList.add("open");
+  document.getElementById("menuOverlay").classList.add("open");
 }
 
 function closeMenu() {
   document.getElementById("sideMenu").classList.remove("open");
+  document.getElementById("menuOverlay").classList.remove("open");
 }
 
 function showScreen(screenId, addToHistory = true) {
@@ -431,7 +433,7 @@ document.addEventListener("DOMContentLoaded", function() {
   renderHome();
 
   document.getElementById("openMenuButton").addEventListener("click", openMenu);
-  document.getElementById("closeMenuButton").addEventListener("click", closeMenu);
+  document.getElementById("menuOverlay").addEventListener("click", closeMenu);
 
   document.getElementById("openStatsFromMenu").addEventListener("click", function() {
     showScreen("statsScreen");
