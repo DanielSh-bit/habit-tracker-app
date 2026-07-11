@@ -36,29 +36,43 @@
     <section class="screen" id="addScreen">
       <button class="back-button" data-target="homeScreen">←</button>
 
-      <h1 class="screen-title">אתגר חדש</h1>
+      <form class="form-card add-goal-card" id="addGoalForm">
+        <input
+          type="text"
+          id="goalNameInput"
+          class="clean-input"
+          placeholder="שם האתגר"
+          required
+        >
 
-      <form class="form-card" id="addGoalForm">
-        <label>
-          שם האתגר
-          <input type="text" id="goalNameInput" placeholder="לדוגמה: ריצה" required>
-        </label>
+        <input type="hidden" id="goalTypeInput">
 
-        <label>
-          סוג אתגר
-          <select id="goalTypeInput">
-            <option value="yesno">כן / לא</option>
-            <option value="counter">מונה</option>
-            <option value="number">מספר</option>
-          </select>
-        </label>
+        <div class="custom-select" id="goalTypePicker">
+          <button type="button" class="custom-select-button" id="goalTypeButton">
+            סוג האתגר
+          </button>
 
-        <label>
-          יעד
-          <input type="number" id="goalTargetInput" value="1" min="1" required>
-        </label>
+          <div class="custom-options" id="goalTypeOptions">
+            <button type="button" data-value="yesno">כן / לא</button>
+            <button type="button" data-value="counter">ספירה</button>
+            <button type="button" data-value="time">זמן</button>
+          </div>
+        </div>
 
-        <button type="submit">צור אתגר</button>
+        <div class="target-wrapper hidden" id="goalTargetWrapper">
+          <input
+            type="number"
+            id="goalTargetInput"
+            class="clean-input"
+            placeholder="יעד"
+            min="2"
+            max="999"
+            step="1"
+            inputmode="numeric"
+          >
+        </div>
+
+        <button type="submit" class="create-button">create</button>
       </form>
     </section>
 
@@ -84,6 +98,7 @@
             <option value="yesno">כן / לא</option>
             <option value="counter">מונה</option>
             <option value="number">מספר</option>
+            <option value="time">זמן</option>
           </select>
         </label>
 
