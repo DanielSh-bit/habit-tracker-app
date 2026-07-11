@@ -56,7 +56,7 @@ function getDefaultGoals() {
     {
       id: "sleep",
       title: "שינה",
-      type: "number",
+      type: "time",
       target: 8,
       records: {}
     }
@@ -154,8 +154,9 @@ function getCurrentGoal() {
 
 function getGoalTypeName(type) {
   if (type === "yesno") return "כן / לא";
-  if (type === "counter") return "מונה";
-  if (type === "number") return "מספר";
+  if (type === "counter") return "ספירה";
+  if (type === "time") return "זמן";
+  if (type === "number") return "זמן";
   return "לא ידוע";
 }
 
@@ -286,10 +287,9 @@ function renderHome() {
   goals.forEach(function(goal) {
     const progress = getProgress(goal);
     const flameClass = getFlameClass(progress);
-    const toneClass = getToneClass(progress);
 
     const card = document.createElement("article");
-    card.className = `goal-card ${toneClass}`;
+    card.className = "goal-card";
 
     card.innerHTML = `
       <div class="goal-title">
@@ -324,7 +324,6 @@ function openGoal(goalId, addToHistory = true) {
   const value = getTodayValue(goal);
   const progress = getProgress(goal);
   const flameClass = getFlameClass(progress);
-  const toneClass = getToneClass(progress);
   const details = document.getElementById("goalDetails");
 
   applyBackground(progress);
@@ -347,7 +346,7 @@ function openGoal(goalId, addToHistory = true) {
   }
 
   details.innerHTML = `
-    <div class="detail-card ${toneClass}">
+    <div class="detail-card">
       <button class="goal-options-button" id="openGoalSettingsButton">⋮</button>
 
       <h1 class="screen-title">${goal.title}</h1>
@@ -538,14 +537,87 @@ async function renderRanking() {
     rankingSortMode === "current" ? "נוכחי" : "שיא";
 }
 
+function setGoalType(type, label) {
+  const goalTypeInput = document.getElementById("goalTypeInput");
+  const goalTypeButton = document.getElementById("goalTypeButton");
+  const goalTypePicker = document.getElementById("goalTypePicker");
+  const goalTargetWrapper = document.getElementById("goalTargetWrapper");
+  const goalTargetInput = document.getElementById("goalTargetInput");
+
+  goalTypeInput.value = type;
+  goalTypeButton.textContent = label;
+  goalTypePicker.classList.remove("open");
+
+  if (type === "counter" || type === "time") {
+    goalTargetWrapper.classList.remove("hidden");
+    goalTargetInput.required = true;
+    goalTargetInput.value = "";
+  } else {
+    goalTargetWrapper.classList.add("hidden");
+    goalTargetInput.required = false;
+    goalTargetInput.value = "";
+  }
+}
+
+function resetAddGoalForm() {
+  document.getElementById("addGoalForm").reset();
+  document.getElementById("goalTypeInput").value = "";
+  document.getElementById("goalTypeButton").textContent = "סוג האתגר";
+  document.getElementById("goalTypePicker").classList.remove("open");
+  document.getElementById("goalTargetWrapper").classList.add("hidden");
+  document.getElementById("goalTargetInput").required = false;
+}
+
+function initializeGoalTypePicker() {
+  const goalTypePicker = document.getElementById("goalTypePicker");
+  const goalTypeButton = document.getElementById("goalTypeButton");
+  const goalTypeOptions = document.getElementById("goalTypeOptions");
+
+  goalTypeButton.addEventListener("click", function(event) {
+    event.stopPropagation();
+    goalTypePicker.classList.toggle("open");
+  });
+
+  goalTypeOptions.querySelectorAll("button").forEach(function(optionButton) {
+    optionButton.addEventListener("click", function(event) {
+      event.stopPropagation();
+
+      const type = optionButton.dataset.value;
+      const label = optionButton.textContent.trim();
+
+      setGoalType(type, label);
+    });
+  });
+
+  document.addEventListener("click", function() {
+    goalTypePicker.classList.remove("open");
+  });
+}
+
 function addGoal(event) {
   event.preventDefault();
 
   const title = document.getElementById("goalNameInput").value.trim();
   const type = document.getElementById("goalTypeInput").value;
-  const target = Number(document.getElementById("goalTargetInput").value);
+  const targetInput = document.getElementById("goalTargetInput");
 
-  if (!title || target <= 0) return;
+  if (!title) return;
+
+  if (!type) {
+    alert("בחר סוג אתגר");
+    return;
+  }
+
+  let target = 1;
+
+  if (type === "counter" || type === "time") {
+    target = Number(targetInput.value);
+
+    if (!Number.isInteger(target) || target < 2 || target > 999) {
+      alert("יעד לא תקין");
+      return;
+    }
+  }
 
   const newGoal = {
     id: `goal-${Date.now()}`,
@@ -560,7 +632,7 @@ function addGoal(event) {
   syncPlayer();
   applyGeneralBackground();
 
-  document.getElementById("addGoalForm").reset();
+  resetAddGoalForm();
   showScreen("homeScreen");
 }
 
@@ -672,6 +744,8 @@ document.addEventListener("DOMContentLoaded", function() {
     renderHome();
     syncPlayer();
   }
+
+  initializeGoalTypePicker();
 
   document.getElementById("openMenuButton").addEventListener("click", openMenu);
   document.getElementById("menuOverlay").addEventListener("click", closeMenuFromOverlay);
