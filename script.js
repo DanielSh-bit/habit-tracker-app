@@ -183,12 +183,34 @@ function getGoalTypeName(type) {
   return "לא ידוע";
 }
 
+function flashElement(element) {
+  if (!element) return;
+
+  element.classList.remove("field-error-flash");
+  void element.offsetWidth;
+  element.classList.add("field-error-flash");
+}
+
+function flashInputLimit(input) {
+  if (!input) return;
+
+  const maxLength = Number(input.getAttribute("maxlength") || 0);
+
+  if (maxLength > 0 && input.value.length >= maxLength) {
+    flashElement(input);
+  }
+}
+
 function isMenuOpen() {
   return document.getElementById("sideMenu").classList.contains("open");
 }
 
 function isGoalOptionsOpen() {
   return document.getElementById("goalOptionsMenu").classList.contains("open");
+}
+
+function isDeleteConfirmOpen() {
+  return document.getElementById("deleteConfirmOverlay").classList.contains("open");
 }
 
 function openMenu() {
@@ -233,6 +255,15 @@ function openGoalOptionsMenu() {
 function closeGoalOptionsMenu() {
   document.getElementById("goalOptionsMenu").classList.remove("open");
   document.getElementById("goalOptionsOverlay").classList.remove("open");
+}
+
+function openDeleteConfirm() {
+  if (!currentGoalId) return;
+  document.getElementById("deleteConfirmOverlay").classList.add("open");
+}
+
+function closeDeleteConfirm() {
+  document.getElementById("deleteConfirmOverlay").classList.remove("open");
 }
 
 function closeMenuFromOverlay() {
@@ -296,6 +327,7 @@ function openGoalScreenFromOptions(screenName) {
 function showScreen(screenId, addToHistory = true) {
   closeMenu();
   closeGoalOptionsMenu();
+  closeDeleteConfirm();
 
   currentScreenId = screenId;
 
@@ -345,6 +377,11 @@ function showScreen(screenId, addToHistory = true) {
 }
 
 function goBack() {
+  if (isDeleteConfirmOpen()) {
+    closeDeleteConfirm();
+    return;
+  }
+
   if (isMenuOpen()) {
     if (history.state && history.state.menuOpen) {
       history.back();
@@ -428,14 +465,14 @@ function openGoal(goalId, addToHistory = true) {
           ✓
         </button>
 
-        ${value >= 1 ? `<button class="cancel-success-button" id="cancelYesNoButton">ביטול סימון</button>` : ""}
+        ${value >= 1 ? `<button class="cancel-success-button" id="cancelYesNoButton">Cancel</button>` : ""}
       </section>
     `;
   } else {
     actionHtml = `
       <section class="counter-action-area">
         <button class="big-add-button" id="increaseButton">+</button>
-        <button class="small-minus-button" id="decreaseButton">הפחתה</button>
+        <button class="small-minus-button" id="decreaseButton">−</button>
       </section>
     `;
   }
@@ -448,7 +485,7 @@ function openGoal(goalId, addToHistory = true) {
           <p>${getGoalTypeName(goal.type)}</p>
         </div>
 
-        ${goal.type === "counter" ? `<strong class="goal-counter-score">${value} מתוך ${goal.target}</strong>` : ""}
+        ${goal.type === "counter" ? `<strong class="goal-counter-score">${value}/${goal.target}</strong>` : ""}
       </header>
 
       ${actionHtml}
@@ -845,16 +882,32 @@ function initializeGoalTypePickers() {
 function addGoal(event) {
   event.preventDefault();
 
-  const title = document.getElementById("goalNameInput").value.trim();
-  const type = document.getElementById("goalTypeInput").value;
+  const titleInput = document.getElementById("goalNameInput");
+  const typeInput = document.getElementById("goalTypeInput");
+  const typeButton = document.getElementById("goalTypeButton");
   const targetInput = document.getElementById("goalTargetInput");
 
-  if (!title) return;
+  const title = titleInput.value.trim();
+  const type = typeInput.value;
+
+  let hasError = false;
+
+  if (!title) {
+    flashElement(titleInput);
+    hasError = true;
+  }
 
   if (!type) {
-    alert("בחר סוג אתגר");
-    return;
+    flashElement(typeButton);
+    hasError = true;
   }
+
+  if (type === "counter" && !targetInput.value) {
+    flashElement(targetInput);
+    hasError = true;
+  }
+
+  if (hasError) return;
 
   let target = 1;
 
@@ -862,7 +915,7 @@ function addGoal(event) {
     target = Number(targetInput.value);
 
     if (!Number.isInteger(target) || target < 2 || target > 999) {
-      alert("יעד לא תקין");
+      alert("Target must be between 2 and 999");
       return;
     }
   }
@@ -901,11 +954,32 @@ function editGoal(event) {
 
   if (!currentGoalId) return;
 
-  const title = document.getElementById("editGoalNameInput").value.trim();
-  const type = document.getElementById("editGoalTypeInput").value;
+  const titleInput = document.getElementById("editGoalNameInput");
+  const typeInput = document.getElementById("editGoalTypeInput");
+  const typeButton = document.getElementById("editGoalTypeButton");
   const targetInput = document.getElementById("editGoalTargetInput");
 
-  if (!title || !type) return;
+  const title = titleInput.value.trim();
+  const type = typeInput.value;
+
+  let hasError = false;
+
+  if (!title) {
+    flashElement(titleInput);
+    hasError = true;
+  }
+
+  if (!type) {
+    flashElement(typeButton);
+    hasError = true;
+  }
+
+  if (type === "counter" && !targetInput.value) {
+    flashElement(targetInput);
+    hasError = true;
+  }
+
+  if (hasError) return;
 
   let target = 1;
 
@@ -913,7 +987,7 @@ function editGoal(event) {
     target = Number(targetInput.value);
 
     if (!Number.isInteger(target) || target < 2 || target > 999) {
-      alert("יעד לא תקין");
+      alert("Target must be between 2 and 999");
       return;
     }
   }
@@ -937,14 +1011,11 @@ function editGoal(event) {
 function deleteCurrentGoal() {
   if (!currentGoalId) return;
 
-  const shouldDelete = confirm("Delete this challenge?");
-
-  if (!shouldDelete) return;
-
   goals = goals.filter(function(goal) {
     return goal.id !== currentGoalId;
   });
 
+  closeDeleteConfirm();
   saveGoals(goals);
   syncPlayer();
   showScreen("homeScreen");
@@ -957,6 +1028,11 @@ function toggleRankingSort() {
 
 window.addEventListener("popstate", function(event) {
   const state = event.state;
+
+  if (isDeleteConfirmOpen()) {
+    closeDeleteConfirm();
+    return;
+  }
 
   if (isMenuOpen()) {
     closeMenu();
@@ -1058,9 +1134,26 @@ document.addEventListener("DOMContentLoaded", function() {
     button.addEventListener("click", goBack);
   });
 
+  document.getElementById("goalNameInput").addEventListener("input", function(event) {
+    flashInputLimit(event.target);
+  });
+
+  document.getElementById("editGoalNameInput").addEventListener("input", function(event) {
+    flashInputLimit(event.target);
+  });
+
   document.getElementById("addGoalForm").addEventListener("submit", addGoal);
   document.getElementById("editGoalForm").addEventListener("submit", editGoal);
-  document.getElementById("deleteGoalButton").addEventListener("click", deleteCurrentGoal);
+
+  document.getElementById("deleteGoalButton").addEventListener("click", openDeleteConfirm);
+  document.getElementById("cancelDeleteButton").addEventListener("click", closeDeleteConfirm);
+  document.getElementById("confirmDeleteButton").addEventListener("click", deleteCurrentGoal);
+  document.getElementById("deleteConfirmOverlay").addEventListener("click", function(event) {
+    if (event.target.id === "deleteConfirmOverlay") {
+      closeDeleteConfirm();
+    }
+  });
+
   document.getElementById("nameForm").addEventListener("submit", saveName);
 });
 
