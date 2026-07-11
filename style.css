@@ -779,3 +779,262 @@ body.tone-100 {
 .target-wrapper.hidden {
   display: none;
 }
+
+html,
+body {
+  touch-action: pan-x pan-y;
+  overscroll-behavior: none;
+}
+
+.custom-select-button {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #111827 !important;
+  text-align: center;
+}
+
+.custom-select-button::after {
+  color: rgba(17, 24, 39, 0.5);
+}
+
+.create-button {
+  font-family: Arial, sans-serif;
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: 0.7px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #111827, #374151);
+}
+
+.modern-goal-card {
+  justify-content: flex-start !important;
+  padding: 28px 22px 24px !important;
+}
+
+.modern-goal-header {
+  margin-top: 18px;
+  margin-bottom: 28px;
+  text-align: right;
+}
+
+.modern-goal-header h1 {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.modern-goal-header p {
+  margin: 6px 0 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.progress-panel {
+  background: rgba(17, 24, 39, 0.94);
+  color: white;
+  border-radius: 26px;
+  padding: 22px;
+  margin-bottom: 16px;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.2);
+}
+
+.progress-panel > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.progress-panel span {
+  font-size: 15px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.progress-panel strong {
+  font-size: 42px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.progress-track {
+  height: 13px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: white;
+  transition: width 0.25s ease;
+}
+
+.today-panel {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 24px;
+  padding: 20px;
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.today-panel span {
+  font-size: 15px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.today-panel strong {
+  font-size: 28px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.main-goal-button {
+  width: 100%;
+  border: none;
+  border-radius: 24px;
+  padding: 18px;
+  background: #111827;
+  color: white;
+  font-size: 20px;
+  font-weight: 900;
+  cursor: pointer;
+  margin-top: auto;
+}
+
+.modern-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: auto;
+}
+
+.modern-actions button {
+  height: 72px;
+  border: none;
+  border-radius: 24px;
+  background: #111827;
+  color: white;
+  font-size: 34px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.goal-info-header {
+  margin-top: 72px;
+  margin-bottom: 18px;
+}
+
+.goal-info-header h1 {
+  margin: 0 0 18px;
+  font-size: 34px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: 22px;
+  padding: 12px 14px;
+  backdrop-filter: blur(8px);
+}
+
+.calendar-nav button {
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 16px;
+  background: #111827;
+  color: white;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.calendar-nav strong {
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.info-card {
+  padding: 16px;
+}
+
+.goal-info-stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.goal-info-stats div {
+  border-radius: 18px;
+  background: rgba(17, 24, 39, 0.06);
+  padding: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.goal-info-stats span {
+  font-size: 14px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.goal-info-stats strong {
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 7px;
+}
+
+.calendar-day-name {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.55);
+  padding-bottom: 4px;
+}
+
+.calendar-cell {
+  height: 42px;
+  border-radius: 14px;
+  background: rgba(17, 24, 39, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.calendar-cell.empty {
+  background: transparent;
+}
+
+.calendar-cell.success {
+  background: #111827;
+  color: white;
+}
+
+.calendar-cell.success strong {
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  font-size: 13px;
+}
