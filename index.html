@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>LevelUp</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
@@ -33,6 +33,15 @@
       </nav>
     </aside>
 
+    <div class="menu-overlay" id="goalOptionsOverlay"></div>
+
+    <aside class="side-menu" id="goalOptionsMenu">
+      <nav class="side-menu-options">
+        <button id="openGoalEditFromMenu">עריכת האתגר</button>
+        <button id="openGoalInfoFromMenu">מידע</button>
+      </nav>
+    </aside>
+
     <section class="screen" id="addScreen">
       <button class="back-button" data-target="homeScreen">←</button>
 
@@ -57,9 +66,7 @@
             <input type="hidden" id="goalTypeInput">
 
             <div class="custom-select" id="goalTypePicker">
-              <button type="button" class="custom-select-button" id="goalTypeButton">
-                
-              </button>
+              <button type="button" class="custom-select-button" id="goalTypeButton"></button>
 
               <div class="custom-options" id="goalTypeOptions">
                 <button type="button" data-value="yesno">כן / לא</button>
@@ -110,8 +117,7 @@
           סוג אתגר
           <select id="editGoalTypeInput">
             <option value="yesno">כן / לא</option>
-            <option value="counter">מונה</option>
-            <option value="number">מספר</option>
+            <option value="counter">ספירה</option>
             <option value="time">זמן</option>
           </select>
         </label>
@@ -125,6 +131,25 @@
       </form>
 
       <button class="delete-button" id="deleteGoalButton">מחק אתגר</button>
+    </section>
+
+    <section class="screen" id="goalInfoScreen">
+      <button class="back-button" data-target="goalScreen">←</button>
+
+      <header class="goal-info-header">
+        <h1 id="goalInfoTitle">מידע</h1>
+
+        <div class="calendar-nav">
+          <button type="button" id="prevMonthButton">‹</button>
+          <strong id="calendarMonthTitle"></strong>
+          <button type="button" id="nextMonthButton">›</button>
+        </div>
+      </header>
+
+      <section class="form-card info-card">
+        <div class="goal-info-stats" id="goalInfoStats"></div>
+        <div class="calendar-grid" id="goalCalendarGrid"></div>
+      </section>
     </section>
 
     <section class="screen ranking-screen" id="rankingScreen">
