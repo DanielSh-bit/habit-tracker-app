@@ -130,14 +130,54 @@ function getGoalTypeName(type) {
   return "לא ידוע";
 }
 
+function isMenuOpen() {
+  return document.getElementById("sideMenu").classList.contains("open");
+}
+
 function openMenu() {
+  if (isMenuOpen()) return;
+
   document.getElementById("sideMenu").classList.add("open");
   document.getElementById("menuOverlay").classList.add("open");
+
+  history.pushState(
+    {
+      screenId: currentScreenId,
+      goalId: currentGoalId,
+      menuOpen: true
+    },
+    "",
+    ""
+  );
 }
 
 function closeMenu() {
   document.getElementById("sideMenu").classList.remove("open");
   document.getElementById("menuOverlay").classList.remove("open");
+}
+
+function closeMenuFromOverlay() {
+  if (isMenuOpen() && history.state && history.state.menuOpen) {
+    history.back();
+    return;
+  }
+
+  closeMenu();
+}
+
+function openScreenFromMenu(screenId) {
+  if (history.state && history.state.menuOpen) {
+    history.replaceState(
+      {
+        screenId: currentScreenId,
+        goalId: currentGoalId
+      },
+      "",
+      ""
+    );
+  }
+
+  showScreen(screenId);
 }
 
 function showScreen(screenId, addToHistory = true) {
@@ -182,8 +222,13 @@ function showScreen(screenId, addToHistory = true) {
 }
 
 function goBack() {
-  if (document.getElementById("sideMenu").classList.contains("open")) {
-    closeMenu();
+  if (isMenuOpen()) {
+    if (history.state && history.state.menuOpen) {
+      history.back();
+    } else {
+      closeMenu();
+    }
+
     return;
   }
 
@@ -409,16 +454,34 @@ async function renderRanking() {
     return Number(b.current_score) - Number(a.current_score);
   });
 
-  players.forEach(function(player) {
+  players.forEach(function(player, index) {
     const row = document.createElement("article");
-    row.className = "ranking-row";
+    row.className = `ranking-row rank-${index + 1}`;
+
+    const primaryLabel = rankingSortMode === "current" ? "נוכחי" : "שיא";
+    const secondaryLabel = rankingSortMode === "current" ? "שיא" : "נוכחי";
+
+    const primaryValue = rankingSortMode === "current"
+      ? Number(player.current_score)
+      : Number(player.best_score);
+
+    const secondaryValue = rankingSortMode === "current"
+      ? Number(player.best_score)
+      : Number(player.current_score);
 
     row.innerHTML = `
       <div class="ranking-name">${player.name}</div>
 
       <div class="ranking-scores">
-        <div class="score current">${player.current_score}</div>
-        <div class="score best">${player.best_score}</div>
+        <div class="score-box active-score">
+          <span>${primaryLabel}</span>
+          <strong>${primaryValue}</strong>
+        </div>
+
+        <div class="score-box muted-score">
+          <span>${secondaryLabel}</span>
+          <strong>${secondaryValue}</strong>
+        </div>
       </div>
     `;
 
@@ -517,13 +580,17 @@ function toggleRankingSort() {
 window.addEventListener("popstate", function(event) {
   const state = event.state;
 
-  if (document.getElementById("sideMenu").classList.contains("open")) {
+  if (isMenuOpen()) {
     closeMenu();
     return;
   }
 
   if (!state || state.screenId === "homeScreen") {
     showScreen("homeScreen", false);
+    return;
+  }
+
+  if (state.menuOpen) {
     return;
   }
 
@@ -558,14 +625,14 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   document.getElementById("openMenuButton").addEventListener("click", openMenu);
-  document.getElementById("menuOverlay").addEventListener("click", closeMenu);
+  document.getElementById("menuOverlay").addEventListener("click", closeMenuFromOverlay);
 
   document.getElementById("openRankingFromMenu").addEventListener("click", function() {
-    showScreen("rankingScreen");
+    openScreenFromMenu("rankingScreen");
   });
 
   document.getElementById("openAddFromMenu").addEventListener("click", function() {
-    showScreen("addScreen");
+    openScreenFromMenu("addScreen");
   });
 
   document.getElementById("toggleRankingSortButton").addEventListener("click", toggleRankingSort);
