@@ -716,3 +716,66 @@ body.tone-100 {
   border-radius: 18px;
   text-transform: lowercase;
 }
+
+.add-screen-title {
+  margin-top: 72px;
+  margin-bottom: 18px;
+  text-align: right;
+}
+
+.add-goal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.add-goal-card {
+  margin-top: 0;
+  gap: 18px;
+}
+
+.field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 0;
+}
+
+.field-block span {
+  font-size: 14px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.78);
+  text-align: right;
+}
+
+.clean-input {
+  text-align: right;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.custom-select-button {
+  background: #111827;
+  color: white;
+  text-align: center;
+}
+
+.custom-select-button::after {
+  content: "בחר";
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.custom-select-button:not(:empty)::after {
+  content: "";
+}
+
+.create-button {
+  width: 100%;
+  background: #111827;
+  color: white;
+  border: none;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+.target-wrapper.hidden {
+  display: none;
+}
