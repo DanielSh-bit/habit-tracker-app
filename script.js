@@ -9,9 +9,18 @@ const SUPABASE_KEY = "sb_publishable_zgmgY6On7ttFUxsuXWrEKA_zTYwJmim";
 let currentScreenId = "homeScreen";
 let currentGoalId = null;
 let rankingSortMode = "current";
+let rankingRenderId = 0;
+let calendarDate = new Date();
 
 function getTodayKey() {
   const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatDateKey(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -92,6 +101,10 @@ function getProgress(goal) {
   return Math.min(progress, 100);
 }
 
+function isGoalSuccessOnDate(goal, dateKey) {
+  return Number(goal.records[dateKey] || 0) >= Number(goal.target);
+}
+
 function getUserCurrentScore() {
   if (goals.length === 0) return 0;
 
@@ -164,6 +177,10 @@ function isMenuOpen() {
   return document.getElementById("sideMenu").classList.contains("open");
 }
 
+function isGoalOptionsOpen() {
+  return document.getElementById("goalOptionsMenu").classList.contains("open");
+}
+
 function openMenu() {
   if (isMenuOpen()) return;
 
@@ -186,6 +203,28 @@ function closeMenu() {
   document.getElementById("menuOverlay").classList.remove("open");
 }
 
+function openGoalOptionsMenu() {
+  if (!currentGoalId || isGoalOptionsOpen()) return;
+
+  document.getElementById("goalOptionsMenu").classList.add("open");
+  document.getElementById("goalOptionsOverlay").classList.add("open");
+
+  history.pushState(
+    {
+      screenId: currentScreenId,
+      goalId: currentGoalId,
+      goalOptionsOpen: true
+    },
+    "",
+    ""
+  );
+}
+
+function closeGoalOptionsMenu() {
+  document.getElementById("goalOptionsMenu").classList.remove("open");
+  document.getElementById("goalOptionsOverlay").classList.remove("open");
+}
+
 function closeMenuFromOverlay() {
   if (isMenuOpen() && history.state && history.state.menuOpen) {
     history.back();
@@ -193,6 +232,15 @@ function closeMenuFromOverlay() {
   }
 
   closeMenu();
+}
+
+function closeGoalOptionsFromOverlay() {
+  if (isGoalOptionsOpen() && history.state && history.state.goalOptionsOpen) {
+    history.back();
+    return;
+  }
+
+  closeGoalOptionsMenu();
 }
 
 function openScreenFromMenu(screenId) {
@@ -210,8 +258,34 @@ function openScreenFromMenu(screenId) {
   showScreen(screenId);
 }
 
+function openGoalScreenFromOptions(screenName) {
+  if (!currentGoalId) return;
+
+  if (history.state && history.state.goalOptionsOpen) {
+    history.replaceState(
+      {
+        screenId: "goalScreen",
+        goalId: currentGoalId
+      },
+      "",
+      ""
+    );
+  }
+
+  closeGoalOptionsMenu();
+
+  if (screenName === "edit") {
+    openGoalSettings(currentGoalId);
+  }
+
+  if (screenName === "info") {
+    openGoalInfo(currentGoalId);
+  }
+}
+
 function showScreen(screenId, addToHistory = true) {
   closeMenu();
+  closeGoalOptionsMenu();
 
   currentScreenId = screenId;
 
@@ -243,11 +317,9 @@ function showScreen(screenId, addToHistory = true) {
     applyGeneralBackground();
   }
 
-  if (screenId === "goalSettingsScreen") {
+  if (screenId === "goalSettingsScreen" || screenId === "goalInfoScreen") {
     const goal = getCurrentGoal();
-    if (goal) {
-      applyBackground(getProgress(goal));
-    }
+    if (goal) applyBackground(getProgress(goal));
   }
 
   if (addToHistory) {
@@ -268,6 +340,16 @@ function goBack() {
       history.back();
     } else {
       closeMenu();
+    }
+
+    return;
+  }
+
+  if (isGoalOptionsOpen()) {
+    if (history.state && history.state.goalOptionsOpen) {
+      history.back();
+    } else {
+      closeGoalOptionsMenu();
     }
 
     return;
@@ -323,7 +405,6 @@ function openGoal(goalId, addToHistory = true) {
 
   const value = getTodayValue(goal);
   const progress = getProgress(goal);
-  const flameClass = getFlameClass(progress);
   const details = document.getElementById("goalDetails");
 
   applyBackground(progress);
@@ -332,34 +413,43 @@ function openGoal(goalId, addToHistory = true) {
 
   if (goal.type === "yesno") {
     actionHtml = `
-      <button class="action-button" id="markYesNoButton">
-        ${value >= 1 ? "בטל סימון היום" : "סמן שבוצע היום"}
+      <button class="main-goal-button" id="markYesNoButton">
+        ${value >= 1 ? "בוצע היום" : "סמן שבוצע"}
       </button>
     `;
   } else {
     actionHtml = `
-      <div class="detail-actions">
-        <button id="decreaseButton">-</button>
+      <div class="modern-actions">
+        <button id="decreaseButton">−</button>
         <button id="increaseButton">+</button>
       </div>
     `;
   }
 
   details.innerHTML = `
-    <div class="detail-card">
-      <button class="goal-options-button" id="openGoalSettingsButton">⋮</button>
+    <div class="detail-card modern-goal-card">
+      <button class="goal-options-button" id="openGoalOptionsButton">⋮</button>
 
-      <h1 class="screen-title">${goal.title}</h1>
+      <header class="modern-goal-header">
+        <h1>${goal.title}</h1>
+        <p>${getGoalTypeName(goal.type)}</p>
+      </header>
 
-      <div class="goal-status">
-        <div class="flame ${flameClass}">
-          <span></span>
+      <section class="progress-panel">
+        <div>
+          <span>התקדמות היום</span>
+          <strong>${progress}%</strong>
         </div>
-        <strong>${progress}%</strong>
-      </div>
 
-      <p>היום: ${value} מתוך ${goal.target}</p>
-      <p>סוג: ${getGoalTypeName(goal.type)}</p>
+        <div class="progress-track">
+          <div class="progress-fill" style="width: ${progress}%"></div>
+        </div>
+      </section>
+
+      <section class="today-panel">
+        <span>היום</span>
+        <strong>${goal.type === "yesno" ? (value >= 1 ? "בוצע" : "לא בוצע") : `${value} / ${goal.target}`}</strong>
+      </section>
 
       ${actionHtml}
     </div>
@@ -367,9 +457,9 @@ function openGoal(goalId, addToHistory = true) {
 
   showScreen("goalScreen", addToHistory);
 
-  document.getElementById("openGoalSettingsButton").addEventListener("click", function(event) {
+  document.getElementById("openGoalOptionsButton").addEventListener("click", function(event) {
     event.stopPropagation();
-    openGoalSettings(goal.id);
+    openGoalOptionsMenu();
   });
 
   if (goal.type === "yesno") {
@@ -406,6 +496,107 @@ function openGoalSettings(goalId, addToHistory = true) {
   document.getElementById("editGoalTargetInput").value = goal.target;
 
   showScreen("goalSettingsScreen", addToHistory);
+}
+
+function openGoalInfo(goalId, addToHistory = true) {
+  const goal = goals.find(function(item) {
+    return item.id === goalId;
+  });
+
+  if (!goal) return;
+
+  currentGoalId = goalId;
+  calendarDate = new Date();
+  calendarDate.setDate(1);
+
+  applyBackground(getProgress(goal));
+  renderGoalInfo();
+
+  showScreen("goalInfoScreen", addToHistory);
+}
+
+function renderGoalInfo() {
+  const goal = getCurrentGoal();
+  if (!goal) return;
+
+  const title = document.getElementById("goalInfoTitle");
+  const monthTitle = document.getElementById("calendarMonthTitle");
+  const stats = document.getElementById("goalInfoStats");
+  const grid = document.getElementById("goalCalendarGrid");
+
+  title.textContent = goal.title;
+  monthTitle.textContent = calendarDate.toLocaleDateString("he-IL", {
+    month: "long",
+    year: "numeric"
+  });
+
+  const today = new Date();
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(today.getDate() - 29);
+
+  let successCount = 0;
+
+  for (let date = new Date(thirtyDaysAgo); date <= today; date.setDate(date.getDate() + 1)) {
+    if (isGoalSuccessOnDate(goal, formatDateKey(date))) {
+      successCount++;
+    }
+  }
+
+  stats.innerHTML = `
+    <div>
+      <span>הצלחה ב־30 ימים</span>
+      <strong>${successCount}</strong>
+    </div>
+
+    <div>
+      <span>יעד יומי</span>
+      <strong>${goal.target}</strong>
+    </div>
+
+    <div>
+      <span>התקדמות היום</span>
+      <strong>${getProgress(goal)}%</strong>
+    </div>
+  `;
+
+  grid.innerHTML = "";
+
+  const weekDays = ["א", "ב", "ג", "ד", "ה", "ו", "ש"];
+
+  weekDays.forEach(function(day) {
+    const dayName = document.createElement("div");
+    dayName.className = "calendar-day-name";
+    dayName.textContent = day;
+    grid.appendChild(dayName);
+  });
+
+  const year = calendarDate.getFullYear();
+  const month = calendarDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const startOffset = firstDay.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  for (let i = 0; i < startOffset; i++) {
+    const emptyCell = document.createElement("div");
+    emptyCell.className = "calendar-cell empty";
+    grid.appendChild(emptyCell);
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const dateKey = formatDateKey(date);
+    const cell = document.createElement("div");
+
+    cell.className = "calendar-cell";
+    cell.innerHTML = `<span>${day}</span>`;
+
+    if (isGoalSuccessOnDate(goal, dateKey)) {
+      cell.classList.add("success");
+      cell.innerHTML += `<strong>✓</strong>`;
+    }
+
+    grid.appendChild(cell);
+  }
 }
 
 function setTodayValue(goalId, newValue) {
@@ -484,12 +675,20 @@ async function fetchPlayers() {
 }
 
 async function renderRanking() {
+  const renderId = ++rankingRenderId;
   const rankingList = document.getElementById("rankingList");
+
   rankingList.innerHTML = "";
 
   await syncPlayer();
 
+  if (renderId !== rankingRenderId) return;
+
   let players = await fetchPlayers();
+
+  if (renderId !== rankingRenderId) return;
+
+  rankingList.innerHTML = "";
 
   players.sort(function(a, b) {
     if (rankingSortMode === "best") {
@@ -562,7 +761,7 @@ function setGoalType(type, label) {
 function resetAddGoalForm() {
   document.getElementById("addGoalForm").reset();
   document.getElementById("goalTypeInput").value = "";
-  document.getElementById("goalTypeButton").textContent = "סוג האתגר";
+  document.getElementById("goalTypeButton").textContent = "";
   document.getElementById("goalTypePicker").classList.remove("open");
   document.getElementById("goalTargetWrapper").classList.add("hidden");
   document.getElementById("goalTargetInput").required = false;
@@ -704,12 +903,17 @@ window.addEventListener("popstate", function(event) {
     return;
   }
 
+  if (isGoalOptionsOpen()) {
+    closeGoalOptionsMenu();
+    return;
+  }
+
   if (!state || state.screenId === "homeScreen") {
     showScreen("homeScreen", false);
     return;
   }
 
-  if (state.menuOpen) {
+  if (state.menuOpen || state.goalOptionsOpen) {
     return;
   }
 
@@ -720,6 +924,11 @@ window.addEventListener("popstate", function(event) {
 
   if (state.screenId === "goalSettingsScreen" && state.goalId) {
     openGoalSettings(state.goalId, false);
+    return;
+  }
+
+  if (state.screenId === "goalInfoScreen" && state.goalId) {
+    openGoalInfo(state.goalId, false);
     return;
   }
 
@@ -750,12 +959,32 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("openMenuButton").addEventListener("click", openMenu);
   document.getElementById("menuOverlay").addEventListener("click", closeMenuFromOverlay);
 
+  document.getElementById("goalOptionsOverlay").addEventListener("click", closeGoalOptionsFromOverlay);
+
+  document.getElementById("openGoalEditFromMenu").addEventListener("click", function() {
+    openGoalScreenFromOptions("edit");
+  });
+
+  document.getElementById("openGoalInfoFromMenu").addEventListener("click", function() {
+    openGoalScreenFromOptions("info");
+  });
+
   document.getElementById("openRankingFromMenu").addEventListener("click", function() {
     openScreenFromMenu("rankingScreen");
   });
 
   document.getElementById("openAddFromMenu").addEventListener("click", function() {
     openScreenFromMenu("addScreen");
+  });
+
+  document.getElementById("prevMonthButton").addEventListener("click", function() {
+    calendarDate.setMonth(calendarDate.getMonth() - 1);
+    renderGoalInfo();
+  });
+
+  document.getElementById("nextMonthButton").addEventListener("click", function() {
+    calendarDate.setMonth(calendarDate.getMonth() + 1);
+    renderGoalInfo();
   });
 
   document.getElementById("toggleRankingSortButton").addEventListener("click", toggleRankingSort);
