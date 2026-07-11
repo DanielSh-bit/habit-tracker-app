@@ -112,15 +112,44 @@ function getUserBestScore() {
   return bestScore;
 }
 
+function getToneClass(progress) {
+  if (progress >= 100) return "tone-100";
+  if (progress >= 90) return "tone-90";
+  if (progress >= 75) return "tone-75";
+  if (progress >= 60) return "tone-60";
+  if (progress >= 45) return "tone-45";
+  if (progress >= 30) return "tone-30";
+  if (progress >= 15) return "tone-15";
+  return "tone-0";
+}
+
 function getFlameClass(progress) {
-  if (progress >= 100) return "flame-100";
-  if (progress >= 90) return "flame-90";
-  if (progress >= 75) return "flame-75";
-  if (progress >= 60) return "flame-60";
-  if (progress >= 45) return "flame-45";
-  if (progress >= 30) return "flame-30";
-  if (progress >= 15) return "flame-15";
-  return "flame-0";
+  return getToneClass(progress).replace("tone", "flame");
+}
+
+function applyBackground(progress) {
+  document.body.classList.remove(
+    "tone-0",
+    "tone-15",
+    "tone-30",
+    "tone-45",
+    "tone-60",
+    "tone-75",
+    "tone-90",
+    "tone-100"
+  );
+
+  document.body.classList.add(getToneClass(progress));
+}
+
+function applyGeneralBackground() {
+  applyBackground(getUserCurrentScore());
+}
+
+function getCurrentGoal() {
+  return goals.find(function(goal) {
+    return goal.id === currentGoalId;
+  });
 }
 
 function getGoalTypeName(type) {
@@ -193,20 +222,31 @@ function showScreen(screenId, addToHistory = true) {
 
   if (screenId === "homeScreen") {
     currentGoalId = null;
+    applyGeneralBackground();
     renderHome();
   }
 
   if (screenId === "rankingScreen") {
     currentGoalId = null;
+    applyGeneralBackground();
     renderRanking();
   }
 
   if (screenId === "addScreen") {
     currentGoalId = null;
+    applyGeneralBackground();
   }
 
   if (screenId === "nameScreen") {
     currentGoalId = null;
+    applyGeneralBackground();
+  }
+
+  if (screenId === "goalSettingsScreen") {
+    const goal = getCurrentGoal();
+    if (goal) {
+      applyBackground(getProgress(goal));
+    }
   }
 
   if (addToHistory) {
@@ -246,9 +286,10 @@ function renderHome() {
   goals.forEach(function(goal) {
     const progress = getProgress(goal);
     const flameClass = getFlameClass(progress);
+    const toneClass = getToneClass(progress);
 
     const card = document.createElement("article");
-    card.className = "goal-card";
+    card.className = `goal-card ${toneClass}`;
 
     card.innerHTML = `
       <div class="goal-title">
@@ -283,7 +324,10 @@ function openGoal(goalId, addToHistory = true) {
   const value = getTodayValue(goal);
   const progress = getProgress(goal);
   const flameClass = getFlameClass(progress);
+  const toneClass = getToneClass(progress);
   const details = document.getElementById("goalDetails");
+
+  applyBackground(progress);
 
   let actionHtml = "";
 
@@ -303,7 +347,7 @@ function openGoal(goalId, addToHistory = true) {
   }
 
   details.innerHTML = `
-    <div class="detail-card">
+    <div class="detail-card ${toneClass}">
       <button class="goal-options-button" id="openGoalSettingsButton">⋮</button>
 
       <h1 class="screen-title">${goal.title}</h1>
@@ -355,6 +399,8 @@ function openGoalSettings(goalId, addToHistory = true) {
   if (!goal) return;
 
   currentGoalId = goalId;
+
+  applyBackground(getProgress(goal));
 
   document.getElementById("editGoalNameInput").value = goal.title;
   document.getElementById("editGoalTypeInput").value = goal.type;
@@ -512,6 +558,7 @@ function addGoal(event) {
   goals.push(newGoal);
   saveGoals(goals);
   syncPlayer();
+  applyGeneralBackground();
 
   document.getElementById("addGoalForm").reset();
   showScreen("homeScreen");
@@ -616,6 +663,8 @@ document.addEventListener("DOMContentLoaded", function() {
     "",
     ""
   );
+
+  applyGeneralBackground();
 
   if (!getPlayerName()) {
     showScreen("nameScreen", false);
