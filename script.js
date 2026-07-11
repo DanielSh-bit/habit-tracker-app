@@ -46,6 +46,16 @@ function savePlayerName(name) {
   localStorage.setItem(PLAYER_NAME_KEY, name);
 }
 
+function normalizeGoal(goal) {
+  const type = goal.type === "yesno" ? "yesno" : "counter";
+
+  return {
+    ...goal,
+    type: type,
+    target: type === "yesno" ? 1 : Math.max(2, Math.min(999, Number(goal.target) || 2))
+  };
+}
+
 function getDefaultGoals() {
   return [
     {
@@ -65,7 +75,7 @@ function getDefaultGoals() {
     {
       id: "sleep",
       title: "שינה",
-      type: "time",
+      type: "counter",
       target: 8,
       records: {}
     }
@@ -81,7 +91,9 @@ function loadGoals() {
     return defaultGoals;
   }
 
-  return JSON.parse(savedGoals);
+  const parsedGoals = JSON.parse(savedGoals).map(normalizeGoal);
+  saveGoals(parsedGoals);
+  return parsedGoals;
 }
 
 function saveGoals(goalsToSave) {
@@ -168,8 +180,6 @@ function getCurrentGoal() {
 function getGoalTypeName(type) {
   if (type === "yesno") return "כן / לא";
   if (type === "counter") return "ספירה";
-  if (type === "time") return "זמן";
-  if (type === "number") return "זמן";
   return "לא ידוע";
 }
 
@@ -413,43 +423,33 @@ function openGoal(goalId, addToHistory = true) {
 
   if (goal.type === "yesno") {
     actionHtml = `
-      <button class="main-goal-button" id="markYesNoButton">
-        ${value >= 1 ? "בוצע היום" : "סמן שבוצע"}
-      </button>
+      <section class="yesno-action-area">
+        <button class="success-circle-button ${value >= 1 ? "done" : ""}" id="markYesNoButton">
+          ✓
+        </button>
+
+        ${value >= 1 ? `<button class="cancel-success-button" id="cancelYesNoButton">ביטול סימון</button>` : ""}
+      </section>
     `;
   } else {
     actionHtml = `
-      <div class="modern-actions">
-        <button id="decreaseButton">−</button>
-        <button id="increaseButton">+</button>
-      </div>
+      <section class="counter-action-area">
+        <button class="big-add-button" id="increaseButton">+</button>
+        <button class="small-minus-button" id="decreaseButton">הפחתה</button>
+      </section>
     `;
   }
 
   details.innerHTML = `
     <div class="detail-card modern-goal-card">
-      <button class="goal-options-button" id="openGoalOptionsButton">⋮</button>
-
-      <header class="modern-goal-header">
-        <h1>${goal.title}</h1>
-        <p>${getGoalTypeName(goal.type)}</p>
-      </header>
-
-      <section class="progress-panel">
+      <header class="simple-goal-header">
         <div>
-          <span>התקדמות היום</span>
-          <strong>${progress}%</strong>
+          <h1>${goal.title}</h1>
+          <p>${getGoalTypeName(goal.type)}</p>
         </div>
 
-        <div class="progress-track">
-          <div class="progress-fill" style="width: ${progress}%"></div>
-        </div>
-      </section>
-
-      <section class="today-panel">
-        <span>היום</span>
-        <strong>${goal.type === "yesno" ? (value >= 1 ? "בוצע" : "לא בוצע") : `${value} / ${goal.target}`}</strong>
-      </section>
+        ${goal.type === "counter" ? `<strong class="goal-counter-score">${value} מתוך ${goal.target}</strong>` : ""}
+      </header>
 
       ${actionHtml}
     </div>
@@ -457,16 +457,20 @@ function openGoal(goalId, addToHistory = true) {
 
   showScreen("goalScreen", addToHistory);
 
-  document.getElementById("openGoalOptionsButton").addEventListener("click", function(event) {
-    event.stopPropagation();
-    openGoalOptionsMenu();
-  });
-
   if (goal.type === "yesno") {
     document.getElementById("markYesNoButton").addEventListener("click", function() {
-      setTodayValue(goal.id, value >= 1 ? 0 : 1);
+      setTodayValue(goal.id, 1);
       openGoal(goal.id, false);
     });
+
+    const cancelButton = document.getElementById("cancelYesNoButton");
+
+    if (cancelButton) {
+      cancelButton.addEventListener("click", function() {
+        setTodayValue(goal.id, 0);
+        openGoal(goal.id, false);
+      });
+    }
   } else {
     document.getElementById("increaseButton").addEventListener("click", function() {
       setTodayValue(goal.id, value + 1);
@@ -492,8 +496,13 @@ function openGoalSettings(goalId, addToHistory = true) {
   applyBackground(getProgress(goal));
 
   document.getElementById("editGoalNameInput").value = goal.title;
-  document.getElementById("editGoalTypeInput").value = goal.type;
-  document.getElementById("editGoalTargetInput").value = goal.target;
+  setEditGoalType(goal.type, getGoalTypeName(goal.type), false);
+
+  if (goal.type === "counter") {
+    document.getElementById("editGoalTargetInput").value = goal.target;
+  } else {
+    document.getElementById("editGoalTargetInput").value = "";
+  }
 
   showScreen("goalSettingsScreen", addToHistory);
 }
@@ -747,7 +756,7 @@ function setGoalType(type, label) {
   goalTypeButton.textContent = label;
   goalTypePicker.classList.remove("open");
 
-  if (type === "counter" || type === "time") {
+  if (type === "counter") {
     goalTargetWrapper.classList.remove("hidden");
     goalTargetInput.required = true;
     goalTargetInput.value = "";
@@ -755,6 +764,31 @@ function setGoalType(type, label) {
     goalTargetWrapper.classList.add("hidden");
     goalTargetInput.required = false;
     goalTargetInput.value = "";
+  }
+}
+
+function setEditGoalType(type, label, clearTarget = true) {
+  const editGoalTypeInput = document.getElementById("editGoalTypeInput");
+  const editGoalTypeButton = document.getElementById("editGoalTypeButton");
+  const editGoalTypePicker = document.getElementById("editGoalTypePicker");
+  const editGoalTargetWrapper = document.getElementById("editGoalTargetWrapper");
+  const editGoalTargetInput = document.getElementById("editGoalTargetInput");
+
+  editGoalTypeInput.value = type;
+  editGoalTypeButton.textContent = label;
+  editGoalTypePicker.classList.remove("open");
+
+  if (type === "counter") {
+    editGoalTargetWrapper.classList.remove("hidden");
+    editGoalTargetInput.required = true;
+
+    if (clearTarget) {
+      editGoalTargetInput.value = "";
+    }
+  } else {
+    editGoalTargetWrapper.classList.add("hidden");
+    editGoalTargetInput.required = false;
+    editGoalTargetInput.value = "";
   }
 }
 
@@ -767,29 +801,44 @@ function resetAddGoalForm() {
   document.getElementById("goalTargetInput").required = false;
 }
 
-function initializeGoalTypePicker() {
+function initializeGoalTypePickers() {
   const goalTypePicker = document.getElementById("goalTypePicker");
   const goalTypeButton = document.getElementById("goalTypeButton");
   const goalTypeOptions = document.getElementById("goalTypeOptions");
 
+  const editGoalTypePicker = document.getElementById("editGoalTypePicker");
+  const editGoalTypeButton = document.getElementById("editGoalTypeButton");
+  const editGoalTypeOptions = document.getElementById("editGoalTypeOptions");
+
   goalTypeButton.addEventListener("click", function(event) {
     event.stopPropagation();
+    editGoalTypePicker.classList.remove("open");
     goalTypePicker.classList.toggle("open");
   });
 
   goalTypeOptions.querySelectorAll("button").forEach(function(optionButton) {
     optionButton.addEventListener("click", function(event) {
       event.stopPropagation();
+      setGoalType(optionButton.dataset.value, optionButton.textContent.trim());
+    });
+  });
 
-      const type = optionButton.dataset.value;
-      const label = optionButton.textContent.trim();
+  editGoalTypeButton.addEventListener("click", function(event) {
+    event.stopPropagation();
+    goalTypePicker.classList.remove("open");
+    editGoalTypePicker.classList.toggle("open");
+  });
 
-      setGoalType(type, label);
+  editGoalTypeOptions.querySelectorAll("button").forEach(function(optionButton) {
+    optionButton.addEventListener("click", function(event) {
+      event.stopPropagation();
+      setEditGoalType(optionButton.dataset.value, optionButton.textContent.trim(), true);
     });
   });
 
   document.addEventListener("click", function() {
     goalTypePicker.classList.remove("open");
+    editGoalTypePicker.classList.remove("open");
   });
 }
 
@@ -809,7 +858,7 @@ function addGoal(event) {
 
   let target = 1;
 
-  if (type === "counter" || type === "time") {
+  if (type === "counter") {
     target = Number(targetInput.value);
 
     if (!Number.isInteger(target) || target < 2 || target > 999) {
@@ -854,9 +903,20 @@ function editGoal(event) {
 
   const title = document.getElementById("editGoalNameInput").value.trim();
   const type = document.getElementById("editGoalTypeInput").value;
-  const target = Number(document.getElementById("editGoalTargetInput").value);
+  const targetInput = document.getElementById("editGoalTargetInput");
 
-  if (!title || target <= 0) return;
+  if (!title || !type) return;
+
+  let target = 1;
+
+  if (type === "counter") {
+    target = Number(targetInput.value);
+
+    if (!Number.isInteger(target) || target < 2 || target > 999) {
+      alert("יעד לא תקין");
+      return;
+    }
+  }
 
   goals = goals.map(function(goal) {
     if (goal.id !== currentGoalId) return goal;
@@ -877,7 +937,7 @@ function editGoal(event) {
 function deleteCurrentGoal() {
   if (!currentGoalId) return;
 
-  const shouldDelete = confirm("למחוק את האתגר הזה?");
+  const shouldDelete = confirm("Delete this challenge?");
 
   if (!shouldDelete) return;
 
@@ -954,10 +1014,15 @@ document.addEventListener("DOMContentLoaded", function() {
     syncPlayer();
   }
 
-  initializeGoalTypePicker();
+  initializeGoalTypePickers();
 
   document.getElementById("openMenuButton").addEventListener("click", openMenu);
   document.getElementById("menuOverlay").addEventListener("click", closeMenuFromOverlay);
+
+  document.getElementById("openGoalOptionsButton").addEventListener("click", function(event) {
+    event.stopPropagation();
+    openGoalOptionsMenu();
+  });
 
   document.getElementById("goalOptionsOverlay").addEventListener("click", closeGoalOptionsFromOverlay);
 
