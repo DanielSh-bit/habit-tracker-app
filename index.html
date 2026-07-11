@@ -42,17 +42,33 @@
       </nav>
     </aside>
 
+    <div class="confirm-overlay" id="deleteConfirmOverlay">
+      <section class="confirm-box">
+        <h2>Delete this challenge?</h2>
+
+        <div class="confirm-actions">
+          <button type="button" id="cancelDeleteButton">No</button>
+          <button type="button" id="confirmDeleteButton">Yes</button>
+        </div>
+      </section>
+    </div>
+
     <section class="screen" id="addScreen">
       <button class="back-button" data-target="homeScreen">←</button>
 
       <h1 class="screen-title add-screen-title">אתגר חדש</h1>
 
-      <form class="add-goal-form" id="addGoalForm">
+      <form class="add-goal-form" id="addGoalForm" novalidate>
         <div class="form-card add-goal-card">
 
           <label class="field-block">
             <span>שם האתגר</span>
-            <input type="text" id="goalNameInput" class="clean-input" required>
+            <input
+              type="text"
+              id="goalNameInput"
+              class="clean-input"
+              maxlength="22"
+            >
           </label>
 
           <div class="field-block">
@@ -102,12 +118,17 @@
 
       <h1 class="screen-title add-screen-title">עריכת אתגר</h1>
 
-      <form class="add-goal-form edit-goal-form" id="editGoalForm">
+      <form class="add-goal-form edit-goal-form" id="editGoalForm" novalidate>
         <div class="form-card add-goal-card edit-goal-card">
 
           <label class="field-block">
             <span>שם האתגר</span>
-            <input type="text" id="editGoalNameInput" class="clean-input" required>
+            <input
+              type="text"
+              id="editGoalNameInput"
+              class="clean-input"
+              maxlength="22"
+            >
           </label>
 
           <div class="field-block">
