@@ -52,12 +52,7 @@
 
           <label class="field-block">
             <span>שם האתגר</span>
-            <input
-              type="text"
-              id="goalNameInput"
-              class="clean-input"
-              required
-            >
+            <input type="text" id="goalNameInput" class="clean-input" required>
           </label>
 
           <div class="field-block">
@@ -71,7 +66,6 @@
               <div class="custom-options" id="goalTypeOptions">
                 <button type="button" data-value="yesno">כן / לא</button>
                 <button type="button" data-value="counter">ספירה</button>
-                <button type="button" data-value="time">זמן</button>
               </div>
             </div>
           </div>
@@ -99,38 +93,59 @@
 
     <section class="screen goal-screen" id="goalScreen">
       <button class="back-button" data-target="homeScreen">←</button>
+      <button class="goal-screen-options-button" id="openGoalOptionsButton">⋮</button>
       <div class="goal-details-wrapper" id="goalDetails"></div>
     </section>
 
     <section class="screen" id="goalSettingsScreen">
       <button class="back-button" data-target="goalScreen">←</button>
 
-      <h1 class="screen-title">הגדרות אתגר</h1>
+      <h1 class="screen-title add-screen-title">עריכת אתגר</h1>
 
-      <form class="form-card" id="editGoalForm">
-        <label>
-          שם האתגר
-          <input type="text" id="editGoalNameInput" required>
-        </label>
+      <form class="add-goal-form edit-goal-form" id="editGoalForm">
+        <div class="form-card add-goal-card edit-goal-card">
 
-        <label>
-          סוג אתגר
-          <select id="editGoalTypeInput">
-            <option value="yesno">כן / לא</option>
-            <option value="counter">ספירה</option>
-            <option value="time">זמן</option>
-          </select>
-        </label>
+          <label class="field-block">
+            <span>שם האתגר</span>
+            <input type="text" id="editGoalNameInput" class="clean-input" required>
+          </label>
 
-        <label>
-          יעד
-          <input type="number" id="editGoalTargetInput" min="1" required>
-        </label>
+          <div class="field-block">
+            <span>סוג האתגר</span>
 
-        <button type="submit">שמור שינויים</button>
+            <input type="hidden" id="editGoalTypeInput">
+
+            <div class="custom-select" id="editGoalTypePicker">
+              <button type="button" class="custom-select-button" id="editGoalTypeButton"></button>
+
+              <div class="custom-options" id="editGoalTypeOptions">
+                <button type="button" data-value="yesno">כן / לא</button>
+                <button type="button" data-value="counter">ספירה</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="target-wrapper hidden" id="editGoalTargetWrapper">
+            <label class="field-block">
+              <span>יעד</span>
+              <input
+                type="number"
+                id="editGoalTargetInput"
+                class="clean-input"
+                min="2"
+                max="999"
+                step="1"
+                inputmode="numeric"
+              >
+            </label>
+          </div>
+
+        </div>
+
+        <button type="submit" class="create-button save-button">save</button>
       </form>
 
-      <button class="delete-button" id="deleteGoalButton">מחק אתגר</button>
+      <button type="button" class="trash-button" id="deleteGoalButton">🗑</button>
     </section>
 
     <section class="screen" id="goalInfoScreen">
