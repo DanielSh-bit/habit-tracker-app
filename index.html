@@ -36,40 +36,54 @@
     <section class="screen" id="addScreen">
       <button class="back-button" data-target="homeScreen">←</button>
 
-      <form class="form-card add-goal-card" id="addGoalForm">
-        <input
-          type="text"
-          id="goalNameInput"
-          class="clean-input"
-          placeholder="שם האתגר"
-          required
-        >
+      <h1 class="screen-title add-screen-title">אתגר חדש</h1>
 
-        <input type="hidden" id="goalTypeInput">
+      <form class="add-goal-form" id="addGoalForm">
+        <div class="form-card add-goal-card">
 
-        <div class="custom-select" id="goalTypePicker">
-          <button type="button" class="custom-select-button" id="goalTypeButton">
-            סוג האתגר
-          </button>
+          <label class="field-block">
+            <span>שם האתגר</span>
+            <input
+              type="text"
+              id="goalNameInput"
+              class="clean-input"
+              required
+            >
+          </label>
 
-          <div class="custom-options" id="goalTypeOptions">
-            <button type="button" data-value="yesno">כן / לא</button>
-            <button type="button" data-value="counter">ספירה</button>
-            <button type="button" data-value="time">זמן</button>
+          <div class="field-block">
+            <span>סוג האתגר</span>
+
+            <input type="hidden" id="goalTypeInput">
+
+            <div class="custom-select" id="goalTypePicker">
+              <button type="button" class="custom-select-button" id="goalTypeButton">
+                
+              </button>
+
+              <div class="custom-options" id="goalTypeOptions">
+                <button type="button" data-value="yesno">כן / לא</button>
+                <button type="button" data-value="counter">ספירה</button>
+                <button type="button" data-value="time">זמן</button>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div class="target-wrapper hidden" id="goalTargetWrapper">
-          <input
-            type="number"
-            id="goalTargetInput"
-            class="clean-input"
-            placeholder="יעד"
-            min="2"
-            max="999"
-            step="1"
-            inputmode="numeric"
-          >
+          <div class="target-wrapper hidden" id="goalTargetWrapper">
+            <label class="field-block">
+              <span>יעד</span>
+              <input
+                type="number"
+                id="goalTargetInput"
+                class="clean-input"
+                min="2"
+                max="999"
+                step="1"
+                inputmode="numeric"
+              >
+            </label>
+          </div>
+
         </div>
 
         <button type="submit" class="create-button">create</button>
