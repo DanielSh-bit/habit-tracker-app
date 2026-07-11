@@ -640,3 +640,79 @@ body.tone-100 {
     padding: 8px;
   }
 }
+
+.add-goal-card {
+  margin-top: 86px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.clean-input,
+.custom-select-button {
+  width: 100%;
+  height: 56px;
+  border: none;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111827;
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+  box-sizing: border-box;
+  padding: 0 16px;
+  outline: none;
+}
+
+.clean-input::placeholder {
+  color: rgba(17, 24, 39, 0.55);
+}
+
+.custom-select {
+  position: relative;
+}
+
+.custom-select-button {
+  cursor: pointer;
+}
+
+.custom-options {
+  display: none;
+  margin-top: 10px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
+}
+
+.custom-select.open .custom-options {
+  display: flex;
+  flex-direction: column;
+}
+
+.custom-options button {
+  width: 100%;
+  height: 54px;
+  border: none;
+  background: transparent;
+  color: #111827;
+  font-size: 18px;
+  font-weight: 900;
+  text-align: center;
+  cursor: pointer;
+}
+
+.custom-options button:not(:last-child) {
+  border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.target-wrapper.hidden {
+  display: none;
+}
+
+.create-button {
+  margin-top: 4px;
+  height: 56px;
+  border-radius: 18px;
+  text-transform: lowercase;
+}
