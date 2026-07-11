@@ -623,3 +623,99 @@ body {
 .ranking-row.rank-3 .muted-score {
   background: rgba(255, 255, 255, 0.32);
 }
+
+body {
+  transition: background 0.35s ease;
+}
+
+.app,
+.screen {
+  background: transparent !important;
+}
+
+body.tone-0 {
+  background: linear-gradient(180deg, #f3f4f6 0%, #1f2937 100%);
+}
+
+body.tone-15 {
+  background: linear-gradient(180deg, #fff7d6 0%, #8a6d1d 100%);
+}
+
+body.tone-30 {
+  background: linear-gradient(180deg, #fff1a8 0%, #b98216 100%);
+}
+
+body.tone-45 {
+  background: linear-gradient(180deg, #ffe0a3 0%, #c85f16 100%);
+}
+
+body.tone-60 {
+  background: linear-gradient(180deg, #ffc2a1 0%, #b91c1c 100%);
+}
+
+body.tone-75 {
+  background: linear-gradient(180deg, #ffb4b4 0%, #7f1d1d 100%);
+}
+
+body.tone-90 {
+  background: linear-gradient(180deg, #eadcff 0%, #6d28d9 100%);
+}
+
+body.tone-100 {
+  background: linear-gradient(180deg, #d8c3ff 0%, #3b0764 100%);
+}
+
+.goal-card.tone-0,
+.detail-card.tone-0 {
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.goal-card.tone-15,
+.detail-card.tone-15 {
+  background: linear-gradient(135deg, rgba(255, 247, 214, 0.96), rgba(255, 225, 110, 0.9)) !important;
+}
+
+.goal-card.tone-30,
+.detail-card.tone-30 {
+  background: linear-gradient(135deg, rgba(255, 241, 168, 0.96), rgba(255, 198, 68, 0.9)) !important;
+}
+
+.goal-card.tone-45,
+.detail-card.tone-45 {
+  background: linear-gradient(135deg, rgba(255, 224, 163, 0.96), rgba(255, 144, 54, 0.9)) !important;
+}
+
+.goal-card.tone-60,
+.detail-card.tone-60 {
+  background: linear-gradient(135deg, rgba(255, 194, 161, 0.96), rgba(239, 68, 68, 0.88)) !important;
+}
+
+.goal-card.tone-75,
+.detail-card.tone-75 {
+  background: linear-gradient(135deg, rgba(255, 180, 180, 0.96), rgba(153, 27, 27, 0.86)) !important;
+}
+
+.goal-card.tone-90,
+.detail-card.tone-90 {
+  background: linear-gradient(135deg, rgba(234, 220, 255, 0.96), rgba(139, 92, 246, 0.88)) !important;
+}
+
+.goal-card.tone-100,
+.detail-card.tone-100 {
+  background: linear-gradient(135deg, rgba(216, 195, 255, 0.96), rgba(91, 33, 182, 0.9)) !important;
+}
+
+.goal-card.tone-75 h2,
+.goal-card.tone-90 h2,
+.goal-card.tone-100 h2,
+.detail-card.tone-75,
+.detail-card.tone-90,
+.detail-card.tone-100 {
+  color: white;
+}
+
+.detail-card.tone-75 .screen-title,
+.detail-card.tone-90 .screen-title,
+.detail-card.tone-100 .screen-title {
+  color: white;
+}
