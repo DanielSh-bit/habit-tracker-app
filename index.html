@@ -200,12 +200,15 @@
     </section>
 
     <section class="screen" id="nameScreen">
-      <h1 class="screen-title">איך קוראים לך?</h1>
+      <div class="welcome-header">
+        <div class="welcome-icon">😊</div>
+        <h1 class="screen-title welcome-title">ברוך הבא</h1>
+      </div>
 
-      <form class="form-card" id="nameForm">
+      <form class="form-card" id="nameForm" novalidate>
         <label>
           שם
-          <input type="text" id="playerNameInput" placeholder="לדוגמה: דניאל" required>
+          <input type="text" id="playerNameInput" required>
         </label>
 
         <button type="submit">המשך</button>
