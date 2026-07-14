@@ -14,10 +14,7 @@ let calendarDate = new Date();
 
 function getTodayKey() {
   const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return formatDateKey(date);
 }
 
 function formatDateKey(date) {
@@ -34,6 +31,57 @@ function escapeHtml(text) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function formatDescription(text) {
+  const cleanText = String(text || "").trim();
+  const maxLineLength = 26;
+
+  if (!cleanText) return "";
+
+  const words = cleanText.split(/\s+/);
+  const lines = [];
+  let currentLine = "";
+
+  words.forEach(function(word) {
+    if (word.length > maxLineLength) {
+      if (currentLine) {
+        lines.push(currentLine);
+        currentLine = "";
+      }
+
+      for (let i = 0; i < word.length; i += maxLineLength) {
+        lines.push(word.slice(i, i + maxLineLength));
+      }
+
+      return;
+    }
+
+    const nextLine = currentLine ? `${currentLine} ${word}` : word;
+
+    if (nextLine.length > maxLineLength) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = nextLine;
+    }
+  });
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines.map(escapeHtml).join("<br>");
+}
+
+function isFutureDate(date) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const checkedDate = new Date(date);
+  checkedDate.setHours(0, 0, 0, 0);
+
+  return checkedDate > today;
 }
 
 function getDeviceId() {
@@ -229,6 +277,10 @@ function isDeleteConfirmOpen() {
   return document.getElementById("deleteConfirmOverlay").classList.contains("open");
 }
 
+function isDayDetailOpen() {
+  return document.getElementById("dayDetailOverlay").classList.contains("open");
+}
+
 function openMenu() {
   if (isMenuOpen()) return;
 
@@ -280,6 +332,29 @@ function openDeleteConfirm() {
 
 function closeDeleteConfirm() {
   document.getElementById("deleteConfirmOverlay").classList.remove("open");
+}
+
+function openDayDetail(dateKey) {
+  const goal = getCurrentGoal();
+
+  if (!goal || goal.type !== "counter") return;
+
+  const value = Number(goal.records[dateKey] || 0);
+  const isSuccess = value >= Number(goal.target);
+  const overlay = document.getElementById("dayDetailOverlay");
+  const box = document.getElementById("dayDetailBox");
+  const score = document.getElementById("dayDetailScore");
+
+  score.textContent = `${value}/${goal.target}`;
+
+  box.classList.remove("success", "fail");
+  box.classList.add(isSuccess ? "success" : "fail");
+
+  overlay.classList.add("open");
+}
+
+function closeDayDetail() {
+  document.getElementById("dayDetailOverlay").classList.remove("open");
 }
 
 function closeMenuFromOverlay() {
@@ -344,6 +419,7 @@ function showScreen(screenId, addToHistory = true) {
   closeMenu();
   closeGoalOptionsMenu();
   closeDeleteConfirm();
+  closeDayDetail();
 
   currentScreenId = screenId;
 
@@ -393,6 +469,11 @@ function showScreen(screenId, addToHistory = true) {
 }
 
 function goBack() {
+  if (isDayDetailOpen()) {
+    closeDayDetail();
+    return;
+  }
+
   if (isDeleteConfirmOpen()) {
     closeDeleteConfirm();
     return;
@@ -471,7 +552,7 @@ function openGoal(goalId, addToHistory = true) {
   const progress = getProgress(goal);
 
   const descriptionText = goal.description
-    ? `<p class="goal-description">${escapeHtml(goal.description)}</p>`
+    ? `<p class="goal-description">${formatDescription(goal.description)}</p>`
     : "";
 
   applyBackground(progress);
@@ -589,7 +670,6 @@ function renderGoalInfo() {
 
   const title = document.getElementById("goalInfoTitle");
   const monthTitle = document.getElementById("calendarMonthTitle");
-  const stats = document.getElementById("goalInfoStats");
   const grid = document.getElementById("goalCalendarGrid");
 
   title.textContent = goal.title;
@@ -597,35 +677,6 @@ function renderGoalInfo() {
     month: "long",
     year: "numeric"
   });
-
-  const today = new Date();
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(today.getDate() - 29);
-
-  let successCount = 0;
-
-  for (let date = new Date(thirtyDaysAgo); date <= today; date.setDate(date.getDate() + 1)) {
-    if (isGoalSuccessOnDate(goal, formatDateKey(date))) {
-      successCount++;
-    }
-  }
-
-  stats.innerHTML = `
-    <div>
-      <span>הצלחה ב־30 ימים</span>
-      <strong>${successCount}</strong>
-    </div>
-
-    <div>
-      <span>יעד יומי</span>
-      <strong>${goal.target}</strong>
-    </div>
-
-    <div>
-      <span>התקדמות היום</span>
-      <strong>${getProgress(goal)}%</strong>
-    </div>
-  `;
 
   grid.innerHTML = "";
 
@@ -654,13 +705,26 @@ function renderGoalInfo() {
     const date = new Date(year, month, day);
     const dateKey = formatDateKey(date);
     const cell = document.createElement("div");
+    const future = isFutureDate(date);
+    const success = isGoalSuccessOnDate(goal, dateKey);
 
     cell.className = "calendar-cell";
     cell.innerHTML = `<span>${day}</span>`;
 
-    if (isGoalSuccessOnDate(goal, dateKey)) {
+    if (future) {
+      cell.classList.add("future");
+    } else if (success) {
       cell.classList.add("success");
       cell.innerHTML += `<strong>✓</strong>`;
+    } else {
+      cell.classList.add("fail");
+      cell.innerHTML += `<strong>✕</strong>`;
+    }
+
+    if (!future && goal.type === "counter") {
+      cell.addEventListener("click", function() {
+        openDayDetail(dateKey);
+      });
     }
 
     grid.appendChild(cell);
@@ -1058,6 +1122,11 @@ function toggleRankingSort() {
 window.addEventListener("popstate", function(event) {
   const state = event.state;
 
+  if (isDayDetailOpen()) {
+    closeDayDetail();
+    return;
+  }
+
   if (isDeleteConfirmOpen()) {
     closeDeleteConfirm();
     return;
@@ -1155,6 +1224,12 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("nextMonthButton").addEventListener("click", function() {
     calendarDate.setMonth(calendarDate.getMonth() + 1);
     renderGoalInfo();
+  });
+
+  document.getElementById("dayDetailOverlay").addEventListener("click", function(event) {
+    if (event.target.id === "dayDetailOverlay") {
+      closeDayDetail();
+    }
   });
 
   document.getElementById("toggleRankingSortButton").addEventListener("click", toggleRankingSort);
