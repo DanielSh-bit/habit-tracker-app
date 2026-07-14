@@ -1570,3 +1570,95 @@ body {
 #nextMonthButton {
   order: 1;
 }
+
+html,
+body,
+button,
+input,
+textarea,
+select,
+.app,
+.screen,
+.form-card,
+.goal-card,
+.detail-card,
+.side-menu,
+.confirm-box,
+.day-detail-box {
+  font-family: "Noto Sans Hebrew", "Google Sans", "Roboto", Arial, sans-serif !important;
+}
+
+.calendar-nav {
+  direction: ltr !important;
+}
+
+#prevMonthButton {
+  order: 1 !important;
+}
+
+#calendarMonthTitle {
+  order: 2 !important;
+}
+
+#nextMonthButton {
+  order: 3 !important;
+}
+
+.calendar-grid {
+  direction: ltr !important;
+}
+
+.calendar-day-name,
+.calendar-cell {
+  direction: rtl !important;
+}
+
+.calendar-cell,
+.calendar-cell.success,
+.calendar-cell.fail {
+  background: rgba(255, 255, 255, 0.82) !important;
+  color: #111827 !important;
+}
+
+.calendar-cell.future {
+  background: rgba(17, 24, 39, 0.22) !important;
+  color: rgba(17, 24, 39, 0.55) !important;
+}
+
+.calendar-cell.success strong {
+  color: #166534 !important;
+}
+
+.calendar-cell.fail strong {
+  color: #991b1b !important;
+}
+
+.success-circle-button,
+.success-circle-button.done {
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  color: #111827 !important;
+  font-size: 118px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+}
+
+.success-circle-button:active,
+.success-circle-button.done:active {
+  transform: scale(0.94) !important;
+}
+
+.yesno-action-area {
+  gap: 18px !important;
+}
+
+.cancel-success-button {
+  margin-top: 4px !important;
+}
