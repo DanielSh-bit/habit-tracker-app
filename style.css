@@ -1333,3 +1333,11 @@ body {
 #playerNameInput {
   text-align: right;
 }
+
+.small-minus-button {
+  height: 62px;
+  border-radius: 22px;
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+}
