@@ -27,6 +27,15 @@ function formatDateKey(date) {
   return `${year}-${month}-${day}`;
 }
 
+function escapeHtml(text) {
+  return String(text || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function getDeviceId() {
   let deviceId = localStorage.getItem(DEVICE_ID_KEY);
 
@@ -52,7 +61,9 @@ function normalizeGoal(goal) {
   return {
     ...goal,
     type: type,
-    target: type === "yesno" ? 1 : Math.max(2, Math.min(999, Number(goal.target) || 2))
+    target: type === "yesno" ? 1 : Math.max(2, Math.min(999, Number(goal.target) || 2)),
+    description: goal.description || "",
+    unit: goal.unit || ""
   };
 }
 
@@ -63,6 +74,8 @@ function getDefaultGoals() {
       title: "אימון",
       type: "yesno",
       target: 1,
+      description: "",
+      unit: "",
       records: {}
     },
     {
@@ -70,6 +83,8 @@ function getDefaultGoals() {
       title: "מים",
       type: "counter",
       target: 8,
+      description: "",
+      unit: "כוסות",
       records: {}
     },
     {
@@ -77,6 +92,8 @@ function getDefaultGoals() {
       title: "שינה",
       type: "counter",
       target: 8,
+      description: "",
+      unit: "שעות",
       records: {}
     }
   ];
@@ -422,7 +439,7 @@ function renderHome() {
 
     card.innerHTML = `
       <div class="goal-title">
-        <h2>${goal.title}</h2>
+        <h2>${escapeHtml(goal.title)}</h2>
       </div>
 
       <div class="goal-status">
@@ -451,8 +468,12 @@ function openGoal(goalId, addToHistory = true) {
   currentGoalId = goalId;
 
   const value = getTodayValue(goal);
-  const progress = getProgress(goal);
   const details = document.getElementById("goalDetails");
+  const progress = getProgress(goal);
+  const unitText = goal.type === "counter" && goal.unit ? `<span class="goal-unit-badge">${escapeHtml(goal.unit)}</span>` : "";
+  const descriptionText = goal.description
+    ? `<p class="goal-description">${escapeHtml(goal.description)}</p>`
+    : "";
 
   applyBackground(progress);
 
@@ -480,9 +501,10 @@ function openGoal(goalId, addToHistory = true) {
   details.innerHTML = `
     <div class="detail-card modern-goal-card">
       <header class="simple-goal-header">
-        <div>
-          <h1>${goal.title}</h1>
-          <p>${getGoalTypeName(goal.type)}</p>
+        <div class="goal-heading-text">
+          <h1>${escapeHtml(goal.title)}${unitText}</h1>
+          <p class="goal-type-label">${getGoalTypeName(goal.type)}</p>
+          ${descriptionText}
         </div>
 
         ${goal.type === "counter" ? `<strong class="goal-counter-score">${value}/${goal.target}</strong>` : ""}
@@ -533,12 +555,15 @@ function openGoalSettings(goalId, addToHistory = true) {
   applyBackground(getProgress(goal));
 
   document.getElementById("editGoalNameInput").value = goal.title;
+  document.getElementById("editGoalDescriptionInput").value = goal.description || "";
   setEditGoalType(goal.type, getGoalTypeName(goal.type), false);
 
   if (goal.type === "counter") {
     document.getElementById("editGoalTargetInput").value = goal.target;
+    document.getElementById("editGoalUnitInput").value = goal.unit || "";
   } else {
     document.getElementById("editGoalTargetInput").value = "";
+    document.getElementById("editGoalUnitInput").value = "";
   }
 
   showScreen("goalSettingsScreen", addToHistory);
@@ -596,7 +621,7 @@ function renderGoalInfo() {
 
     <div>
       <span>יעד יומי</span>
-      <strong>${goal.target}</strong>
+      <strong>${goal.target}${goal.unit ? ` ${escapeHtml(goal.unit)}` : ""}</strong>
     </div>
 
     <div>
@@ -760,7 +785,7 @@ async function renderRanking() {
       : Number(player.current_score);
 
     row.innerHTML = `
-      <div class="ranking-name">${player.name}</div>
+      <div class="ranking-name">${escapeHtml(player.name)}</div>
 
       <div class="ranking-scores">
         <div class="score-box active-score">
@@ -788,6 +813,7 @@ function setGoalType(type, label) {
   const goalTypePicker = document.getElementById("goalTypePicker");
   const goalTargetWrapper = document.getElementById("goalTargetWrapper");
   const goalTargetInput = document.getElementById("goalTargetInput");
+  const goalUnitInput = document.getElementById("goalUnitInput");
 
   goalTypeInput.value = type;
   goalTypeButton.textContent = label;
@@ -797,19 +823,22 @@ function setGoalType(type, label) {
     goalTargetWrapper.classList.remove("hidden");
     goalTargetInput.required = true;
     goalTargetInput.value = "";
+    goalUnitInput.value = "";
   } else {
     goalTargetWrapper.classList.add("hidden");
     goalTargetInput.required = false;
     goalTargetInput.value = "";
+    goalUnitInput.value = "";
   }
 }
 
-function setEditGoalType(type, label, clearTarget = true) {
+function setEditGoalType(type, label, clearFields = true) {
   const editGoalTypeInput = document.getElementById("editGoalTypeInput");
   const editGoalTypeButton = document.getElementById("editGoalTypeButton");
   const editGoalTypePicker = document.getElementById("editGoalTypePicker");
   const editGoalTargetWrapper = document.getElementById("editGoalTargetWrapper");
   const editGoalTargetInput = document.getElementById("editGoalTargetInput");
+  const editGoalUnitInput = document.getElementById("editGoalUnitInput");
 
   editGoalTypeInput.value = type;
   editGoalTypeButton.textContent = label;
@@ -819,13 +848,15 @@ function setEditGoalType(type, label, clearTarget = true) {
     editGoalTargetWrapper.classList.remove("hidden");
     editGoalTargetInput.required = true;
 
-    if (clearTarget) {
+    if (clearFields) {
       editGoalTargetInput.value = "";
+      editGoalUnitInput.value = "";
     }
   } else {
     editGoalTargetWrapper.classList.add("hidden");
     editGoalTargetInput.required = false;
     editGoalTargetInput.value = "";
+    editGoalUnitInput.value = "";
   }
 }
 
@@ -836,6 +867,8 @@ function resetAddGoalForm() {
   document.getElementById("goalTypePicker").classList.remove("open");
   document.getElementById("goalTargetWrapper").classList.add("hidden");
   document.getElementById("goalTargetInput").required = false;
+  document.getElementById("goalUnitInput").value = "";
+  document.getElementById("goalDescriptionInput").value = "";
 }
 
 function initializeGoalTypePickers() {
@@ -883,12 +916,16 @@ function addGoal(event) {
   event.preventDefault();
 
   const titleInput = document.getElementById("goalNameInput");
+  const descriptionInput = document.getElementById("goalDescriptionInput");
   const typeInput = document.getElementById("goalTypeInput");
   const typeButton = document.getElementById("goalTypeButton");
   const targetInput = document.getElementById("goalTargetInput");
+  const unitInput = document.getElementById("goalUnitInput");
 
   const title = titleInput.value.trim();
+  const description = descriptionInput.value.trim();
   const type = typeInput.value;
+  const unit = unitInput.value.trim();
 
   let hasError = false;
 
@@ -925,6 +962,8 @@ function addGoal(event) {
     title: title,
     type: type,
     target: target,
+    description: description,
+    unit: type === "counter" ? unit : "",
     records: {}
   };
 
@@ -955,12 +994,16 @@ function editGoal(event) {
   if (!currentGoalId) return;
 
   const titleInput = document.getElementById("editGoalNameInput");
+  const descriptionInput = document.getElementById("editGoalDescriptionInput");
   const typeInput = document.getElementById("editGoalTypeInput");
   const typeButton = document.getElementById("editGoalTypeButton");
   const targetInput = document.getElementById("editGoalTargetInput");
+  const unitInput = document.getElementById("editGoalUnitInput");
 
   const title = titleInput.value.trim();
+  const description = descriptionInput.value.trim();
   const type = typeInput.value;
+  const unit = unitInput.value.trim();
 
   let hasError = false;
 
@@ -999,7 +1042,9 @@ function editGoal(event) {
       ...goal,
       title: title,
       type: type,
-      target: target
+      target: target,
+      description: description,
+      unit: type === "counter" ? unit : ""
     };
   });
 
@@ -1139,6 +1184,22 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   document.getElementById("editGoalNameInput").addEventListener("input", function(event) {
+    flashInputLimit(event.target);
+  });
+
+  document.getElementById("goalUnitInput").addEventListener("input", function(event) {
+    flashInputLimit(event.target);
+  });
+
+  document.getElementById("editGoalUnitInput").addEventListener("input", function(event) {
+    flashInputLimit(event.target);
+  });
+
+  document.getElementById("goalDescriptionInput").addEventListener("input", function(event) {
+    flashInputLimit(event.target);
+  });
+
+  document.getElementById("editGoalDescriptionInput").addEventListener("input", function(event) {
     flashInputLimit(event.target);
   });
 
