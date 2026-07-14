@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@400;500;600;700;800;900&display=swap");
+
 * {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
@@ -1522,4 +1524,49 @@ body {
   font-size: 52px;
   font-weight: 900;
   direction: ltr;
+}
+
+* {
+  font-family: "Noto Sans Hebrew", "Google Sans", "Roboto", Arial, sans-serif !important;
+}
+
+.calendar-cell,
+.calendar-cell.success,
+.calendar-cell.fail {
+  background: rgba(255, 255, 255, 0.82) !important;
+  color: #111827 !important;
+}
+
+.calendar-cell.future {
+  background: rgba(17, 24, 39, 0.22) !important;
+  color: rgba(17, 24, 39, 0.55) !important;
+}
+
+.calendar-cell.success strong {
+  color: #166534 !important;
+}
+
+.calendar-cell.fail strong {
+  color: #991b1b !important;
+}
+
+.calendar-nav button:disabled {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.calendar-nav {
+  direction: rtl;
+}
+
+#prevMonthButton {
+  order: 3;
+}
+
+#calendarMonthTitle {
+  order: 2;
+}
+
+#nextMonthButton {
+  order: 1;
 }
