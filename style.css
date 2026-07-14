@@ -1409,3 +1409,22 @@ body {
 .target-wrapper.hidden {
   display: none;
 }
+
+.goal-unit-badge {
+  display: none !important;
+}
+
+.goal-description {
+  margin-top: 24px !important;
+  color: #073763 !important;
+  font-family: "Roboto", "Google Sans", Arial, sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 1.45 !important;
+  letter-spacing: 0.1px;
+  max-width: 240px;
+}
+
+.clean-textarea {
+  font-family: "Roboto", "Google Sans", Arial, sans-serif !important;
+}
