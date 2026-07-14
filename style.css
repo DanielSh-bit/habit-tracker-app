@@ -1341,3 +1341,71 @@ body {
   font-weight: 900;
   line-height: 1;
 }
+
+.clean-textarea {
+  width: 100%;
+  border: none;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #111827;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: right;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  outline: none;
+  resize: none;
+  font-family: Arial, sans-serif;
+  line-height: 1.35;
+}
+
+.goal-heading-text {
+  max-width: 210px;
+}
+
+.goal-heading-text h1 {
+  position: relative;
+  display: inline-block;
+  max-width: 210px;
+  overflow: visible;
+  white-space: normal;
+  line-height: 1.05;
+}
+
+.goal-unit-badge {
+  display: inline-block;
+  margin-right: 6px;
+  transform: translateY(-10px);
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.52);
+  background: rgba(17, 24, 39, 0.07);
+  border-radius: 999px;
+  padding: 3px 7px;
+  vertical-align: super;
+}
+
+.goal-type-label {
+  margin-top: 8px !important;
+}
+
+.goal-description {
+  margin: 10px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.62);
+  line-height: 1.35;
+  text-align: right;
+  max-width: 220px;
+  white-space: normal;
+}
+
+.target-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.target-wrapper.hidden {
+  display: none;
+}
