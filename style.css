@@ -1428,3 +1428,98 @@ body {
 .clean-textarea {
   font-family: "Roboto", "Google Sans", Arial, sans-serif !important;
 }
+
+.goal-description {
+  max-width: 235px !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.calendar-nav strong {
+  word-spacing: 10px;
+  letter-spacing: 0.2px;
+}
+
+.info-card {
+  padding: 18px !important;
+}
+
+.calendar-grid {
+  gap: 9px !important;
+}
+
+.calendar-day-name {
+  font-size: 15px !important;
+  padding-bottom: 6px !important;
+}
+
+.calendar-cell {
+  height: 52px !important;
+  border-radius: 17px !important;
+  font-size: 17px !important;
+}
+
+.calendar-cell.future {
+  background: rgba(17, 24, 39, 0.22) !important;
+  color: rgba(17, 24, 39, 0.55) !important;
+}
+
+.calendar-cell.success {
+  background: #166534 !important;
+  color: white !important;
+}
+
+.calendar-cell.fail {
+  background: #991b1b !important;
+  color: white !important;
+}
+
+.calendar-cell strong {
+  position: absolute;
+  left: 5px;
+  top: 3px;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.day-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.42);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 520;
+  padding: 22px;
+  box-sizing: border-box;
+}
+
+.day-detail-overlay.open {
+  display: flex;
+}
+
+.day-detail-box {
+  width: 230px;
+  height: 150px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.day-detail-box.success {
+  background: #166534;
+}
+
+.day-detail-box.fail {
+  background: #991b1b;
+}
+
+.day-detail-box strong {
+  color: white;
+  font-size: 52px;
+  font-weight: 900;
+  direction: ltr;
+}
