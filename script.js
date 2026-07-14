@@ -13,8 +13,7 @@ let rankingRenderId = 0;
 let calendarDate = new Date();
 
 function getTodayKey() {
-  const date = new Date();
-  return formatDateKey(date);
+  return formatDateKey(new Date());
 }
 
 function formatDateKey(date) {
@@ -22,6 +21,52 @@ function formatDateKey(date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function getMonthKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
+function getCurrentMonthStart() {
+  const date = new Date();
+  date.setDate(1);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function getGoalFirstMonthStart(goal) {
+  const recordDates = Object.keys(goal.records || {}).sort();
+
+  if (recordDates.length === 0) {
+    return getCurrentMonthStart();
+  }
+
+  const firstRecord = recordDates[0];
+  const parts = firstRecord.split("-");
+  const date = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function isSameMonth(firstDate, secondDate) {
+  return (
+    firstDate.getFullYear() === secondDate.getFullYear() &&
+    firstDate.getMonth() === secondDate.getMonth()
+  );
+}
+
+function isBeforeMonth(firstDate, secondDate) {
+  if (firstDate.getFullYear() < secondDate.getFullYear()) return true;
+  if (firstDate.getFullYear() > secondDate.getFullYear()) return false;
+  return firstDate.getMonth() < secondDate.getMonth();
+}
+
+function isAfterMonth(firstDate, secondDate) {
+  if (firstDate.getFullYear() > secondDate.getFullYear()) return true;
+  if (firstDate.getFullYear() < secondDate.getFullYear()) return false;
+  return firstDate.getMonth() > secondDate.getMonth();
 }
 
 function escapeHtml(text) {
@@ -119,30 +164,9 @@ function normalizeGoal(goal) {
 
 function getDefaultGoals() {
   return [
-    {
-      id: "workout",
-      title: "אימון",
-      type: "yesno",
-      target: 1,
-      description: "",
-      records: {}
-    },
-    {
-      id: "water",
-      title: "מים",
-      type: "counter",
-      target: 8,
-      description: "",
-      records: {}
-    },
-    {
-      id: "sleep",
-      title: "שינה",
-      type: "counter",
-      target: 8,
-      description: "",
-      records: {}
-    }
+    { id: "workout", title: "אימון", type: "yesno", target: 1, description: "", records: {} },
+    { id: "water", title: "מים", type: "counter", target: 8, description: "", records: {} },
+    { id: "sleep", title: "שינה", type: "counter", target: 8, description: "", records: {} }
   ];
 }
 
@@ -167,8 +191,7 @@ function saveGoals(goalsToSave) {
 let goals = loadGoals();
 
 function getTodayValue(goal) {
-  const today = getTodayKey();
-  return Number(goal.records[today] || 0);
+  return Number(goal.records[getTodayKey()] || 0);
 }
 
 function getProgress(goal) {
@@ -197,7 +220,6 @@ function getUserBestScore() {
   const bestScore = Math.max(currentScore, savedBestScore);
 
   localStorage.setItem(USER_BEST_SCORE_KEY, String(bestScore));
-
   return bestScore;
 }
 
@@ -217,17 +239,7 @@ function getFlameClass(progress) {
 }
 
 function applyBackground(progress) {
-  document.body.classList.remove(
-    "tone-0",
-    "tone-15",
-    "tone-30",
-    "tone-45",
-    "tone-60",
-    "tone-75",
-    "tone-90",
-    "tone-100"
-  );
-
+  document.body.classList.remove("tone-0", "tone-15", "tone-30", "tone-45", "tone-60", "tone-75", "tone-90", "tone-100");
   document.body.classList.add(getToneClass(progress));
 }
 
@@ -287,15 +299,7 @@ function openMenu() {
   document.getElementById("sideMenu").classList.add("open");
   document.getElementById("menuOverlay").classList.add("open");
 
-  history.pushState(
-    {
-      screenId: currentScreenId,
-      goalId: currentGoalId,
-      menuOpen: true
-    },
-    "",
-    ""
-  );
+  history.pushState({ screenId: currentScreenId, goalId: currentGoalId, menuOpen: true }, "", "");
 }
 
 function closeMenu() {
@@ -309,15 +313,7 @@ function openGoalOptionsMenu() {
   document.getElementById("goalOptionsMenu").classList.add("open");
   document.getElementById("goalOptionsOverlay").classList.add("open");
 
-  history.pushState(
-    {
-      screenId: currentScreenId,
-      goalId: currentGoalId,
-      goalOptionsOpen: true
-    },
-    "",
-    ""
-  );
+  history.pushState({ screenId: currentScreenId, goalId: currentGoalId, goalOptionsOpen: true }, "", "");
 }
 
 function closeGoalOptionsMenu() {
@@ -377,14 +373,7 @@ function closeGoalOptionsFromOverlay() {
 
 function openScreenFromMenu(screenId) {
   if (history.state && history.state.menuOpen) {
-    history.replaceState(
-      {
-        screenId: currentScreenId,
-        goalId: currentGoalId
-      },
-      "",
-      ""
-    );
+    history.replaceState({ screenId: currentScreenId, goalId: currentGoalId }, "", "");
   }
 
   showScreen(screenId);
@@ -394,25 +383,13 @@ function openGoalScreenFromOptions(screenName) {
   if (!currentGoalId) return;
 
   if (history.state && history.state.goalOptionsOpen) {
-    history.replaceState(
-      {
-        screenId: "goalScreen",
-        goalId: currentGoalId
-      },
-      "",
-      ""
-    );
+    history.replaceState({ screenId: "goalScreen", goalId: currentGoalId }, "", "");
   }
 
   closeGoalOptionsMenu();
 
-  if (screenName === "edit") {
-    openGoalSettings(currentGoalId);
-  }
-
-  if (screenName === "info") {
-    openGoalInfo(currentGoalId);
-  }
+  if (screenName === "edit") openGoalSettings(currentGoalId);
+  if (screenName === "info") openGoalInfo(currentGoalId);
 }
 
 function showScreen(screenId, addToHistory = true) {
@@ -441,12 +418,7 @@ function showScreen(screenId, addToHistory = true) {
     renderRanking();
   }
 
-  if (screenId === "addScreen") {
-    currentGoalId = null;
-    applyGeneralBackground();
-  }
-
-  if (screenId === "nameScreen") {
+  if (screenId === "addScreen" || screenId === "nameScreen") {
     currentGoalId = null;
     applyGeneralBackground();
   }
@@ -457,14 +429,7 @@ function showScreen(screenId, addToHistory = true) {
   }
 
   if (addToHistory) {
-    history.pushState(
-      {
-        screenId: screenId,
-        goalId: currentGoalId
-      },
-      "",
-      ""
-    );
+    history.pushState({ screenId: screenId, goalId: currentGoalId }, "", "");
   }
 }
 
@@ -480,28 +445,18 @@ function goBack() {
   }
 
   if (isMenuOpen()) {
-    if (history.state && history.state.menuOpen) {
-      history.back();
-    } else {
-      closeMenu();
-    }
-
+    if (history.state && history.state.menuOpen) history.back();
+    else closeMenu();
     return;
   }
 
   if (isGoalOptionsOpen()) {
-    if (history.state && history.state.goalOptionsOpen) {
-      history.back();
-    } else {
-      closeGoalOptionsMenu();
-    }
-
+    if (history.state && history.state.goalOptionsOpen) history.back();
+    else closeGoalOptionsMenu();
     return;
   }
 
-  if (currentScreenId === "homeScreen") {
-    return;
-  }
+  if (currentScreenId === "homeScreen") return;
 
   history.back();
 }
@@ -562,10 +517,7 @@ function openGoal(goalId, addToHistory = true) {
   if (goal.type === "yesno") {
     actionHtml = `
       <section class="yesno-action-area">
-        <button class="success-circle-button ${value >= 1 ? "done" : ""}" id="markYesNoButton">
-          ✓
-        </button>
-
+        <button class="success-circle-button ${value >= 1 ? "done" : ""}" id="markYesNoButton">✓</button>
         ${value >= 1 ? `<button class="cancel-success-button" id="cancelYesNoButton">Cancel</button>` : ""}
       </section>
     `;
@@ -655,8 +607,7 @@ function openGoalInfo(goalId, addToHistory = true) {
   if (!goal) return;
 
   currentGoalId = goalId;
-  calendarDate = new Date();
-  calendarDate.setDate(1);
+  calendarDate = getCurrentMonthStart();
 
   applyBackground(getProgress(goal));
   renderGoalInfo();
@@ -671,12 +622,28 @@ function renderGoalInfo() {
   const title = document.getElementById("goalInfoTitle");
   const monthTitle = document.getElementById("calendarMonthTitle");
   const grid = document.getElementById("goalCalendarGrid");
+  const prevButton = document.getElementById("prevMonthButton");
+  const nextButton = document.getElementById("nextMonthButton");
+
+  const firstAllowedMonth = getGoalFirstMonthStart(goal);
+  const currentAllowedMonth = getCurrentMonthStart();
+
+  if (isBeforeMonth(calendarDate, firstAllowedMonth)) {
+    calendarDate = new Date(firstAllowedMonth);
+  }
+
+  if (isAfterMonth(calendarDate, currentAllowedMonth)) {
+    calendarDate = new Date(currentAllowedMonth);
+  }
 
   title.textContent = goal.title;
-  monthTitle.textContent = calendarDate.toLocaleDateString("he-IL", {
-    month: "long",
-    year: "numeric"
-  });
+
+  const monthName = calendarDate.toLocaleDateString("he-IL", { month: "long" });
+  const yearName = calendarDate.toLocaleDateString("he-IL", { year: "numeric" });
+  monthTitle.textContent = `${monthName}  ${yearName}`;
+
+  prevButton.disabled = isSameMonth(calendarDate, firstAllowedMonth);
+  nextButton.disabled = isSameMonth(calendarDate, currentAllowedMonth);
 
   grid.innerHTML = "";
 
@@ -788,9 +755,7 @@ async function fetchPlayers() {
       }
     });
 
-    if (!response.ok) {
-      throw new Error("Supabase fetch failed");
-    }
+    if (!response.ok) throw new Error("Supabase fetch failed");
 
     return await response.json();
   } catch (error) {
@@ -1147,9 +1112,7 @@ window.addEventListener("popstate", function(event) {
     return;
   }
 
-  if (state.menuOpen || state.goalOptionsOpen) {
-    return;
-  }
+  if (state.menuOpen || state.goalOptionsOpen) return;
 
   if (state.screenId === "goalScreen" && state.goalId) {
     openGoal(state.goalId, false);
@@ -1170,14 +1133,7 @@ window.addEventListener("popstate", function(event) {
 });
 
 document.addEventListener("DOMContentLoaded", function() {
-  history.replaceState(
-    {
-      screenId: "homeScreen",
-      goalId: null
-    },
-    "",
-    ""
-  );
+  history.replaceState({ screenId: "homeScreen", goalId: null }, "", "");
 
   applyGeneralBackground();
 
@@ -1260,6 +1216,7 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("deleteGoalButton").addEventListener("click", openDeleteConfirm);
   document.getElementById("cancelDeleteButton").addEventListener("click", closeDeleteConfirm);
   document.getElementById("confirmDeleteButton").addEventListener("click", deleteCurrentGoal);
+
   document.getElementById("deleteConfirmOverlay").addEventListener("click", function(event) {
     if (event.target.id === "deleteConfirmOverlay") {
       closeDeleteConfirm();
