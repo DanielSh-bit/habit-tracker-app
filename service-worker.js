@@ -1,4 +1,4 @@
-const CACHE_NAME = "levelup-cache-v23";
+const CACHE_NAME = "levelup-cache-v24";
 
 const FILES_TO_CACHE = [
   "./",
