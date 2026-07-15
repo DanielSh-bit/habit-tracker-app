@@ -23,12 +23,6 @@ function formatDateKey(date) {
   return `${year}-${month}-${day}`;
 }
 
-function getMonthKey(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  return `${year}-${month}`;
-}
-
 function getCurrentMonthStart() {
   const date = new Date();
   date.setDate(1);
@@ -239,7 +233,17 @@ function getFlameClass(progress) {
 }
 
 function applyBackground(progress) {
-  document.body.classList.remove("tone-0", "tone-15", "tone-30", "tone-45", "tone-60", "tone-75", "tone-90", "tone-100");
+  document.body.classList.remove(
+    "tone-0",
+    "tone-15",
+    "tone-30",
+    "tone-45",
+    "tone-60",
+    "tone-75",
+    "tone-90",
+    "tone-100"
+  );
+
   document.body.classList.add(getToneClass(progress));
 }
 
@@ -299,7 +303,15 @@ function openMenu() {
   document.getElementById("sideMenu").classList.add("open");
   document.getElementById("menuOverlay").classList.add("open");
 
-  history.pushState({ screenId: currentScreenId, goalId: currentGoalId, menuOpen: true }, "", "");
+  history.pushState(
+    {
+      screenId: currentScreenId,
+      goalId: currentGoalId,
+      menuOpen: true
+    },
+    "",
+    ""
+  );
 }
 
 function closeMenu() {
@@ -313,7 +325,15 @@ function openGoalOptionsMenu() {
   document.getElementById("goalOptionsMenu").classList.add("open");
   document.getElementById("goalOptionsOverlay").classList.add("open");
 
-  history.pushState({ screenId: currentScreenId, goalId: currentGoalId, goalOptionsOpen: true }, "", "");
+  history.pushState(
+    {
+      screenId: currentScreenId,
+      goalId: currentGoalId,
+      goalOptionsOpen: true
+    },
+    "",
+    ""
+  );
 }
 
 function closeGoalOptionsMenu() {
@@ -373,7 +393,14 @@ function closeGoalOptionsFromOverlay() {
 
 function openScreenFromMenu(screenId) {
   if (history.state && history.state.menuOpen) {
-    history.replaceState({ screenId: currentScreenId, goalId: currentGoalId }, "", "");
+    history.replaceState(
+      {
+        screenId: currentScreenId,
+        goalId: currentGoalId
+      },
+      "",
+      ""
+    );
   }
 
   showScreen(screenId);
@@ -383,13 +410,25 @@ function openGoalScreenFromOptions(screenName) {
   if (!currentGoalId) return;
 
   if (history.state && history.state.goalOptionsOpen) {
-    history.replaceState({ screenId: "goalScreen", goalId: currentGoalId }, "", "");
+    history.replaceState(
+      {
+        screenId: "goalScreen",
+        goalId: currentGoalId
+      },
+      "",
+      ""
+    );
   }
 
   closeGoalOptionsMenu();
 
-  if (screenName === "edit") openGoalSettings(currentGoalId);
-  if (screenName === "info") openGoalInfo(currentGoalId);
+  if (screenName === "edit") {
+    openGoalSettings(currentGoalId);
+  }
+
+  if (screenName === "info") {
+    openGoalInfo(currentGoalId);
+  }
 }
 
 function showScreen(screenId, addToHistory = true) {
@@ -429,7 +468,14 @@ function showScreen(screenId, addToHistory = true) {
   }
 
   if (addToHistory) {
-    history.pushState({ screenId: screenId, goalId: currentGoalId }, "", "");
+    history.pushState(
+      {
+        screenId: screenId,
+        goalId: currentGoalId
+      },
+      "",
+      ""
+    );
   }
 }
 
@@ -445,14 +491,22 @@ function goBack() {
   }
 
   if (isMenuOpen()) {
-    if (history.state && history.state.menuOpen) history.back();
-    else closeMenu();
+    if (history.state && history.state.menuOpen) {
+      history.back();
+    } else {
+      closeMenu();
+    }
+
     return;
   }
 
   if (isGoalOptionsOpen()) {
-    if (history.state && history.state.goalOptionsOpen) history.back();
-    else closeGoalOptionsMenu();
+    if (history.state && history.state.goalOptionsOpen) {
+      history.back();
+    } else {
+      closeGoalOptionsMenu();
+    }
+
     return;
   }
 
@@ -995,10 +1049,11 @@ function addGoal(event) {
 function saveName(event) {
   event.preventDefault();
 
-  const name = document.getElementById("playerNameInput").value.trim();
+  const nameInput = document.getElementById("playerNameInput");
+  const name = nameInput.value.trim();
 
   if (!name) {
-    flashElement(document.getElementById("playerNameInput"));
+    flashElement(nameInput);
     return;
   }
 
@@ -1136,7 +1191,14 @@ window.addEventListener("popstate", function(event) {
 });
 
 document.addEventListener("DOMContentLoaded", function() {
-  history.replaceState({ screenId: "homeScreen", goalId: null }, "", "");
+  history.replaceState(
+    {
+      screenId: "homeScreen",
+      goalId: null
+    },
+    "",
+    ""
+  );
 
   applyGeneralBackground();
 
@@ -1234,13 +1296,13 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", function () {
+  window.addEventListener("load", function() {
     navigator.serviceWorker
       .register("service-worker.js")
-      .then(function () {
+      .then(function() {
         console.log("Service Worker נרשם בהצלחה");
       })
-      .catch(function (error) {
+      .catch(function(error) {
         console.log("שגיאה ברישום Service Worker:", error);
       });
   });
