@@ -997,7 +997,10 @@ function saveName(event) {
 
   const name = document.getElementById("playerNameInput").value.trim();
 
-  if (!name) return;
+  if (!name) {
+    flashElement(document.getElementById("playerNameInput"));
+    return;
+  }
 
   savePlayerName(name);
   syncPlayer();
@@ -1207,6 +1210,10 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   document.getElementById("editGoalDescriptionInput").addEventListener("input", function(event) {
+    flashInputLimit(event.target);
+  });
+
+  document.getElementById("playerNameInput").addEventListener("input", function(event) {
     flashInputLimit(event.target);
   });
 
