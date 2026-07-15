@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LevelUp</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
@@ -33,184 +33,69 @@
       </nav>
     </aside>
 
-    <div class="menu-overlay" id="goalOptionsOverlay"></div>
-
-    <aside class="side-menu" id="goalOptionsMenu">
-      <nav class="side-menu-options">
-        <button id="openGoalEditFromMenu">עריכת האתגר</button>
-        <button id="openGoalInfoFromMenu">מידע</button>
-      </nav>
-    </aside>
-
-    <div class="confirm-overlay" id="deleteConfirmOverlay">
-      <section class="confirm-box">
-        <h2>Delete this challenge?</h2>
-
-        <div class="confirm-actions">
-          <button type="button" id="cancelDeleteButton">No</button>
-          <button type="button" id="confirmDeleteButton">Yes</button>
-        </div>
-      </section>
-    </div>
-
-    <div class="day-detail-overlay" id="dayDetailOverlay">
-      <section class="day-detail-box" id="dayDetailBox">
-        <strong id="dayDetailScore"></strong>
-      </section>
-    </div>
-
     <section class="screen" id="addScreen">
       <button class="back-button" data-target="homeScreen">←</button>
 
-      <h1 class="screen-title add-screen-title">אתגר חדש</h1>
+      <h1 class="screen-title">אתגר חדש</h1>
 
-      <form class="add-goal-form" id="addGoalForm" novalidate>
-        <div class="form-card add-goal-card">
+      <form class="form-card" id="addGoalForm">
+        <label>
+          שם האתגר
+          <input type="text" id="goalNameInput" placeholder="לדוגמה: ריצה" required>
+        </label>
 
-          <label class="field-block">
-            <span>שם האתגר</span>
-            <input
-              type="text"
-              id="goalNameInput"
-              class="clean-input"
-              maxlength="22"
-            >
-          </label>
+        <label>
+          סוג אתגר
+          <select id="goalTypeInput">
+            <option value="yesno">כן / לא</option>
+            <option value="counter">מונה</option>
+            <option value="number">מספר</option>
+          </select>
+        </label>
 
-          <label class="field-block">
-            <span>תיאור</span>
-            <textarea
-              id="goalDescriptionInput"
-              class="clean-textarea"
-              maxlength="120"
-              rows="3"
-            ></textarea>
-          </label>
+        <label>
+          יעד
+          <input type="number" id="goalTargetInput" value="1" min="1" required>
+        </label>
 
-          <div class="field-block">
-            <span>סוג האתגר</span>
-
-            <input type="hidden" id="goalTypeInput">
-
-            <div class="custom-select" id="goalTypePicker">
-              <button type="button" class="custom-select-button" id="goalTypeButton"></button>
-
-              <div class="custom-options" id="goalTypeOptions">
-                <button type="button" data-value="yesno">כן / לא</button>
-                <button type="button" data-value="counter">ספירה</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="target-wrapper hidden" id="goalTargetWrapper">
-            <label class="field-block">
-              <span>יעד</span>
-              <input
-                type="number"
-                id="goalTargetInput"
-                class="clean-input"
-                min="2"
-                max="999"
-                step="1"
-                inputmode="numeric"
-              >
-            </label>
-          </div>
-
-        </div>
-
-        <button type="submit" class="create-button">create</button>
+        <button type="submit">צור אתגר</button>
       </form>
     </section>
 
     <section class="screen goal-screen" id="goalScreen">
       <button class="back-button" data-target="homeScreen">←</button>
-      <button class="goal-screen-options-button" id="openGoalOptionsButton">⋮</button>
       <div class="goal-details-wrapper" id="goalDetails"></div>
     </section>
 
     <section class="screen" id="goalSettingsScreen">
       <button class="back-button" data-target="goalScreen">←</button>
 
-      <h1 class="screen-title add-screen-title">עריכת אתגר</h1>
+      <h1 class="screen-title">הגדרות אתגר</h1>
 
-      <form class="add-goal-form edit-goal-form" id="editGoalForm" novalidate>
-        <div class="form-card add-goal-card edit-goal-card">
+      <form class="form-card" id="editGoalForm">
+        <label>
+          שם האתגר
+          <input type="text" id="editGoalNameInput" required>
+        </label>
 
-          <label class="field-block">
-            <span>שם האתגר</span>
-            <input
-              type="text"
-              id="editGoalNameInput"
-              class="clean-input"
-              maxlength="22"
-            >
-          </label>
+        <label>
+          סוג אתגר
+          <select id="editGoalTypeInput">
+            <option value="yesno">כן / לא</option>
+            <option value="counter">מונה</option>
+            <option value="number">מספר</option>
+          </select>
+        </label>
 
-          <label class="field-block">
-            <span>תיאור</span>
-            <textarea
-              id="editGoalDescriptionInput"
-              class="clean-textarea"
-              maxlength="120"
-              rows="3"
-            ></textarea>
-          </label>
+        <label>
+          יעד
+          <input type="number" id="editGoalTargetInput" min="1" required>
+        </label>
 
-          <div class="field-block">
-            <span>סוג האתגר</span>
-
-            <input type="hidden" id="editGoalTypeInput">
-
-            <div class="custom-select" id="editGoalTypePicker">
-              <button type="button" class="custom-select-button" id="editGoalTypeButton"></button>
-
-              <div class="custom-options" id="editGoalTypeOptions">
-                <button type="button" data-value="yesno">כן / לא</button>
-                <button type="button" data-value="counter">ספירה</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="target-wrapper hidden" id="editGoalTargetWrapper">
-            <label class="field-block">
-              <span>יעד</span>
-              <input
-                type="number"
-                id="editGoalTargetInput"
-                class="clean-input"
-                min="2"
-                max="999"
-                step="1"
-                inputmode="numeric"
-              >
-            </label>
-          </div>
-
-        </div>
-
-        <button type="submit" class="create-button save-button">save</button>
+        <button type="submit">שמור שינויים</button>
       </form>
 
-      <button type="button" class="trash-button" id="deleteGoalButton">🗑</button>
-    </section>
-
-    <section class="screen" id="goalInfoScreen">
-      <button class="back-button" data-target="goalScreen">←</button>
-
-      <header class="goal-info-header">
-        <h1 id="goalInfoTitle">מידע</h1>
-
-        <div class="calendar-nav">
-          <button type="button" id="prevMonthButton">‹</button>
-          <strong id="calendarMonthTitle"></strong>
-          <button type="button" id="nextMonthButton">›</button>
-        </div>
-      </header>
-
-      <section class="form-card info-card">
-        <div class="calendar-grid" id="goalCalendarGrid"></div>
-      </section>
+      <button class="delete-button" id="deleteGoalButton">מחק אתגר</button>
     </section>
 
     <section class="screen ranking-screen" id="rankingScreen">
@@ -225,15 +110,12 @@
     </section>
 
     <section class="screen" id="nameScreen">
-      <div class="welcome-header">
-        <div class="welcome-icon">😊</div>
-        <h1 class="screen-title welcome-title">ברוך הבא</h1>
-      </div>
+      <h1 class="screen-title">איך קוראים לך?</h1>
 
-      <form class="form-card" id="nameForm" novalidate>
+      <form class="form-card" id="nameForm">
         <label>
           שם
-          <input type="text" id="playerNameInput" required>
+          <input type="text" id="playerNameInput" placeholder="לדוגמה: דניאל" required>
         </label>
 
         <button type="submit">המשך</button>
