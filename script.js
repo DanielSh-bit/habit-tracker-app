@@ -18,9 +18,14 @@ function $(id) {
 
 function on(id, eventName, handler) {
   const element = $(id);
+
   if (element) {
     element.addEventListener(eventName, handler);
   }
+}
+
+function clampNumber(value, min, max) {
+  return Math.max(min, Math.min(max, Number(value)));
 }
 
 function getTodayKey() {
@@ -34,6 +39,13 @@ function formatDateKey(date) {
   return `${year}-${month}-${day}`;
 }
 
+function addDays(date, days) {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  result.setHours(0, 0, 0, 0);
+  return result;
+}
+
 function getCurrentMonthStart() {
   const date = new Date();
   date.setDate(1);
@@ -41,18 +53,38 @@ function getCurrentMonthStart() {
   return date;
 }
 
-function getGoalFirstMonthStart(goal) {
-  const recordDates = Object.keys(goal.records || {}).sort();
+function getDateStart(date) {
+  const result = new Date(date);
+  result.setHours(0, 0, 0, 0);
+  return result;
+}
 
-  if (recordDates.length === 0) {
-    return getCurrentMonthStart();
-  }
-
-  const firstRecord = recordDates[0];
-  const parts = firstRecord.split("-");
-  const date = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+function parseDateKey(dateKey) {
+  const parts = String(dateKey).split("-");
+  const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
   date.setHours(0, 0, 0, 0);
   return date;
+}
+
+function getGoalStartDate(goal) {
+  if (goal.createdAt) {
+    return parseDateKey(goal.createdAt);
+  }
+
+  const recordDates = Object.keys(goal.records || {}).sort();
+
+  if (recordDates.length > 0) {
+    return parseDateKey(recordDates[0]);
+  }
+
+  return getDateStart(new Date());
+}
+
+function getGoalFirstMonthStart(goal) {
+  const startDate = getGoalStartDate(goal);
+  startDate.setDate(1);
+  startDate.setHours(0, 0, 0, 0);
+  return startDate;
 }
 
 function isSameMonth(firstDate, secondDate) {
@@ -72,6 +104,19 @@ function isAfterMonth(firstDate, secondDate) {
   if (firstDate.getFullYear() > secondDate.getFullYear()) return true;
   if (firstDate.getFullYear() < secondDate.getFullYear()) return false;
   return firstDate.getMonth() > secondDate.getMonth();
+}
+
+function isAfterDay(firstDate, secondDate) {
+  return getDateStart(firstDate).getTime() > getDateStart(secondDate).getTime();
+}
+
+function maxDate(firstDate, secondDate) {
+  return isAfterDay(firstDate, secondDate) ? firstDate : secondDate;
+}
+
+function daysBetween(startDate, endDate) {
+  const oneDay = 24 * 60 * 60 * 1000;
+  return Math.floor((getDateStart(endDate) - getDateStart(startDate)) / oneDay) + 1;
 }
 
 function escapeHtml(text) {
@@ -125,11 +170,8 @@ function formatDescription(text) {
 }
 
 function isFutureDate(date) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const checkedDate = new Date(date);
-  checkedDate.setHours(0, 0, 0, 0);
+  const today = getDateStart(new Date());
+  const checkedDate = getDateStart(date);
 
   return checkedDate > today;
 }
@@ -153,9 +195,19 @@ function savePlayerName(name) {
   localStorage.setItem(PLAYER_NAME_KEY, name);
 }
 
+function getGoalImportance(goal) {
+  const importance = Number(goal.importance || 3);
+
+  if (!Number.isInteger(importance)) return 3;
+
+  return clampNumber(importance, 1, 5);
+}
+
 function normalizeGoal(goal) {
   const type = goal.type === "yesno" ? "yesno" : "counter";
   const target = type === "yesno" ? 1 : Math.max(2, Math.min(999, Number(goal.target) || 2));
+  const recordDates = Object.keys(goal.records || {}).sort();
+  const fallbackCreatedAt = recordDates.length > 0 ? recordDates[0] : getTodayKey();
 
   return {
     id: goal.id || `goal-${Date.now()}`,
@@ -163,11 +215,15 @@ function normalizeGoal(goal) {
     type: type,
     target: target,
     description: goal.description || "",
+    importance: getGoalImportance(goal),
+    createdAt: goal.createdAt || fallbackCreatedAt,
     records: goal.records || {}
   };
 }
 
 function getDefaultGoals() {
+  const today = getTodayKey();
+
   return [
     {
       id: "workout",
@@ -175,6 +231,8 @@ function getDefaultGoals() {
       type: "yesno",
       target: 1,
       description: "",
+      importance: 4,
+      createdAt: today,
       records: {}
     },
     {
@@ -183,6 +241,8 @@ function getDefaultGoals() {
       type: "counter",
       target: 8,
       description: "",
+      importance: 2,
+      createdAt: today,
       records: {}
     },
     {
@@ -191,6 +251,8 @@ function getDefaultGoals() {
       type: "counter",
       target: 8,
       description: "",
+      importance: 5,
+      createdAt: today,
       records: {}
     }
   ];
@@ -234,10 +296,79 @@ function getTodayValue(goal) {
   return Number(goal.records[getTodayKey()] || 0);
 }
 
+function getDayCompletion(goal, dateKey) {
+  const value = Number(goal.records[dateKey] || 0);
+
+  if (goal.type === "yesno") {
+    return value >= 1 ? 100 : 0;
+  }
+
+  return Math.min(Math.round((value / goal.target) * 100), 100);
+}
+
+function getScoreEndDate(goal) {
+  const today = getDateStart(new Date());
+  const todayValue = getTodayValue(goal);
+
+  if (todayValue > 0) {
+    return today;
+  }
+
+  return addDays(today, -1);
+}
+
+function getAverageCompletion(goal, startDate, endDate) {
+  if (isAfterDay(startDate, endDate)) return 0;
+
+  let sum = 0;
+  let count = 0;
+
+  for (let date = new Date(startDate); !isAfterDay(date, endDate); date = addDays(date, 1)) {
+    sum += getDayCompletion(goal, formatDateKey(date));
+    count++;
+  }
+
+  if (count === 0) return 0;
+
+  return sum / count;
+}
+
+function getGoalScore(goal) {
+  const startDate = getGoalStartDate(goal);
+  const endDate = getScoreEndDate(goal);
+
+  if (isAfterDay(startDate, endDate)) {
+    return 0;
+  }
+
+  const activeDays = daysBetween(startDate, endDate);
+
+  const last30Start = maxDate(startDate, addDays(endDate, -29));
+  const last90Start = maxDate(startDate, addDays(endDate, -89));
+
+  const last7Start = maxDate(startDate, addDays(endDate, -6));
+  const previous7End = addDays(last7Start, -1);
+  const previous7Start = maxDate(startDate, addDays(previous7End, -6));
+
+  const average30 = getAverageCompletion(goal, last30Start, endDate);
+  const average90 = getAverageCompletion(goal, last90Start, endDate);
+
+  const last7Average = getAverageCompletion(goal, last7Start, endDate);
+  const previous7Average = isAfterDay(startDate, previous7End)
+    ? last7Average
+    : getAverageCompletion(goal, previous7Start, previous7End);
+
+  const trendScore = clampNumber(50 + (last7Average - previous7Average) * 0.5, 0, 100);
+  const rawScore = average30 * 0.6 + average90 * 0.3 + trendScore * 0.1;
+
+  const maturityCap = Math.min(99, 70 + activeDays * 0.3);
+  const finalScore = Math.min(rawScore, maturityCap);
+
+  return Math.round(finalScore);
+}
+
 function getProgress(goal) {
-  const value = getTodayValue(goal);
-  const progress = Math.round((value / goal.target) * 100);
-  return Math.min(progress, 100);
+  return getGoalScore(goal);
 }
 
 function isGoalSuccessOnDate(goal, dateKey) {
@@ -247,11 +378,18 @@ function isGoalSuccessOnDate(goal, dateKey) {
 function getUserCurrentScore() {
   if (goals.length === 0) return 0;
 
-  return Math.round(
-    goals.reduce(function(sum, goal) {
-      return sum + getProgress(goal);
-    }, 0) / goals.length
-  );
+  let weightedSum = 0;
+  let totalWeight = 0;
+
+  goals.forEach(function(goal) {
+    const weight = getGoalImportance(goal);
+    weightedSum += getGoalScore(goal) * weight;
+    totalWeight += weight;
+  });
+
+  if (totalWeight === 0) return 0;
+
+  return Math.round(weightedSum / totalWeight);
 }
 
 function getUserBestScore() {
@@ -305,7 +443,7 @@ function getCurrentGoal() {
 
 function getGoalTypeName(type) {
   if (type === "yesno") return "כן / לא";
-  if (type === "counter") return "ספירה";
+  if (type === "counter") return "מספר";
   return "לא ידוע";
 }
 
@@ -325,6 +463,37 @@ function flashInputLimit(input) {
   if (maxLength > 0 && input.value.length >= maxLength) {
     flashElement(input);
   }
+}
+
+function limitNumberInput(input, min, max) {
+  if (!input) return;
+
+  const originalValue = input.value;
+  const maxLength = String(max).length;
+
+  input.value = input.value.replace(/[^\d]/g, "");
+
+  if (input.value.length > maxLength) {
+    input.value = input.value.slice(0, maxLength);
+  }
+
+  if (Number(input.value) > max) {
+    input.value = String(max);
+  }
+
+  if (input.value !== originalValue) {
+    flashElement(input);
+  }
+}
+
+function readImportance(input) {
+  const value = Number(input.value);
+
+  if (!Number.isInteger(value) || value < 1 || value > 5) {
+    return null;
+  }
+
+  return value;
 }
 
 function isMenuOpen() {
@@ -685,6 +854,7 @@ function openGoalSettings(goalId, addToHistory = true) {
 
   if ($("editGoalNameInput")) $("editGoalNameInput").value = goal.title;
   if ($("editGoalDescriptionInput")) $("editGoalDescriptionInput").value = goal.description || "";
+  if ($("editGoalImportanceInput")) $("editGoalImportanceInput").value = getGoalImportance(goal);
 
   setEditGoalType(goal.type, getGoalTypeName(goal.type), false);
 
@@ -989,6 +1159,7 @@ function resetAddGoalForm() {
   if ($("goalTargetWrapper")) $("goalTargetWrapper").classList.add("hidden");
   if ($("goalTargetInput")) $("goalTargetInput").required = false;
   if ($("goalDescriptionInput")) $("goalDescriptionInput").value = "";
+  if ($("goalImportanceInput")) $("goalImportanceInput").value = "3";
 }
 
 function initializeGoalTypePickers() {
@@ -1053,20 +1224,27 @@ function addGoal(event) {
 
   const titleInput = $("goalNameInput");
   const descriptionInput = $("goalDescriptionInput");
+  const importanceInput = $("goalImportanceInput");
   const typeInput = $("goalTypeInput");
   const typeButton = $("goalTypeButton");
   const targetInput = $("goalTargetInput");
 
-  if (!titleInput || !descriptionInput || !typeInput || !targetInput) return;
+  if (!titleInput || !descriptionInput || !importanceInput || !typeInput || !targetInput) return;
 
   const title = titleInput.value.trim();
   const description = descriptionInput.value.trim();
+  const importance = readImportance(importanceInput);
   const type = typeInput.value;
 
   let hasError = false;
 
   if (!title) {
     flashElement(titleInput);
+    hasError = true;
+  }
+
+  if (importance === null) {
+    flashElement(importanceInput);
     hasError = true;
   }
 
@@ -1099,6 +1277,8 @@ function addGoal(event) {
     type: type,
     target: target,
     description: description,
+    importance: importance,
+    createdAt: getTodayKey(),
     records: {}
   };
 
@@ -1136,20 +1316,27 @@ function editGoal(event) {
 
   const titleInput = $("editGoalNameInput");
   const descriptionInput = $("editGoalDescriptionInput");
+  const importanceInput = $("editGoalImportanceInput");
   const typeInput = $("editGoalTypeInput");
   const typeButton = $("editGoalTypeButton");
   const targetInput = $("editGoalTargetInput");
 
-  if (!titleInput || !descriptionInput || !typeInput || !targetInput) return;
+  if (!titleInput || !descriptionInput || !importanceInput || !typeInput || !targetInput) return;
 
   const title = titleInput.value.trim();
   const description = descriptionInput.value.trim();
+  const importance = readImportance(importanceInput);
   const type = typeInput.value;
 
   let hasError = false;
 
   if (!title) {
     flashElement(titleInput);
+    hasError = true;
+  }
+
+  if (importance === null) {
+    flashElement(importanceInput);
     hasError = true;
   }
 
@@ -1184,7 +1371,8 @@ function editGoal(event) {
       title: title,
       type: type,
       target: target,
-      description: description
+      description: description,
+      importance: importance
     };
   });
 
@@ -1346,6 +1534,22 @@ document.addEventListener("DOMContentLoaded", function() {
 
   on("playerNameInput", "input", function(event) {
     flashInputLimit(event.target);
+  });
+
+  on("goalImportanceInput", "input", function(event) {
+    limitNumberInput(event.target, 1, 5);
+  });
+
+  on("editGoalImportanceInput", "input", function(event) {
+    limitNumberInput(event.target, 1, 5);
+  });
+
+  on("goalTargetInput", "input", function(event) {
+    limitNumberInput(event.target, 2, 999);
+  });
+
+  on("editGoalTargetInput", "input", function(event) {
+    limitNumberInput(event.target, 2, 999);
   });
 
   on("addGoalForm", "submit", addGoal);
