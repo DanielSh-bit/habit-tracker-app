@@ -887,6 +887,7 @@ function renderGoalInfo() {
 
   const firstAllowedMonth = getGoalFirstMonthStart(goal);
   const currentAllowedMonth = getCurrentMonthStart();
+  const todayKey = getTodayKey();
 
   if (isBeforeMonth(calendarDate, firstAllowedMonth)) {
     calendarDate = new Date(firstAllowedMonth);
@@ -957,6 +958,10 @@ function renderGoalInfo() {
     } else {
       cell.classList.add("fail");
       cell.innerHTML += `<strong>✕</strong>`;
+    }
+
+    if (dateKey === todayKey) {
+      cell.classList.add("today");
     }
 
     if (!future && goal.type === "counter") {
