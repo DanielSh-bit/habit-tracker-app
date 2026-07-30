@@ -12,6 +12,17 @@ let rankingSortMode = "current";
 let rankingRenderId = 0;
 let calendarDate = new Date();
 
+function $(id) {
+  return document.getElementById(id);
+}
+
+function on(id, eventName, handler) {
+  const element = $(id);
+  if (element) {
+    element.addEventListener(eventName, handler);
+  }
+}
+
 function getTodayKey() {
   return formatDateKey(new Date());
 }
@@ -147,7 +158,7 @@ function normalizeGoal(goal) {
   const target = type === "yesno" ? 1 : Math.max(2, Math.min(999, Number(goal.target) || 2));
 
   return {
-    id: goal.id,
+    id: goal.id || `goal-${Date.now()}`,
     title: goal.title || "אתגר",
     type: type,
     target: target,
@@ -158,24 +169,59 @@ function normalizeGoal(goal) {
 
 function getDefaultGoals() {
   return [
-    { id: "workout", title: "אימון", type: "yesno", target: 1, description: "", records: {} },
-    { id: "water", title: "מים", type: "counter", target: 8, description: "", records: {} },
-    { id: "sleep", title: "שינה", type: "counter", target: 8, description: "", records: {} }
+    {
+      id: "workout",
+      title: "אימון",
+      type: "yesno",
+      target: 1,
+      description: "",
+      records: {}
+    },
+    {
+      id: "water",
+      title: "מים",
+      type: "counter",
+      target: 8,
+      description: "",
+      records: {}
+    },
+    {
+      id: "sleep",
+      title: "שינה",
+      type: "counter",
+      target: 8,
+      description: "",
+      records: {}
+    }
   ];
 }
 
 function loadGoals() {
-  const savedGoals = localStorage.getItem(STORAGE_KEY);
+  try {
+    const savedGoals = localStorage.getItem(STORAGE_KEY);
 
-  if (!savedGoals) {
+    if (!savedGoals) {
+      const defaultGoals = getDefaultGoals();
+      saveGoals(defaultGoals);
+      return defaultGoals;
+    }
+
+    const parsedGoals = JSON.parse(savedGoals);
+
+    if (!Array.isArray(parsedGoals)) {
+      throw new Error("Invalid goals data");
+    }
+
+    const normalizedGoals = parsedGoals.map(normalizeGoal);
+    saveGoals(normalizedGoals);
+    return normalizedGoals;
+  } catch (error) {
+    console.log("שגיאה בטעינת אתגרים:", error);
+
     const defaultGoals = getDefaultGoals();
     saveGoals(defaultGoals);
     return defaultGoals;
   }
-
-  const parsedGoals = JSON.parse(savedGoals).map(normalizeGoal);
-  saveGoals(parsedGoals);
-  return parsedGoals;
 }
 
 function saveGoals(goalsToSave) {
@@ -282,26 +328,26 @@ function flashInputLimit(input) {
 }
 
 function isMenuOpen() {
-  return document.getElementById("sideMenu").classList.contains("open");
+  return $("sideMenu") && $("sideMenu").classList.contains("open");
 }
 
 function isGoalOptionsOpen() {
-  return document.getElementById("goalOptionsMenu").classList.contains("open");
+  return $("goalOptionsMenu") && $("goalOptionsMenu").classList.contains("open");
 }
 
 function isDeleteConfirmOpen() {
-  return document.getElementById("deleteConfirmOverlay").classList.contains("open");
+  return $("deleteConfirmOverlay") && $("deleteConfirmOverlay").classList.contains("open");
 }
 
 function isDayDetailOpen() {
-  return document.getElementById("dayDetailOverlay").classList.contains("open");
+  return $("dayDetailOverlay") && $("dayDetailOverlay").classList.contains("open");
 }
 
 function openMenu() {
   if (isMenuOpen()) return;
 
-  document.getElementById("sideMenu").classList.add("open");
-  document.getElementById("menuOverlay").classList.add("open");
+  $("sideMenu").classList.add("open");
+  $("menuOverlay").classList.add("open");
 
   history.pushState(
     {
@@ -315,15 +361,15 @@ function openMenu() {
 }
 
 function closeMenu() {
-  document.getElementById("sideMenu").classList.remove("open");
-  document.getElementById("menuOverlay").classList.remove("open");
+  if ($("sideMenu")) $("sideMenu").classList.remove("open");
+  if ($("menuOverlay")) $("menuOverlay").classList.remove("open");
 }
 
 function openGoalOptionsMenu() {
   if (!currentGoalId || isGoalOptionsOpen()) return;
 
-  document.getElementById("goalOptionsMenu").classList.add("open");
-  document.getElementById("goalOptionsOverlay").classList.add("open");
+  $("goalOptionsMenu").classList.add("open");
+  $("goalOptionsOverlay").classList.add("open");
 
   history.pushState(
     {
@@ -337,17 +383,17 @@ function openGoalOptionsMenu() {
 }
 
 function closeGoalOptionsMenu() {
-  document.getElementById("goalOptionsMenu").classList.remove("open");
-  document.getElementById("goalOptionsOverlay").classList.remove("open");
+  if ($("goalOptionsMenu")) $("goalOptionsMenu").classList.remove("open");
+  if ($("goalOptionsOverlay")) $("goalOptionsOverlay").classList.remove("open");
 }
 
 function openDeleteConfirm() {
-  if (!currentGoalId) return;
-  document.getElementById("deleteConfirmOverlay").classList.add("open");
+  if (!currentGoalId || !$("deleteConfirmOverlay")) return;
+  $("deleteConfirmOverlay").classList.add("open");
 }
 
 function closeDeleteConfirm() {
-  document.getElementById("deleteConfirmOverlay").classList.remove("open");
+  if ($("deleteConfirmOverlay")) $("deleteConfirmOverlay").classList.remove("open");
 }
 
 function openDayDetail(dateKey) {
@@ -357,20 +403,19 @@ function openDayDetail(dateKey) {
 
   const value = Number(goal.records[dateKey] || 0);
   const isSuccess = value >= Number(goal.target);
-  const overlay = document.getElementById("dayDetailOverlay");
-  const box = document.getElementById("dayDetailBox");
-  const score = document.getElementById("dayDetailScore");
 
-  score.textContent = `${value}/${goal.target}`;
+  if (!$("dayDetailOverlay") || !$("dayDetailBox") || !$("dayDetailScore")) return;
 
-  box.classList.remove("success", "fail");
-  box.classList.add(isSuccess ? "success" : "fail");
+  $("dayDetailScore").textContent = `${value}/${goal.target}`;
 
-  overlay.classList.add("open");
+  $("dayDetailBox").classList.remove("success", "fail");
+  $("dayDetailBox").classList.add(isSuccess ? "success" : "fail");
+
+  $("dayDetailOverlay").classList.add("open");
 }
 
 function closeDayDetail() {
-  document.getElementById("dayDetailOverlay").classList.remove("open");
+  if ($("dayDetailOverlay")) $("dayDetailOverlay").classList.remove("open");
 }
 
 function closeMenuFromOverlay() {
@@ -437,13 +482,15 @@ function showScreen(screenId, addToHistory = true) {
   closeDeleteConfirm();
   closeDayDetail();
 
+  if (!$(screenId)) return;
+
   currentScreenId = screenId;
 
   document.querySelectorAll(".screen").forEach(function(screen) {
     screen.classList.remove("active");
   });
 
-  document.getElementById(screenId).classList.add("active");
+  $(screenId).classList.add("active");
 
   if (screenId === "homeScreen") {
     currentGoalId = null;
@@ -516,7 +563,9 @@ function goBack() {
 }
 
 function renderHome() {
-  const goalsGrid = document.getElementById("goalsGrid");
+  const goalsGrid = $("goalsGrid");
+  if (!goalsGrid) return;
+
   goalsGrid.innerHTML = "";
 
   goals.forEach(function(goal) {
@@ -552,12 +601,11 @@ function openGoal(goalId, addToHistory = true) {
     return item.id === goalId;
   });
 
-  if (!goal) return;
+  if (!goal || !$("goalDetails")) return;
 
   currentGoalId = goalId;
 
   const value = getTodayValue(goal);
-  const details = document.getElementById("goalDetails");
   const progress = getProgress(goal);
 
   const descriptionText = goal.description
@@ -584,7 +632,7 @@ function openGoal(goalId, addToHistory = true) {
     `;
   }
 
-  details.innerHTML = `
+  $("goalDetails").innerHTML = `
     <div class="detail-card modern-goal-card">
       <header class="simple-goal-header">
         <div class="goal-heading-text">
@@ -603,26 +651,22 @@ function openGoal(goalId, addToHistory = true) {
   showScreen("goalScreen", addToHistory);
 
   if (goal.type === "yesno") {
-    document.getElementById("markYesNoButton").addEventListener("click", function() {
+    on("markYesNoButton", "click", function() {
       setTodayValue(goal.id, 1);
       openGoal(goal.id, false);
     });
 
-    const cancelButton = document.getElementById("cancelYesNoButton");
-
-    if (cancelButton) {
-      cancelButton.addEventListener("click", function() {
-        setTodayValue(goal.id, 0);
-        openGoal(goal.id, false);
-      });
-    }
+    on("cancelYesNoButton", "click", function() {
+      setTodayValue(goal.id, 0);
+      openGoal(goal.id, false);
+    });
   } else {
-    document.getElementById("increaseButton").addEventListener("click", function() {
+    on("increaseButton", "click", function() {
       setTodayValue(goal.id, value + 1);
       openGoal(goal.id, false);
     });
 
-    document.getElementById("decreaseButton").addEventListener("click", function() {
+    on("decreaseButton", "click", function() {
       setTodayValue(goal.id, Math.max(0, value - 1));
       openGoal(goal.id, false);
     });
@@ -637,17 +681,15 @@ function openGoalSettings(goalId, addToHistory = true) {
   if (!goal) return;
 
   currentGoalId = goalId;
-
   applyBackground(getProgress(goal));
 
-  document.getElementById("editGoalNameInput").value = goal.title;
-  document.getElementById("editGoalDescriptionInput").value = goal.description || "";
+  if ($("editGoalNameInput")) $("editGoalNameInput").value = goal.title;
+  if ($("editGoalDescriptionInput")) $("editGoalDescriptionInput").value = goal.description || "";
+
   setEditGoalType(goal.type, getGoalTypeName(goal.type), false);
 
-  if (goal.type === "counter") {
-    document.getElementById("editGoalTargetInput").value = goal.target;
-  } else {
-    document.getElementById("editGoalTargetInput").value = "";
+  if ($("editGoalTargetInput")) {
+    $("editGoalTargetInput").value = goal.type === "counter" ? goal.target : "";
   }
 
   showScreen("goalSettingsScreen", addToHistory);
@@ -671,13 +713,7 @@ function openGoalInfo(goalId, addToHistory = true) {
 
 function renderGoalInfo() {
   const goal = getCurrentGoal();
-  if (!goal) return;
-
-  const title = document.getElementById("goalInfoTitle");
-  const monthTitle = document.getElementById("calendarMonthTitle");
-  const grid = document.getElementById("goalCalendarGrid");
-  const prevButton = document.getElementById("prevMonthButton");
-  const nextButton = document.getElementById("nextMonthButton");
+  if (!goal || !$("goalCalendarGrid")) return;
 
   const firstAllowedMonth = getGoalFirstMonthStart(goal);
   const currentAllowedMonth = getCurrentMonthStart();
@@ -690,15 +726,26 @@ function renderGoalInfo() {
     calendarDate = new Date(currentAllowedMonth);
   }
 
-  title.textContent = goal.title;
+  if ($("goalInfoTitle")) {
+    $("goalInfoTitle").textContent = goal.title;
+  }
 
   const monthName = calendarDate.toLocaleDateString("he-IL", { month: "long" });
   const yearName = calendarDate.toLocaleDateString("he-IL", { year: "numeric" });
-  monthTitle.textContent = `${monthName}  ${yearName}`;
 
-  prevButton.disabled = isSameMonth(calendarDate, firstAllowedMonth);
-  nextButton.disabled = isSameMonth(calendarDate, currentAllowedMonth);
+  if ($("calendarMonthTitle")) {
+    $("calendarMonthTitle").textContent = `${monthName}  ${yearName}`;
+  }
 
+  if ($("prevMonthButton")) {
+    $("prevMonthButton").disabled = isSameMonth(calendarDate, firstAllowedMonth);
+  }
+
+  if ($("nextMonthButton")) {
+    $("nextMonthButton").disabled = isSameMonth(calendarDate, currentAllowedMonth);
+  }
+
+  const grid = $("goalCalendarGrid");
   grid.innerHTML = "";
 
   const weekDays = ["א", "ב", "ג", "ד", "ה", "ו", "ש"];
@@ -725,10 +772,10 @@ function renderGoalInfo() {
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
     const dateKey = formatDateKey(date);
-    const cell = document.createElement("div");
     const future = isFutureDate(date);
     const success = isGoalSuccessOnDate(goal, dateKey);
 
+    const cell = document.createElement("div");
     cell.className = "calendar-cell";
     cell.innerHTML = `<span>${day}</span>`;
 
@@ -773,7 +820,6 @@ function setTodayValue(goalId, newValue) {
 
 async function syncPlayer() {
   const name = getPlayerName();
-
   if (!name) return;
 
   const playerData = {
@@ -826,8 +872,10 @@ async function fetchPlayers() {
 }
 
 async function renderRanking() {
+  if (!$("rankingList")) return;
+
   const renderId = ++rankingRenderId;
-  const rankingList = document.getElementById("rankingList");
+  const rankingList = $("rankingList");
 
   rankingList.innerHTML = "";
 
@@ -883,116 +931,133 @@ async function renderRanking() {
     rankingList.appendChild(row);
   });
 
-  document.getElementById("toggleRankingSortButton").textContent =
-    rankingSortMode === "current" ? "נוכחי" : "שיא";
+  if ($("toggleRankingSortButton")) {
+    $("toggleRankingSortButton").textContent = rankingSortMode === "current" ? "נוכחי" : "שיא";
+  }
 }
 
 function setGoalType(type, label) {
-  const goalTypeInput = document.getElementById("goalTypeInput");
-  const goalTypeButton = document.getElementById("goalTypeButton");
-  const goalTypePicker = document.getElementById("goalTypePicker");
-  const goalTargetWrapper = document.getElementById("goalTargetWrapper");
-  const goalTargetInput = document.getElementById("goalTargetInput");
+  if (!$("goalTypeInput") || !$("goalTypeButton") || !$("goalTargetWrapper") || !$("goalTargetInput")) return;
 
-  goalTypeInput.value = type;
-  goalTypeButton.textContent = label;
-  goalTypePicker.classList.remove("open");
+  $("goalTypeInput").value = type;
+  $("goalTypeButton").textContent = label;
+
+  if ($("goalTypePicker")) {
+    $("goalTypePicker").classList.remove("open");
+  }
 
   if (type === "counter") {
-    goalTargetWrapper.classList.remove("hidden");
-    goalTargetInput.required = true;
-    goalTargetInput.value = "";
+    $("goalTargetWrapper").classList.remove("hidden");
+    $("goalTargetInput").required = true;
+    $("goalTargetInput").value = "";
   } else {
-    goalTargetWrapper.classList.add("hidden");
-    goalTargetInput.required = false;
-    goalTargetInput.value = "";
+    $("goalTargetWrapper").classList.add("hidden");
+    $("goalTargetInput").required = false;
+    $("goalTargetInput").value = "";
   }
 }
 
 function setEditGoalType(type, label, clearFields = true) {
-  const editGoalTypeInput = document.getElementById("editGoalTypeInput");
-  const editGoalTypeButton = document.getElementById("editGoalTypeButton");
-  const editGoalTypePicker = document.getElementById("editGoalTypePicker");
-  const editGoalTargetWrapper = document.getElementById("editGoalTargetWrapper");
-  const editGoalTargetInput = document.getElementById("editGoalTargetInput");
+  if (!$("editGoalTypeInput") || !$("editGoalTypeButton") || !$("editGoalTargetWrapper") || !$("editGoalTargetInput")) return;
 
-  editGoalTypeInput.value = type;
-  editGoalTypeButton.textContent = label;
-  editGoalTypePicker.classList.remove("open");
+  $("editGoalTypeInput").value = type;
+  $("editGoalTypeButton").textContent = label;
+
+  if ($("editGoalTypePicker")) {
+    $("editGoalTypePicker").classList.remove("open");
+  }
 
   if (type === "counter") {
-    editGoalTargetWrapper.classList.remove("hidden");
-    editGoalTargetInput.required = true;
+    $("editGoalTargetWrapper").classList.remove("hidden");
+    $("editGoalTargetInput").required = true;
 
     if (clearFields) {
-      editGoalTargetInput.value = "";
+      $("editGoalTargetInput").value = "";
     }
   } else {
-    editGoalTargetWrapper.classList.add("hidden");
-    editGoalTargetInput.required = false;
-    editGoalTargetInput.value = "";
+    $("editGoalTargetWrapper").classList.add("hidden");
+    $("editGoalTargetInput").required = false;
+    $("editGoalTargetInput").value = "";
   }
 }
 
 function resetAddGoalForm() {
-  document.getElementById("addGoalForm").reset();
-  document.getElementById("goalTypeInput").value = "";
-  document.getElementById("goalTypeButton").textContent = "";
-  document.getElementById("goalTypePicker").classList.remove("open");
-  document.getElementById("goalTargetWrapper").classList.add("hidden");
-  document.getElementById("goalTargetInput").required = false;
-  document.getElementById("goalDescriptionInput").value = "";
+  if ($("addGoalForm")) $("addGoalForm").reset();
+  if ($("goalTypeInput")) $("goalTypeInput").value = "";
+  if ($("goalTypeButton")) $("goalTypeButton").textContent = "";
+  if ($("goalTypePicker")) $("goalTypePicker").classList.remove("open");
+  if ($("goalTargetWrapper")) $("goalTargetWrapper").classList.add("hidden");
+  if ($("goalTargetInput")) $("goalTargetInput").required = false;
+  if ($("goalDescriptionInput")) $("goalDescriptionInput").value = "";
 }
 
 function initializeGoalTypePickers() {
-  const goalTypePicker = document.getElementById("goalTypePicker");
-  const goalTypeButton = document.getElementById("goalTypeButton");
-  const goalTypeOptions = document.getElementById("goalTypeOptions");
+  const goalTypePicker = $("goalTypePicker");
+  const goalTypeButton = $("goalTypeButton");
+  const goalTypeOptions = $("goalTypeOptions");
 
-  const editGoalTypePicker = document.getElementById("editGoalTypePicker");
-  const editGoalTypeButton = document.getElementById("editGoalTypeButton");
-  const editGoalTypeOptions = document.getElementById("editGoalTypeOptions");
+  const editGoalTypePicker = $("editGoalTypePicker");
+  const editGoalTypeButton = $("editGoalTypeButton");
+  const editGoalTypeOptions = $("editGoalTypeOptions");
 
-  goalTypeButton.addEventListener("click", function(event) {
-    event.stopPropagation();
-    editGoalTypePicker.classList.remove("open");
-    goalTypePicker.classList.toggle("open");
-  });
-
-  goalTypeOptions.querySelectorAll("button").forEach(function(optionButton) {
-    optionButton.addEventListener("click", function(event) {
+  if (goalTypeButton && goalTypePicker) {
+    goalTypeButton.addEventListener("click", function(event) {
       event.stopPropagation();
-      setGoalType(optionButton.dataset.value, optionButton.textContent.trim());
+
+      if (editGoalTypePicker) {
+        editGoalTypePicker.classList.remove("open");
+      }
+
+      goalTypePicker.classList.toggle("open");
     });
-  });
+  }
 
-  editGoalTypeButton.addEventListener("click", function(event) {
-    event.stopPropagation();
-    goalTypePicker.classList.remove("open");
-    editGoalTypePicker.classList.toggle("open");
-  });
+  if (goalTypeOptions) {
+    goalTypeOptions.querySelectorAll("button").forEach(function(optionButton) {
+      optionButton.addEventListener("click", function(event) {
+        event.stopPropagation();
+        setGoalType(optionButton.dataset.value, optionButton.textContent.trim());
+      });
+    });
+  }
 
-  editGoalTypeOptions.querySelectorAll("button").forEach(function(optionButton) {
-    optionButton.addEventListener("click", function(event) {
+  if (editGoalTypeButton && editGoalTypePicker) {
+    editGoalTypeButton.addEventListener("click", function(event) {
       event.stopPropagation();
-      setEditGoalType(optionButton.dataset.value, optionButton.textContent.trim(), true);
+
+      if (goalTypePicker) {
+        goalTypePicker.classList.remove("open");
+      }
+
+      editGoalTypePicker.classList.toggle("open");
     });
-  });
+  }
+
+  if (editGoalTypeOptions) {
+    editGoalTypeOptions.querySelectorAll("button").forEach(function(optionButton) {
+      optionButton.addEventListener("click", function(event) {
+        event.stopPropagation();
+        setEditGoalType(optionButton.dataset.value, optionButton.textContent.trim(), true);
+      });
+    });
+  }
 
   document.addEventListener("click", function() {
-    goalTypePicker.classList.remove("open");
-    editGoalTypePicker.classList.remove("open");
+    if (goalTypePicker) goalTypePicker.classList.remove("open");
+    if (editGoalTypePicker) editGoalTypePicker.classList.remove("open");
   });
 }
 
 function addGoal(event) {
   event.preventDefault();
 
-  const titleInput = document.getElementById("goalNameInput");
-  const descriptionInput = document.getElementById("goalDescriptionInput");
-  const typeInput = document.getElementById("goalTypeInput");
-  const typeButton = document.getElementById("goalTypeButton");
-  const targetInput = document.getElementById("goalTargetInput");
+  const titleInput = $("goalNameInput");
+  const descriptionInput = $("goalDescriptionInput");
+  const typeInput = $("goalTypeInput");
+  const typeButton = $("goalTypeButton");
+  const targetInput = $("goalTargetInput");
+
+  if (!titleInput || !descriptionInput || !typeInput || !targetInput) return;
 
   const title = titleInput.value.trim();
   const description = descriptionInput.value.trim();
@@ -1049,7 +1114,9 @@ function addGoal(event) {
 function saveName(event) {
   event.preventDefault();
 
-  const nameInput = document.getElementById("playerNameInput");
+  const nameInput = $("playerNameInput");
+  if (!nameInput) return;
+
   const name = nameInput.value.trim();
 
   if (!name) {
@@ -1067,11 +1134,13 @@ function editGoal(event) {
 
   if (!currentGoalId) return;
 
-  const titleInput = document.getElementById("editGoalNameInput");
-  const descriptionInput = document.getElementById("editGoalDescriptionInput");
-  const typeInput = document.getElementById("editGoalTypeInput");
-  const typeButton = document.getElementById("editGoalTypeButton");
-  const targetInput = document.getElementById("editGoalTargetInput");
+  const titleInput = $("editGoalNameInput");
+  const descriptionInput = $("editGoalDescriptionInput");
+  const typeInput = $("editGoalTypeInput");
+  const typeButton = $("editGoalTypeButton");
+  const targetInput = $("editGoalTargetInput");
+
+  if (!titleInput || !descriptionInput || !typeInput || !targetInput) return;
 
   const title = titleInput.value.trim();
   const description = descriptionInput.value.trim();
@@ -1211,88 +1280,88 @@ document.addEventListener("DOMContentLoaded", function() {
 
   initializeGoalTypePickers();
 
-  document.getElementById("openMenuButton").addEventListener("click", openMenu);
-  document.getElementById("menuOverlay").addEventListener("click", closeMenuFromOverlay);
+  on("openMenuButton", "click", openMenu);
+  on("menuOverlay", "click", closeMenuFromOverlay);
 
-  document.getElementById("openGoalOptionsButton").addEventListener("click", function(event) {
+  on("openGoalOptionsButton", "click", function(event) {
     event.stopPropagation();
     openGoalOptionsMenu();
   });
 
-  document.getElementById("goalOptionsOverlay").addEventListener("click", closeGoalOptionsFromOverlay);
+  on("goalOptionsOverlay", "click", closeGoalOptionsFromOverlay);
 
-  document.getElementById("openGoalEditFromMenu").addEventListener("click", function() {
+  on("openGoalEditFromMenu", "click", function() {
     openGoalScreenFromOptions("edit");
   });
 
-  document.getElementById("openGoalInfoFromMenu").addEventListener("click", function() {
+  on("openGoalInfoFromMenu", "click", function() {
     openGoalScreenFromOptions("info");
   });
 
-  document.getElementById("openRankingFromMenu").addEventListener("click", function() {
+  on("openRankingFromMenu", "click", function() {
     openScreenFromMenu("rankingScreen");
   });
 
-  document.getElementById("openAddFromMenu").addEventListener("click", function() {
+  on("openAddFromMenu", "click", function() {
     openScreenFromMenu("addScreen");
   });
 
-  document.getElementById("prevMonthButton").addEventListener("click", function() {
+  on("prevMonthButton", "click", function() {
     calendarDate.setMonth(calendarDate.getMonth() - 1);
     renderGoalInfo();
   });
 
-  document.getElementById("nextMonthButton").addEventListener("click", function() {
+  on("nextMonthButton", "click", function() {
     calendarDate.setMonth(calendarDate.getMonth() + 1);
     renderGoalInfo();
   });
 
-  document.getElementById("dayDetailOverlay").addEventListener("click", function(event) {
+  on("dayDetailOverlay", "click", function(event) {
     if (event.target.id === "dayDetailOverlay") {
       closeDayDetail();
     }
   });
 
-  document.getElementById("toggleRankingSortButton").addEventListener("click", toggleRankingSort);
+  on("toggleRankingSortButton", "click", toggleRankingSort);
 
   document.querySelectorAll(".back-button").forEach(function(button) {
     button.addEventListener("click", goBack);
   });
 
-  document.getElementById("goalNameInput").addEventListener("input", function(event) {
+  on("goalNameInput", "input", function(event) {
     flashInputLimit(event.target);
   });
 
-  document.getElementById("editGoalNameInput").addEventListener("input", function(event) {
+  on("editGoalNameInput", "input", function(event) {
     flashInputLimit(event.target);
   });
 
-  document.getElementById("goalDescriptionInput").addEventListener("input", function(event) {
+  on("goalDescriptionInput", "input", function(event) {
     flashInputLimit(event.target);
   });
 
-  document.getElementById("editGoalDescriptionInput").addEventListener("input", function(event) {
+  on("editGoalDescriptionInput", "input", function(event) {
     flashInputLimit(event.target);
   });
 
-  document.getElementById("playerNameInput").addEventListener("input", function(event) {
+  on("playerNameInput", "input", function(event) {
     flashInputLimit(event.target);
   });
 
-  document.getElementById("addGoalForm").addEventListener("submit", addGoal);
-  document.getElementById("editGoalForm").addEventListener("submit", editGoal);
+  on("addGoalForm", "submit", addGoal);
+  on("editGoalForm", "submit", editGoal);
 
-  document.getElementById("deleteGoalButton").addEventListener("click", openDeleteConfirm);
-  document.getElementById("cancelDeleteButton").addEventListener("click", closeDeleteConfirm);
-  document.getElementById("confirmDeleteButton").addEventListener("click", deleteCurrentGoal);
+  on("deleteGoalButton", "click", openDeleteConfirm);
+  on("cancelDeleteButton", "click", closeDeleteConfirm);
+  on("confirmDeleteButton", "click", deleteCurrentGoal);
 
-  document.getElementById("deleteConfirmOverlay").addEventListener("click", function(event) {
+  on("deleteConfirmOverlay", "click", function(event) {
     if (event.target.id === "deleteConfirmOverlay") {
       closeDeleteConfirm();
     }
   });
 
-  document.getElementById("nameForm").addEventListener("submit", saveName);
+  on("nameForm", "submit", saveName);
 });
 
 if ("serviceWorker" in navigator) {
