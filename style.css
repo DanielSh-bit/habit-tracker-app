@@ -1741,3 +1741,71 @@ select,
   justify-content: center !important;
   padding: 0 0 10px 0 !important;
 }
+
+.goal-card {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+}
+
+.goal-title {
+  flex: 1 !important;
+}
+
+.home-goal-action {
+  width: 58px !important;
+  height: 58px !important;
+  border: none !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: #111827 !important;
+  font-size: 38px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16) !important;
+  padding: 0 0 4px 0 !important;
+}
+
+.home-goal-check {
+  color: #166534 !important;
+}
+
+.home-goal-plus {
+  color: #111827 !important;
+  font-size: 44px !important;
+}
+
+.home-goal-action:active {
+  transform: scale(0.92) !important;
+}
+
+.yesno-main-button {
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  font-size: 160px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+}
+
+.yesno-complete-button {
+  color: #166534 !important;
+}
+
+.yesno-cancel-button {
+  color: #991b1b !important;
+}
+
+.yesno-main-button:active {
+  transform: scale(0.92) !important;
+}
