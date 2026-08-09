@@ -21,6 +21,8 @@ let autoScrollSpeed = 0;
 let lastPointerX = 0;
 let lastPointerY = 0;
 
+let activeTouch = null;
+
 function $(id) {
   return document.getElementById(id);
 }
@@ -594,19 +596,10 @@ function renderGoalInfoStreaks(goal) {
 }
 
 function getReorderScrollContainer() {
-  const candidates = [
-    $("goalsGrid"),
-    $("homeScreen"),
-    document.querySelector(".screen.active"),
-    document.scrollingElement
-  ];
+  const homeScreen = $("homeScreen");
 
-  for (const candidate of candidates) {
-    if (!candidate) continue;
-
-    if (candidate.scrollHeight > candidate.clientHeight + 6) {
-      return candidate;
-    }
+  if (homeScreen && homeScreen.scrollHeight > homeScreen.clientHeight + 6) {
+    return homeScreen;
   }
 
   return document.scrollingElement || document.documentElement;
@@ -687,8 +680,8 @@ function updateReorderAutoScroll(clientY) {
     return;
   }
 
-  const edgeSize = 96;
-  const maxSpeed = 18;
+  const edgeSize = 95;
+  const maxSpeed = 17;
   const viewportHeight = window.innerHeight;
 
   if (clientY < edgeSize) {
@@ -706,7 +699,22 @@ function updateReorderAutoScroll(clientY) {
   stopReorderAutoScroll();
 }
 
-function enterReorderMode(goalId) {
+function startDraggingGoal(goalId) {
+  draggedGoalId = goalId;
+  document.body.classList.add("is-reordering");
+
+  document.removeEventListener("pointermove", handleReorderPointerMove);
+  document.removeEventListener("pointerup", stopReorderDrag);
+  document.removeEventListener("pointercancel", stopReorderDrag);
+
+  document.addEventListener("pointermove", handleReorderPointerMove, { passive: false });
+  document.addEventListener("pointerup", stopReorderDrag);
+  document.addEventListener("pointercancel", stopReorderDrag);
+
+  renderHome();
+}
+
+function enterReorderMode(goalId, startDragging = true) {
   if (!isReorderMode) {
     isReorderMode = true;
 
@@ -721,28 +729,28 @@ function enterReorderMode(goalId) {
     );
   }
 
-  draggedGoalId = goalId;
-
-  document.removeEventListener("pointermove", handleReorderPointerMove);
-  document.removeEventListener("pointerup", stopReorderDrag);
-  document.removeEventListener("pointercancel", stopReorderDrag);
-
-  document.addEventListener("pointermove", handleReorderPointerMove, { passive: false });
-  document.addEventListener("pointerup", stopReorderDrag);
-  document.addEventListener("pointercancel", stopReorderDrag);
-
-  renderHome();
+  if (startDragging) {
+    startDraggingGoal(goalId);
+  } else {
+    renderHome();
+  }
 }
 
 function exitReorderMode(useHistoryBack = true) {
   isReorderMode = false;
   draggedGoalId = null;
+  activeTouch = null;
 
+  document.body.classList.remove("is-reordering");
   stopReorderAutoScroll();
 
   document.removeEventListener("pointermove", handleReorderPointerMove);
   document.removeEventListener("pointerup", stopReorderDrag);
   document.removeEventListener("pointercancel", stopReorderDrag);
+
+  document.removeEventListener("touchmove", handleTouchReorderMove);
+  document.removeEventListener("touchend", handleTouchReorderEnd);
+  document.removeEventListener("touchcancel", handleTouchReorderEnd);
 
   if (useHistoryBack && history.state && history.state.reorderMode) {
     history.back();
@@ -754,7 +762,15 @@ function exitReorderMode(useHistoryBack = true) {
 
 function stopReorderDrag() {
   draggedGoalId = null;
+  activeTouch = null;
+
+  document.body.classList.remove("is-reordering");
   stopReorderAutoScroll();
+
+  document.removeEventListener("pointermove", handleReorderPointerMove);
+  document.removeEventListener("pointerup", stopReorderDrag);
+  document.removeEventListener("pointercancel", stopReorderDrag);
+
   renderHome();
 }
 
@@ -770,11 +786,101 @@ function handleReorderPointerMove(event) {
   updateReorderAutoScroll(event.clientY);
 }
 
+function getActiveTouch(event) {
+  if (!activeTouch) return null;
+
+  for (const touch of event.touches) {
+    if (touch.identifier === activeTouch.identifier) {
+      return touch;
+    }
+  }
+
+  return null;
+}
+
+function handleTouchReorderMove(event) {
+  if (!activeTouch) return;
+
+  const touch = getActiveTouch(event);
+  if (!touch) return;
+
+  const movedX = Math.abs(touch.clientX - activeTouch.startX);
+  const movedY = Math.abs(touch.clientY - activeTouch.startY);
+
+  lastPointerX = touch.clientX;
+  lastPointerY = touch.clientY;
+
+  if (!draggedGoalId && (movedX > 12 || movedY > 12)) {
+    clearTimeout(longPressTimer);
+    return;
+  }
+
+  if (!draggedGoalId) return;
+
+  event.preventDefault();
+
+  moveDraggedGoalAtPoint(touch.clientX, touch.clientY);
+  updateReorderAutoScroll(touch.clientY);
+}
+
+function handleTouchReorderEnd() {
+  clearTimeout(longPressTimer);
+
+  document.removeEventListener("touchmove", handleTouchReorderMove);
+  document.removeEventListener("touchend", handleTouchReorderEnd);
+  document.removeEventListener("touchcancel", handleTouchReorderEnd);
+
+  if (draggedGoalId) {
+    stopReorderDrag();
+  }
+
+  activeTouch = null;
+}
+
 function setupCardReorderHandlers(card, goal) {
   let startX = 0;
   let startY = 0;
 
+  card.addEventListener("touchstart", function(event) {
+    if (event.touches.length !== 1) return;
+
+    const touch = event.touches[0];
+
+    startX = touch.clientX;
+    startY = touch.clientY;
+    lastPointerX = touch.clientX;
+    lastPointerY = touch.clientY;
+
+    activeTouch = {
+      identifier: touch.identifier,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      goalId: goal.id
+    };
+
+    clearTimeout(longPressTimer);
+
+    document.removeEventListener("touchmove", handleTouchReorderMove);
+    document.removeEventListener("touchend", handleTouchReorderEnd);
+    document.removeEventListener("touchcancel", handleTouchReorderEnd);
+
+    document.addEventListener("touchmove", handleTouchReorderMove, { passive: false });
+    document.addEventListener("touchend", handleTouchReorderEnd);
+    document.addEventListener("touchcancel", handleTouchReorderEnd);
+
+    if (isReorderMode) {
+      longPressTimer = setTimeout(function() {
+        startDraggingGoal(goal.id);
+      }, 230);
+    } else {
+      longPressTimer = setTimeout(function() {
+        enterReorderMode(goal.id, true);
+      }, 520);
+    }
+  }, { passive: true });
+
   card.addEventListener("pointerdown", function(event) {
+    if (event.pointerType === "touch") return;
     if (event.button && event.button !== 0) return;
 
     startX = event.clientX;
@@ -786,19 +892,20 @@ function setupCardReorderHandlers(card, goal) {
 
     if (isReorderMode) {
       longPressTimer = setTimeout(function() {
-        draggedGoalId = goal.id;
-        renderHome();
+        startDraggingGoal(goal.id);
       }, 230);
 
       return;
     }
 
     longPressTimer = setTimeout(function() {
-      enterReorderMode(goal.id);
+      enterReorderMode(goal.id, true);
     }, 520);
   });
 
   card.addEventListener("pointermove", function(event) {
+    if (event.pointerType === "touch") return;
+
     const movedX = Math.abs(event.clientX - startX);
     const movedY = Math.abs(event.clientY - startY);
 
@@ -809,11 +916,13 @@ function setupCardReorderHandlers(card, goal) {
     }
   });
 
-  card.addEventListener("pointerup", function() {
+  card.addEventListener("pointerup", function(event) {
+    if (event.pointerType === "touch") return;
     clearTimeout(longPressTimer);
   });
 
-  card.addEventListener("pointercancel", function() {
+  card.addEventListener("pointercancel", function(event) {
+    if (event.pointerType === "touch") return;
     clearTimeout(longPressTimer);
   });
 }
