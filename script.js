@@ -112,17 +112,11 @@ function isAfterMonth(firstDate, secondDate) {
   return firstDate.getMonth() > secondDate.getMonth();
 }
 
-function isAfterDay(firstDate, secondDate) {
-  return getDateStart(firstDate).getTime() > getDateStart(secondDate).getTime();
-}
+function isFutureDate(date) {
+  const today = getDateStart(new Date());
+  const checkedDate = getDateStart(date);
 
-function maxDate(firstDate, secondDate) {
-  return isAfterDay(firstDate, secondDate) ? firstDate : secondDate;
-}
-
-function daysBetween(startDate, endDate) {
-  const oneDay = 24 * 60 * 60 * 1000;
-  return Math.floor((getDateStart(endDate) - getDateStart(startDate)) / oneDay) + 1;
+  return checkedDate > today;
 }
 
 function escapeHtml(text) {
@@ -173,13 +167,6 @@ function formatDescription(text) {
   }
 
   return lines.map(escapeHtml).join("<br>");
-}
-
-function isFutureDate(date) {
-  const today = getDateStart(new Date());
-  const checkedDate = getDateStart(date);
-
-  return checkedDate > today;
 }
 
 function getDeviceId() {
@@ -312,23 +299,6 @@ function getTodayProgress(goal) {
   return Math.min(Math.round((value / goal.target) * 100), 100);
 }
 
-function getDetailTodayClass(goal) {
-  const progress = getTodayProgress(goal);
-
-  if (goal.type === "yesno") {
-    return progress >= 100 ? "detail-today-complete" : "detail-today-empty";
-  }
-
-  if (progress >= 100) return "detail-progress-100";
-  if (progress >= 90) return "detail-progress-90";
-  if (progress >= 75) return "detail-progress-75";
-  if (progress >= 60) return "detail-progress-60";
-  if (progress >= 45) return "detail-progress-45";
-  if (progress >= 30) return "detail-progress-30";
-  if (progress >= 15) return "detail-progress-15";
-  return "detail-progress-0";
-}
-
 function isGoalSuccessOnDate(goal, dateKey) {
   return Number(goal.records[dateKey] || 0) >= Number(goal.target);
 }
@@ -351,7 +321,7 @@ function isFullSuccessOnDate(dateKey) {
   });
 }
 
-function getCurrentStreak() {
+function getPastCompletedStreak() {
   let streak = 0;
   let checkedDate = addDays(new Date(), -1);
 
@@ -367,6 +337,17 @@ function getCurrentStreak() {
   }
 
   return streak;
+}
+
+function getCurrentStreak() {
+  const pastStreak = getPastCompletedStreak();
+  const todayKey = getTodayKey();
+
+  if (isFullSuccessOnDate(todayKey)) {
+    return pastStreak + 1;
+  }
+
+  return pastStreak;
 }
 
 function getUserCurrentScore() {
@@ -409,7 +390,7 @@ function applyBackground(progress) {
 }
 
 function applyGeneralBackground() {
-  applyBackground(getUserCurrentScore());
+  applyBackground(Math.min(getUserCurrentScore() * 10, 100));
 }
 
 function getCurrentGoal() {
@@ -729,6 +710,10 @@ function renderHome() {
     if (goal.type === "counter") {
       card.classList.add("home-counter-card");
       card.style.setProperty("--water-level", `${todayProgress}%`);
+
+      if (todayProgress >= 100) {
+        card.classList.add("home-counter-complete");
+      }
     }
 
     const actionSymbol = goal.type === "yesno" ? "✓" : "+";
@@ -753,9 +738,9 @@ function renderHome() {
       event.stopPropagation();
 
       if (goal.type === "yesno") {
-        setTodayValue(goal.id, 1);
+        setTodayValue(goal.id, value >= 1 ? 0 : 1);
       } else {
-        setTodayValue(goal.id, value + 1);
+        setTodayValue(goal.id, Math.min(goal.target, value + 1));
       }
 
       renderHome();
@@ -781,7 +766,6 @@ function openGoal(goalId, addToHistory = true) {
 
   const value = getTodayValue(goal);
   const progress = getTodayProgress(goal);
-  const detailClass = getDetailTodayClass(goal);
 
   const descriptionText = goal.description
     ? `<p class="goal-description">${formatDescription(goal.description)}</p>`
@@ -815,7 +799,7 @@ function openGoal(goalId, addToHistory = true) {
   }
 
   $("goalDetails").innerHTML = `
-    <div class="detail-card modern-goal-card ${detailClass}">
+    <div class="detail-card modern-goal-card">
       <header class="simple-goal-header">
         <div class="goal-heading-text">
           <h1>${escapeHtml(goal.title)}</h1>
@@ -844,7 +828,7 @@ function openGoal(goalId, addToHistory = true) {
     });
   } else {
     on("increaseButton", "click", function() {
-      setTodayValue(goal.id, value + 1);
+      setTodayValue(goal.id, Math.min(goal.target, value + 1));
       openGoal(goal.id, false);
     });
 
