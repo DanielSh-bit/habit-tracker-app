@@ -2060,3 +2060,91 @@ body.tone-100 {
     radial-gradient(circle at 45% 88%, rgba(22, 163, 74, 0.34), transparent 34%),
     linear-gradient(135deg, #dcfce7, #22c55e) !important;
 }
+
+.goal-counter-score {
+  color: #ffffff !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+}
+
+label:has(#goalImportanceInput),
+label:has(#editGoalImportanceInput),
+.field-block:has(#goalImportanceInput),
+.field-block:has(#editGoalImportanceInput) {
+  display: none !important;
+}
+
+.home-header,
+.brand {
+  position: relative !important;
+}
+
+.brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  flex-wrap: wrap !important;
+}
+
+.brand p {
+  width: 100% !important;
+}
+
+.home-streak-badge {
+  min-width: 52px !important;
+  height: 52px !important;
+  padding: 0 12px !important;
+  border-radius: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 30px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  color: #fff7ed !important;
+  -webkit-text-stroke: 1px rgba(180, 83, 9, 0.85) !important;
+  text-shadow:
+    0 2px 0 rgba(146, 64, 14, 0.7),
+    0 5px 16px rgba(0, 0, 0, 0.24) !important;
+  background:
+    radial-gradient(circle at 28% 18%, rgba(255, 255, 255, 0.85), transparent 25%),
+    linear-gradient(135deg, rgba(251, 191, 36, 0.92), rgba(146, 64, 14, 0.92)) !important;
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.45),
+    inset 0 -5px 12px rgba(120, 53, 15, 0.28),
+    0 12px 28px rgba(15, 23, 42, 0.22) !important;
+}
+
+.goal-info-streaks {
+  display: flex !important;
+  gap: 12px !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin: 12px 0 16px 0 !important;
+}
+
+.goal-streak-chip {
+  min-width: 112px !important;
+  padding: 12px 14px !important;
+  border-radius: 20px !important;
+  background: rgba(255, 255, 255, 0.76) !important;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.7),
+    0 12px 28px rgba(15, 23, 42, 0.14) !important;
+  text-align: center !important;
+}
+
+.goal-streak-chip span {
+  display: block !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #475569 !important;
+  margin-bottom: 6px !important;
+}
+
+.goal-streak-chip strong {
+  display: block !important;
+  font-size: 34px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  color: #111827 !important;
+}
