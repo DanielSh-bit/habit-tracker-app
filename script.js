@@ -1,7 +1,7 @@
 const STORAGE_KEY = "levelup_goals";
 const PLAYER_NAME_KEY = "levelup_player_name";
 const DEVICE_ID_KEY = "levelup_device_id";
-const USER_BEST_SCORE_KEY = "levelup_user_best_score";
+const USER_BEST_SCORE_KEY = "levelup_user_best_streak";
 
 const SUPABASE_URL = "https://gkkdwwprhfsgtzjpnwaj.supabase.co/rest/v1";
 const SUPABASE_KEY = "sb_publishable_zgmgY6On7ttFUxsuXWrEKA_zTYwJmim";
@@ -64,6 +64,12 @@ function parseDateKey(dateKey) {
   const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
   date.setHours(0, 0, 0, 0);
   return date;
+}
+
+function compareDateKeys(firstKey, secondKey) {
+  if (firstKey < secondKey) return -1;
+  if (firstKey > secondKey) return 1;
+  return 0;
 }
 
 function getGoalStartDate(goal) {
@@ -375,21 +381,44 @@ function isGoalSuccessOnDate(goal, dateKey) {
   return Number(goal.records[dateKey] || 0) >= Number(goal.target);
 }
 
-function getUserCurrentScore() {
-  if (goals.length === 0) return 0;
-
-  let weightedSum = 0;
-  let totalWeight = 0;
-
-  goals.forEach(function(goal) {
-    const weight = getGoalImportance(goal);
-    weightedSum += getGoalScore(goal) * weight;
-    totalWeight += weight;
+function getGoalsActiveOnDate(dateKey) {
+  return goals.filter(function(goal) {
+    return compareDateKeys(goal.createdAt || getTodayKey(), dateKey) <= 0;
   });
+}
 
-  if (totalWeight === 0) return 0;
+function isFullSuccessOnDate(dateKey) {
+  const activeGoals = getGoalsActiveOnDate(dateKey);
 
-  return Math.round(weightedSum / totalWeight);
+  if (activeGoals.length === 0) {
+    return false;
+  }
+
+  return activeGoals.every(function(goal) {
+    return isGoalSuccessOnDate(goal, dateKey);
+  });
+}
+
+function getCurrentStreak() {
+  let streak = 0;
+  let checkedDate = addDays(new Date(), -1);
+
+  while (true) {
+    const dateKey = formatDateKey(checkedDate);
+
+    if (!isFullSuccessOnDate(dateKey)) {
+      break;
+    }
+
+    streak++;
+    checkedDate = addDays(checkedDate, -1);
+  }
+
+  return streak;
+}
+
+function getUserCurrentScore() {
+  return getCurrentStreak();
 }
 
 function getUserBestScore() {
@@ -738,24 +767,38 @@ function renderHome() {
   goalsGrid.innerHTML = "";
 
   goals.forEach(function(goal) {
-    const progress = getProgress(goal);
-    const flameClass = getFlameClass(progress);
+    const value = getTodayValue(goal);
 
     const card = document.createElement("article");
     card.className = "goal-card";
+
+    const actionSymbol = goal.type === "yesno" ? "✓" : "+";
+    const actionClass = goal.type === "yesno" ? "home-goal-check" : "home-goal-plus";
 
     card.innerHTML = `
       <div class="goal-title">
         <h2>${escapeHtml(goal.title)}</h2>
       </div>
 
-      <div class="goal-status">
-        <div class="flame ${flameClass}">
-          <span></span>
-        </div>
-        <strong>${progress}%</strong>
-      </div>
+      <button type="button" class="home-goal-action ${actionClass}">
+        ${actionSymbol}
+      </button>
     `;
+
+    const actionButton = card.querySelector(".home-goal-action");
+
+    actionButton.addEventListener("click", function(event) {
+      event.stopPropagation();
+
+      if (goal.type === "yesno") {
+        setTodayValue(goal.id, 1);
+      } else {
+        setTodayValue(goal.id, value + 1);
+      }
+
+      renderHome();
+      applyGeneralBackground();
+    });
 
     card.addEventListener("click", function() {
       openGoal(goal.id);
@@ -786,12 +829,19 @@ function openGoal(goalId, addToHistory = true) {
   let actionHtml = "";
 
   if (goal.type === "yesno") {
-    actionHtml = `
-      <section class="yesno-action-area">
-        <button class="success-circle-button ${value >= 1 ? "done" : ""}" id="markYesNoButton">✓</button>
-        ${value >= 1 ? `<button class="cancel-success-button" id="cancelYesNoButton">Cancel</button>` : ""}
-      </section>
-    `;
+    if (value >= 1) {
+      actionHtml = `
+        <section class="yesno-action-area">
+          <button class="yesno-main-button yesno-cancel-button" id="cancelYesNoButton">✕</button>
+        </section>
+      `;
+    } else {
+      actionHtml = `
+        <section class="yesno-action-area">
+          <button class="yesno-main-button yesno-complete-button" id="markYesNoButton">✓</button>
+        </section>
+      `;
+    }
   } else {
     actionHtml = `
       <section class="counter-action-area">
