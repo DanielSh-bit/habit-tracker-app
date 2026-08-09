@@ -2202,3 +2202,83 @@ label:has(#editGoalImportanceInput),
     0 2px 4px rgba(0, 0, 0, 0.45),
     0 0 10px rgba(255, 255, 255, 0.22) !important;
 }
+
+#homeStreakBadge {
+  display: none !important;
+}
+
+.goals-grid.reorder-mode::before {
+  content: "מצב סידור פעיל — גרור את האתגרים למיקום הרצוי";
+  display: block !important;
+  margin: 0 0 12px 0 !important;
+  padding: 12px 14px !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.74) !important;
+  color: #111827 !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14) !important;
+}
+
+body.is-reordering .goal-card {
+  touch-action: none !important;
+}
+
+.goal-card.reorder-card {
+  cursor: grab !important;
+  outline: 2px dashed rgba(255, 255, 255, 0.75) !important;
+  outline-offset: 4px !important;
+  animation: reorderFloat 1.15s ease-in-out infinite !important;
+}
+
+.goal-card.dragging-card {
+  transform: scale(1.035) !important;
+  box-shadow:
+    0 24px 55px rgba(15, 23, 42, 0.26),
+    0 0 0 3px rgba(251, 191, 36, 0.58) !important;
+  z-index: 20 !important;
+}
+
+@keyframes reorderFloat {
+  0% {
+    transform: translateY(0) rotate(-0.35deg);
+  }
+
+  50% {
+    transform: translateY(-2px) rotate(0.35deg);
+  }
+
+  100% {
+    transform: translateY(0) rotate(-0.35deg);
+  }
+}
+
+.calendar-cell.success:not(.future) {
+  background: rgba(187, 247, 208, 0.72) !important;
+  box-shadow: inset 0 0 0 1px rgba(22, 163, 74, 0.16) !important;
+}
+
+.calendar-cell.fail:not(.future) {
+  background: rgba(254, 202, 202, 0.72) !important;
+  box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.14) !important;
+}
+
+.calendar-cell.success:not(.future) span,
+.calendar-cell.fail:not(.future) span {
+  color: #111827 !important;
+  font-weight: 800 !important;
+}
+
+.calendar-cell.success:not(.future) strong {
+  color: #166534 !important;
+}
+
+.calendar-cell.fail:not(.future) strong {
+  color: #991b1b !important;
+}
+
+.calendar-cell.today {
+  background: #bae6fd !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.35) inset !important;
+}
