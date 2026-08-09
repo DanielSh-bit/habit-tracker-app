@@ -302,8 +302,8 @@ function getTodayValue(goal) {
   return Number(goal.records[getTodayKey()] || 0);
 }
 
-function getDayCompletion(goal, dateKey) {
-  const value = Number(goal.records[dateKey] || 0);
+function getTodayProgress(goal) {
+  const value = getTodayValue(goal);
 
   if (goal.type === "yesno") {
     return value >= 1 ? 100 : 0;
@@ -312,69 +312,21 @@ function getDayCompletion(goal, dateKey) {
   return Math.min(Math.round((value / goal.target) * 100), 100);
 }
 
-function getScoreEndDate(goal) {
-  const today = getDateStart(new Date());
-  const todayValue = getTodayValue(goal);
+function getDetailTodayClass(goal) {
+  const progress = getTodayProgress(goal);
 
-  if (todayValue > 0) {
-    return today;
+  if (goal.type === "yesno") {
+    return progress >= 100 ? "detail-today-complete" : "detail-today-empty";
   }
 
-  return addDays(today, -1);
-}
-
-function getAverageCompletion(goal, startDate, endDate) {
-  if (isAfterDay(startDate, endDate)) return 0;
-
-  let sum = 0;
-  let count = 0;
-
-  for (let date = new Date(startDate); !isAfterDay(date, endDate); date = addDays(date, 1)) {
-    sum += getDayCompletion(goal, formatDateKey(date));
-    count++;
-  }
-
-  if (count === 0) return 0;
-
-  return sum / count;
-}
-
-function getGoalScore(goal) {
-  const startDate = getGoalStartDate(goal);
-  const endDate = getScoreEndDate(goal);
-
-  if (isAfterDay(startDate, endDate)) {
-    return 0;
-  }
-
-  const activeDays = daysBetween(startDate, endDate);
-
-  const last30Start = maxDate(startDate, addDays(endDate, -29));
-  const last90Start = maxDate(startDate, addDays(endDate, -89));
-
-  const last7Start = maxDate(startDate, addDays(endDate, -6));
-  const previous7End = addDays(last7Start, -1);
-  const previous7Start = maxDate(startDate, addDays(previous7End, -6));
-
-  const average30 = getAverageCompletion(goal, last30Start, endDate);
-  const average90 = getAverageCompletion(goal, last90Start, endDate);
-
-  const last7Average = getAverageCompletion(goal, last7Start, endDate);
-  const previous7Average = isAfterDay(startDate, previous7End)
-    ? last7Average
-    : getAverageCompletion(goal, previous7Start, previous7End);
-
-  const trendScore = clampNumber(50 + (last7Average - previous7Average) * 0.5, 0, 100);
-  const rawScore = average30 * 0.6 + average90 * 0.3 + trendScore * 0.1;
-
-  const maturityCap = Math.min(99, 70 + activeDays * 0.3);
-  const finalScore = Math.min(rawScore, maturityCap);
-
-  return Math.round(finalScore);
-}
-
-function getProgress(goal) {
-  return getGoalScore(goal);
+  if (progress >= 100) return "detail-progress-100";
+  if (progress >= 90) return "detail-progress-90";
+  if (progress >= 75) return "detail-progress-75";
+  if (progress >= 60) return "detail-progress-60";
+  if (progress >= 45) return "detail-progress-45";
+  if (progress >= 30) return "detail-progress-30";
+  if (progress >= 15) return "detail-progress-15";
+  return "detail-progress-0";
 }
 
 function isGoalSuccessOnDate(goal, dateKey) {
@@ -439,10 +391,6 @@ function getToneClass(progress) {
   if (progress >= 30) return "tone-30";
   if (progress >= 15) return "tone-15";
   return "tone-0";
-}
-
-function getFlameClass(progress) {
-  return getToneClass(progress).replace("tone", "flame");
 }
 
 function applyBackground(progress) {
@@ -709,7 +657,7 @@ function showScreen(screenId, addToHistory = true) {
 
   if (screenId === "goalSettingsScreen" || screenId === "goalInfoScreen") {
     const goal = getCurrentGoal();
-    if (goal) applyBackground(getProgress(goal));
+    if (goal) applyBackground(getTodayProgress(goal));
   }
 
   if (addToHistory) {
@@ -768,14 +716,28 @@ function renderHome() {
 
   goals.forEach(function(goal) {
     const value = getTodayValue(goal);
+    const todayProgress = getTodayProgress(goal);
 
     const card = document.createElement("article");
+
     card.className = "goal-card";
+
+    if (goal.type === "yesno" && value >= 1) {
+      card.classList.add("home-goal-complete");
+    }
+
+    if (goal.type === "counter") {
+      card.classList.add("home-counter-card");
+      card.style.setProperty("--water-level", `${todayProgress}%`);
+    }
 
     const actionSymbol = goal.type === "yesno" ? "✓" : "+";
     const actionClass = goal.type === "yesno" ? "home-goal-check" : "home-goal-plus";
+    const waterHtml = goal.type === "counter" ? `<div class="home-water-fill"></div>` : "";
 
     card.innerHTML = `
+      ${waterHtml}
+
       <div class="goal-title">
         <h2>${escapeHtml(goal.title)}</h2>
       </div>
@@ -818,7 +780,8 @@ function openGoal(goalId, addToHistory = true) {
   currentGoalId = goalId;
 
   const value = getTodayValue(goal);
-  const progress = getProgress(goal);
+  const progress = getTodayProgress(goal);
+  const detailClass = getDetailTodayClass(goal);
 
   const descriptionText = goal.description
     ? `<p class="goal-description">${formatDescription(goal.description)}</p>`
@@ -852,7 +815,7 @@ function openGoal(goalId, addToHistory = true) {
   }
 
   $("goalDetails").innerHTML = `
-    <div class="detail-card modern-goal-card">
+    <div class="detail-card modern-goal-card ${detailClass}">
       <header class="simple-goal-header">
         <div class="goal-heading-text">
           <h1>${escapeHtml(goal.title)}</h1>
@@ -900,7 +863,7 @@ function openGoalSettings(goalId, addToHistory = true) {
   if (!goal) return;
 
   currentGoalId = goalId;
-  applyBackground(getProgress(goal));
+  applyBackground(getTodayProgress(goal));
 
   if ($("editGoalNameInput")) $("editGoalNameInput").value = goal.title;
   if ($("editGoalDescriptionInput")) $("editGoalDescriptionInput").value = goal.description || "";
@@ -925,7 +888,7 @@ function openGoalInfo(goalId, addToHistory = true) {
   currentGoalId = goalId;
   calendarDate = getCurrentMonthStart();
 
-  applyBackground(getProgress(goal));
+  applyBackground(getTodayProgress(goal));
   renderGoalInfo();
 
   showScreen("goalInfoScreen", addToHistory);
