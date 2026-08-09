@@ -12,6 +12,10 @@ let rankingSortMode = "current";
 let rankingRenderId = 0;
 let calendarDate = new Date();
 
+let isReorderMode = false;
+let draggedGoalId = null;
+let longPressTimer = null;
+
 function $(id) {
   return document.getElementById(id);
 }
@@ -395,6 +399,7 @@ function getGoalBestStreak(goal) {
 
     if (isGoalSuccessOnDate(goal, dateKey)) {
       current++;
+
       if (current > best) {
         best = current;
       }
@@ -417,6 +422,18 @@ function getUserBestScore() {
 
   localStorage.setItem(USER_BEST_SCORE_KEY, String(bestScore));
   return bestScore;
+}
+
+function updateAppBadge() {
+  const streak = getCurrentStreak();
+
+  if (!("setAppBadge" in navigator)) return;
+
+  if (streak > 0) {
+    navigator.setAppBadge(streak).catch(function() {});
+  } else if ("clearAppBadge" in navigator) {
+    navigator.clearAppBadge().catch(function() {});
+  }
 }
 
 function getToneClass(progress) {
@@ -447,6 +464,7 @@ function applyBackground(progress) {
 
 function applyGeneralBackground() {
   applyBackground(Math.min(getUserCurrentScore() * 10, 100));
+  updateAppBadge();
 }
 
 function getCurrentGoal() {
@@ -528,39 +546,13 @@ function hideImportanceFields() {
       input.closest(".input-group") ||
       input.closest(".form-row") ||
       input.closest(".setting-row") ||
+      input.closest(".field-block") ||
       input.parentElement;
 
     if (wrapper) {
       wrapper.style.display = "none";
     }
   });
-}
-
-function updateHomeHeaderStreakDisplay() {
-  const homeScreen = $("homeScreen");
-  if (!homeScreen) return;
-
-  const titleAnchor =
-    homeScreen.querySelector("[data-home-title]") ||
-    homeScreen.querySelector(".brand-title") ||
-    homeScreen.querySelector(".header-title") ||
-    homeScreen.querySelector(".app-title") ||
-    homeScreen.querySelector(".screen-title") ||
-    homeScreen.querySelector("h1");
-
-  if (!titleAnchor || !titleAnchor.parentElement) return;
-
-  let badge = $("homeStreakBadge");
-
-  if (!badge) {
-    badge = document.createElement("div");
-    badge.id = "homeStreakBadge";
-    badge.className = "home-streak-badge";
-    titleAnchor.parentElement.appendChild(badge);
-  }
-
-  badge.textContent = getCurrentStreak();
-  badge.setAttribute("aria-label", `רצף נוכחי ${getCurrentStreak()} ימים`);
 }
 
 function renderGoalInfoStreaks(goal) {
@@ -596,7 +588,147 @@ function renderGoalInfoStreaks(goal) {
   `;
 }
 
+function enterReorderMode(goalId) {
+  if (!isReorderMode) {
+    isReorderMode = true;
+
+    history.pushState(
+      {
+        screenId: "homeScreen",
+        goalId: null,
+        reorderMode: true
+      },
+      "",
+      ""
+    );
+  }
+
+  draggedGoalId = goalId;
+  document.body.classList.add("is-reordering");
+
+  document.removeEventListener("pointermove", handleReorderPointerMove);
+  document.removeEventListener("pointerup", stopReorderDrag);
+  document.removeEventListener("pointercancel", stopReorderDrag);
+
+  document.addEventListener("pointermove", handleReorderPointerMove, { passive: false });
+  document.addEventListener("pointerup", stopReorderDrag);
+  document.addEventListener("pointercancel", stopReorderDrag);
+
+  renderHome();
+}
+
+function exitReorderMode(useHistoryBack = true) {
+  isReorderMode = false;
+  draggedGoalId = null;
+
+  document.body.classList.remove("is-reordering");
+
+  document.removeEventListener("pointermove", handleReorderPointerMove);
+  document.removeEventListener("pointerup", stopReorderDrag);
+  document.removeEventListener("pointercancel", stopReorderDrag);
+
+  if (useHistoryBack && history.state && history.state.reorderMode) {
+    history.back();
+    return;
+  }
+
+  renderHome();
+}
+
+function stopReorderDrag() {
+  draggedGoalId = null;
+  renderHome();
+}
+
+function handleReorderPointerMove(event) {
+  if (!isReorderMode || !draggedGoalId) return;
+
+  event.preventDefault();
+
+  const element = document.elementFromPoint(event.clientX, event.clientY);
+  const targetCard = element ? element.closest(".goal-card") : null;
+
+  if (!targetCard) return;
+
+  const targetGoalId = targetCard.dataset.goalId;
+
+  if (!targetGoalId || targetGoalId === draggedGoalId) return;
+
+  const draggedIndex = goals.findIndex(function(goal) {
+    return goal.id === draggedGoalId;
+  });
+
+  const targetIndex = goals.findIndex(function(goal) {
+    return goal.id === targetGoalId;
+  });
+
+  if (draggedIndex === -1 || targetIndex === -1) return;
+
+  const rect = targetCard.getBoundingClientRect();
+  const insertAfter = event.clientY > rect.top + rect.height / 2;
+
+  let newIndex = targetIndex + (insertAfter ? 1 : 0);
+
+  if (draggedIndex < newIndex) {
+    newIndex--;
+  }
+
+  if (newIndex === draggedIndex) return;
+
+  const movedGoal = goals.splice(draggedIndex, 1)[0];
+  goals.splice(newIndex, 0, movedGoal);
+
+  saveGoals(goals);
+  renderHome();
+}
+
+function setupCardReorderHandlers(card, goal) {
+  let startX = 0;
+  let startY = 0;
+
+  card.addEventListener("pointerdown", function(event) {
+    if (event.button && event.button !== 0) return;
+
+    startX = event.clientX;
+    startY = event.clientY;
+
+    if (isReorderMode) {
+      draggedGoalId = goal.id;
+      renderHome();
+      return;
+    }
+
+    clearTimeout(longPressTimer);
+
+    longPressTimer = setTimeout(function() {
+      enterReorderMode(goal.id);
+    }, 520);
+  });
+
+  card.addEventListener("pointermove", function(event) {
+    const movedX = Math.abs(event.clientX - startX);
+    const movedY = Math.abs(event.clientY - startY);
+
+    if (!isReorderMode && (movedX > 12 || movedY > 12)) {
+      clearTimeout(longPressTimer);
+    }
+  });
+
+  card.addEventListener("pointerup", function() {
+    clearTimeout(longPressTimer);
+  });
+
+  card.addEventListener("pointercancel", function() {
+    clearTimeout(longPressTimer);
+  });
+}
+
 function openMenu() {
+  if (isReorderMode) {
+    exitReorderMode(true);
+    return;
+  }
+
   if (isMenuOpen()) return;
 
   $("sideMenu").classList.add("open");
@@ -764,7 +896,10 @@ function showScreen(screenId, addToHistory = true) {
 
   if (screenId === "goalSettingsScreen" || screenId === "goalInfoScreen") {
     const goal = getCurrentGoal();
-    if (goal) applyBackground(getTodayProgress(goal));
+
+    if (goal) {
+      applyBackground(getTodayProgress(goal));
+    }
   }
 
   if (addToHistory) {
@@ -780,6 +915,11 @@ function showScreen(screenId, addToHistory = true) {
 }
 
 function goBack() {
+  if (isReorderMode) {
+    exitReorderMode(true);
+    return;
+  }
+
   if (isDayDetailOpen()) {
     closeDayDetail();
     return;
@@ -820,6 +960,7 @@ function renderHome() {
   if (!goalsGrid) return;
 
   goalsGrid.innerHTML = "";
+  goalsGrid.classList.toggle("reorder-mode", isReorderMode);
 
   goals.forEach(function(goal) {
     const value = getTodayValue(goal);
@@ -827,6 +968,15 @@ function renderHome() {
 
     const card = document.createElement("article");
     card.className = "goal-card";
+    card.dataset.goalId = goal.id;
+
+    if (isReorderMode) {
+      card.classList.add("reorder-card");
+    }
+
+    if (draggedGoalId === goal.id) {
+      card.classList.add("dragging-card");
+    }
 
     if (goal.type === "yesno" && value >= 1) {
       card.classList.add("home-goal-complete");
@@ -862,6 +1012,8 @@ function renderHome() {
     actionButton.addEventListener("click", function(event) {
       event.stopPropagation();
 
+      if (isReorderMode) return;
+
       if (goal.type === "yesno") {
         setTodayValue(goal.id, value >= 1 ? 0 : 1);
       } else {
@@ -873,13 +1025,14 @@ function renderHome() {
     });
 
     card.addEventListener("click", function() {
+      if (isReorderMode) return;
       openGoal(goal.id);
     });
 
+    setupCardReorderHandlers(card, goal);
+
     goalsGrid.appendChild(card);
   });
-
-  updateHomeHeaderStreakDisplay();
 }
 
 function openGoal(goalId, addToHistory = true) {
@@ -934,7 +1087,7 @@ function openGoal(goalId, addToHistory = true) {
           ${descriptionText}
         </div>
 
-        ${goal.type === "counter" ? `<strong class="goal-counter-score" style="color: #ffffff;">${value}/${goal.target}</strong>` : ""}
+        ${goal.type === "counter" ? `<strong class="goal-counter-score">${value}/${goal.target}</strong>` : ""}
       </header>
 
       ${actionHtml}
@@ -1116,6 +1269,7 @@ function setTodayValue(goalId, newValue) {
 
   saveGoals(goals);
   syncPlayer();
+  updateAppBadge();
 }
 
 async function syncPlayer() {
@@ -1520,6 +1674,11 @@ function toggleRankingSort() {
 window.addEventListener("popstate", function(event) {
   const state = event.state;
 
+  if (isReorderMode) {
+    exitReorderMode(false);
+    return;
+  }
+
   if (isDayDetailOpen()) {
     closeDayDetail();
     return;
@@ -1545,7 +1704,7 @@ window.addEventListener("popstate", function(event) {
     return;
   }
 
-  if (state.menuOpen || state.goalOptionsOpen) return;
+  if (state.menuOpen || state.goalOptionsOpen || state.reorderMode) return;
 
   if (state.screenId === "goalScreen" && state.goalId) {
     openGoal(state.goalId, false);
@@ -1564,6 +1723,18 @@ window.addEventListener("popstate", function(event) {
 
   showScreen(state.screenId, false);
 });
+
+document.addEventListener("click", function(event) {
+  if (!isReorderMode) return;
+
+  const clickedGoalCard = event.target.closest(".goal-card");
+
+  if (!clickedGoalCard) {
+    event.preventDefault();
+    event.stopPropagation();
+    exitReorderMode(true);
+  }
+}, true);
 
 document.addEventListener("DOMContentLoaded", function() {
   history.replaceState(
