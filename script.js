@@ -224,7 +224,7 @@ function getDefaultGoals() {
       type: "yesno",
       target: 1,
       description: "",
-      importance: 4,
+      importance: 3,
       createdAt: today,
       records: {}
     },
@@ -234,7 +234,7 @@ function getDefaultGoals() {
       type: "counter",
       target: 8,
       description: "",
-      importance: 2,
+      importance: 3,
       createdAt: today,
       records: {}
     },
@@ -244,7 +244,7 @@ function getDefaultGoals() {
       type: "counter",
       target: 8,
       description: "",
-      importance: 5,
+      importance: 3,
       createdAt: today,
       records: {}
     }
@@ -350,6 +350,62 @@ function getCurrentStreak() {
   return pastStreak;
 }
 
+function getGoalPastCompletedStreak(goal) {
+  let streak = 0;
+  let checkedDate = addDays(new Date(), -1);
+
+  while (true) {
+    const dateKey = formatDateKey(checkedDate);
+
+    if (compareDateKeys(dateKey, goal.createdAt || getTodayKey()) < 0) {
+      break;
+    }
+
+    if (!isGoalSuccessOnDate(goal, dateKey)) {
+      break;
+    }
+
+    streak++;
+    checkedDate = addDays(checkedDate, -1);
+  }
+
+  return streak;
+}
+
+function getGoalCurrentStreak(goal) {
+  const pastStreak = getGoalPastCompletedStreak(goal);
+  const todayKey = getTodayKey();
+
+  if (isGoalSuccessOnDate(goal, todayKey)) {
+    return pastStreak + 1;
+  }
+
+  return pastStreak;
+}
+
+function getGoalBestStreak(goal) {
+  const startDate = getGoalStartDate(goal);
+  const today = getDateStart(new Date());
+
+  let best = 0;
+  let current = 0;
+
+  for (let date = new Date(startDate); date <= today; date = addDays(date, 1)) {
+    const dateKey = formatDateKey(date);
+
+    if (isGoalSuccessOnDate(goal, dateKey)) {
+      current++;
+      if (current > best) {
+        best = current;
+      }
+    } else {
+      current = 0;
+    }
+  }
+
+  return best;
+}
+
 function getUserCurrentScore() {
   return getCurrentStreak();
 }
@@ -444,16 +500,6 @@ function limitNumberInput(input, min, max) {
   }
 }
 
-function readImportance(input) {
-  const value = Number(input.value);
-
-  if (!Number.isInteger(value) || value < 1 || value > 5) {
-    return null;
-  }
-
-  return value;
-}
-
 function isMenuOpen() {
   return $("sideMenu") && $("sideMenu").classList.contains("open");
 }
@@ -468,6 +514,86 @@ function isDeleteConfirmOpen() {
 
 function isDayDetailOpen() {
   return $("dayDetailOverlay") && $("dayDetailOverlay").classList.contains("open");
+}
+
+function hideImportanceFields() {
+  ["goalImportanceInput", "editGoalImportanceInput"].forEach(function(id) {
+    const input = $(id);
+
+    if (!input) return;
+
+    const wrapper =
+      input.closest(".form-group") ||
+      input.closest(".field-group") ||
+      input.closest(".input-group") ||
+      input.closest(".form-row") ||
+      input.closest(".setting-row") ||
+      input.parentElement;
+
+    if (wrapper) {
+      wrapper.style.display = "none";
+    }
+  });
+}
+
+function updateHomeHeaderStreakDisplay() {
+  const homeScreen = $("homeScreen");
+  if (!homeScreen) return;
+
+  const titleAnchor =
+    homeScreen.querySelector("[data-home-title]") ||
+    homeScreen.querySelector(".brand-title") ||
+    homeScreen.querySelector(".header-title") ||
+    homeScreen.querySelector(".app-title") ||
+    homeScreen.querySelector(".screen-title") ||
+    homeScreen.querySelector("h1");
+
+  if (!titleAnchor || !titleAnchor.parentElement) return;
+
+  let badge = $("homeStreakBadge");
+
+  if (!badge) {
+    badge = document.createElement("div");
+    badge.id = "homeStreakBadge";
+    badge.className = "home-streak-badge";
+    titleAnchor.parentElement.appendChild(badge);
+  }
+
+  badge.textContent = getCurrentStreak();
+  badge.setAttribute("aria-label", `רצף נוכחי ${getCurrentStreak()} ימים`);
+}
+
+function renderGoalInfoStreaks(goal) {
+  const calendarGrid = $("goalCalendarGrid");
+  if (!calendarGrid) return;
+
+  let streakBox = $("goalInfoStreaks");
+
+  if (!streakBox) {
+    streakBox = document.createElement("div");
+    streakBox.id = "goalInfoStreaks";
+    streakBox.className = "goal-info-streaks";
+
+    const monthTitle = $("calendarMonthTitle");
+
+    if (monthTitle && monthTitle.parentElement) {
+      monthTitle.parentElement.insertAdjacentElement("beforebegin", streakBox);
+    } else if (calendarGrid.parentElement) {
+      calendarGrid.parentElement.insertBefore(streakBox, calendarGrid);
+    }
+  }
+
+  streakBox.innerHTML = `
+    <div class="goal-streak-chip">
+      <span>רצף נוכחי</span>
+      <strong>${getGoalCurrentStreak(goal)}</strong>
+    </div>
+
+    <div class="goal-streak-chip">
+      <span>שיא</span>
+      <strong>${getGoalBestStreak(goal)}</strong>
+    </div>
+  `;
 }
 
 function openMenu() {
@@ -700,7 +826,6 @@ function renderHome() {
     const todayProgress = getTodayProgress(goal);
 
     const card = document.createElement("article");
-
     card.className = "goal-card";
 
     if (goal.type === "yesno" && value >= 1) {
@@ -753,6 +878,8 @@ function renderHome() {
 
     goalsGrid.appendChild(card);
   });
+
+  updateHomeHeaderStreakDisplay();
 }
 
 function openGoal(goalId, addToHistory = true) {
@@ -807,7 +934,7 @@ function openGoal(goalId, addToHistory = true) {
           ${descriptionText}
         </div>
 
-        ${goal.type === "counter" ? `<strong class="goal-counter-score">${value}/${goal.target}</strong>` : ""}
+        ${goal.type === "counter" ? `<strong class="goal-counter-score" style="color: #ffffff;">${value}/${goal.target}</strong>` : ""}
       </header>
 
       ${actionHtml}
@@ -851,7 +978,6 @@ function openGoalSettings(goalId, addToHistory = true) {
 
   if ($("editGoalNameInput")) $("editGoalNameInput").value = goal.title;
   if ($("editGoalDescriptionInput")) $("editGoalDescriptionInput").value = goal.description || "";
-  if ($("editGoalImportanceInput")) $("editGoalImportanceInput").value = getGoalImportance(goal);
 
   setEditGoalType(goal.type, getGoalTypeName(goal.type), false);
 
@@ -897,6 +1023,8 @@ function renderGoalInfo() {
   if ($("goalInfoTitle")) {
     $("goalInfoTitle").textContent = goal.title;
   }
+
+  renderGoalInfoStreaks(goal);
 
   const monthName = calendarDate.toLocaleDateString("he-IL", { month: "long" });
   const yearName = calendarDate.toLocaleDateString("he-IL", { year: "numeric" });
@@ -1161,7 +1289,6 @@ function resetAddGoalForm() {
   if ($("goalTargetWrapper")) $("goalTargetWrapper").classList.add("hidden");
   if ($("goalTargetInput")) $("goalTargetInput").required = false;
   if ($("goalDescriptionInput")) $("goalDescriptionInput").value = "";
-  if ($("goalImportanceInput")) $("goalImportanceInput").value = "3";
 }
 
 function initializeGoalTypePickers() {
@@ -1226,27 +1353,20 @@ function addGoal(event) {
 
   const titleInput = $("goalNameInput");
   const descriptionInput = $("goalDescriptionInput");
-  const importanceInput = $("goalImportanceInput");
   const typeInput = $("goalTypeInput");
   const typeButton = $("goalTypeButton");
   const targetInput = $("goalTargetInput");
 
-  if (!titleInput || !descriptionInput || !importanceInput || !typeInput || !targetInput) return;
+  if (!titleInput || !descriptionInput || !typeInput || !targetInput) return;
 
   const title = titleInput.value.trim();
   const description = descriptionInput.value.trim();
-  const importance = readImportance(importanceInput);
   const type = typeInput.value;
 
   let hasError = false;
 
   if (!title) {
     flashElement(titleInput);
-    hasError = true;
-  }
-
-  if (importance === null) {
-    flashElement(importanceInput);
     hasError = true;
   }
 
@@ -1279,7 +1399,7 @@ function addGoal(event) {
     type: type,
     target: target,
     description: description,
-    importance: importance,
+    importance: 3,
     createdAt: getTodayKey(),
     records: {}
   };
@@ -1316,29 +1436,25 @@ function editGoal(event) {
 
   if (!currentGoalId) return;
 
+  const currentGoal = getCurrentGoal();
+  if (!currentGoal) return;
+
   const titleInput = $("editGoalNameInput");
   const descriptionInput = $("editGoalDescriptionInput");
-  const importanceInput = $("editGoalImportanceInput");
   const typeInput = $("editGoalTypeInput");
   const typeButton = $("editGoalTypeButton");
   const targetInput = $("editGoalTargetInput");
 
-  if (!titleInput || !descriptionInput || !importanceInput || !typeInput || !targetInput) return;
+  if (!titleInput || !descriptionInput || !typeInput || !targetInput) return;
 
   const title = titleInput.value.trim();
   const description = descriptionInput.value.trim();
-  const importance = readImportance(importanceInput);
   const type = typeInput.value;
 
   let hasError = false;
 
   if (!title) {
     flashElement(titleInput);
-    hasError = true;
-  }
-
-  if (importance === null) {
-    flashElement(importanceInput);
     hasError = true;
   }
 
@@ -1374,7 +1490,7 @@ function editGoal(event) {
       type: type,
       target: target,
       description: description,
-      importance: importance
+      importance: currentGoal.importance || 3
     };
   });
 
@@ -1459,6 +1575,7 @@ document.addEventListener("DOMContentLoaded", function() {
     ""
   );
 
+  hideImportanceFields();
   applyGeneralBackground();
 
   if (!getPlayerName()) {
@@ -1536,14 +1653,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
   on("playerNameInput", "input", function(event) {
     flashInputLimit(event.target);
-  });
-
-  on("goalImportanceInput", "input", function(event) {
-    limitNumberInput(event.target, 1, 5);
-  });
-
-  on("editGoalImportanceInput", "input", function(event) {
-    limitNumberInput(event.target, 1, 5);
   });
 
   on("goalTargetInput", "input", function(event) {
