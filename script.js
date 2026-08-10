@@ -18,7 +18,8 @@ let longPressTimer = null;
 let dragState = null;
 
 let autoScrollAnimationId = null;
-let autoScrollSpeed = 0;
+let autoScrollDirection = 0;
+let lastAutoScrollStepTime = 0;
 let lastPointerX = 0;
 let lastPointerY = 0;
 let suppressClickUntil = 0;
@@ -578,55 +579,10 @@ function reorderHomeDomToMatchGoals() {
   });
 }
 
-function getReorderScrollContainer() {
-  const homeScreen = $("homeScreen");
-
-  if (homeScreen && homeScreen.scrollHeight > homeScreen.clientHeight + 6) {
-    return homeScreen;
-  }
-
-  const activeScreen = document.querySelector(".screen.active");
-
-  if (activeScreen && activeScreen.scrollHeight > activeScreen.clientHeight + 6) {
-    return activeScreen;
-  }
-
-  return document.scrollingElement || document.documentElement;
-}
-
-function canScrollContainer(scrollContainer, direction) {
-  if (!scrollContainer) return false;
-
-  const maxScrollTop = scrollContainer.scrollHeight - scrollContainer.clientHeight;
-
-  if (direction < 0) {
-    return scrollContainer.scrollTop > 0;
-  }
-
-  if (direction > 0) {
-    return scrollContainer.scrollTop < maxScrollTop - 1;
-  }
-
-  return false;
-}
-
 function getSafeDragY(y) {
-  const topLimit = 92;
-  const bottomLimit = Math.max(topLimit + 20, window.innerHeight - 92);
-
+  const topLimit = 96;
+  const bottomLimit = Math.max(topLimit + 30, window.innerHeight - 96);
   return clampNumber(y, topLimit, bottomLimit);
-}
-
-function getAutoScrollAnchorY() {
-  if (autoScrollSpeed < 0) {
-    return 110;
-  }
-
-  if (autoScrollSpeed > 0) {
-    return Math.max(110, window.innerHeight - 110);
-  }
-
-  return getSafeDragY(lastPointerY);
 }
 
 function updateDragGhostPosition() {
@@ -673,6 +629,45 @@ function removeDragGhost() {
     dragState.ghost.remove();
     dragState.ghost = null;
   }
+}
+
+function scrollDraggedCardIntoView(direction) {
+  const card = getGoalCardElement(draggedGoalId);
+  if (!card) return;
+
+  card.scrollIntoView({
+    block: direction > 0 ? "end" : "start",
+    inline: "nearest",
+    behavior: "auto"
+  });
+}
+
+function moveDraggedGoalByStep(direction) {
+  if (!isReorderMode || !draggedGoalId || direction === 0) return false;
+
+  const currentIndex = goals.findIndex(function(goal) {
+    return goal.id === draggedGoalId;
+  });
+
+  if (currentIndex === -1) return false;
+
+  const nextIndex = clampNumber(currentIndex + direction, 0, goals.length - 1);
+
+  if (nextIndex === currentIndex) return false;
+
+  const newGoals = [...goals];
+  const draggedGoal = newGoals.splice(currentIndex, 1)[0];
+
+  newGoals.splice(nextIndex, 0, draggedGoal);
+
+  goals = newGoals;
+  saveGoals(goals);
+
+  reorderHomeDomToMatchGoals();
+  scrollDraggedCardIntoView(direction);
+  updateDragGhostPosition();
+
+  return true;
 }
 
 function moveDraggedGoalAtY(clientY) {
@@ -729,7 +724,8 @@ function moveDraggedGoalAtY(clientY) {
 }
 
 function stopReorderAutoScroll() {
-  autoScrollSpeed = 0;
+  autoScrollDirection = 0;
+  lastAutoScrollStepTime = 0;
 
   if (autoScrollAnimationId) {
     cancelAnimationFrame(autoScrollAnimationId);
@@ -740,23 +736,21 @@ function stopReorderAutoScroll() {
 function startReorderAutoScrollLoop() {
   if (autoScrollAnimationId) return;
 
-  function loop() {
-    if (!isReorderMode || !draggedGoalId || autoScrollSpeed === 0) {
+  function loop(time) {
+    if (!isReorderMode || !draggedGoalId || autoScrollDirection === 0) {
       autoScrollAnimationId = null;
       return;
     }
 
-    const scrollContainer = getReorderScrollContainer();
+    if (!lastAutoScrollStepTime || time - lastAutoScrollStepTime > 230) {
+      const moved = moveDraggedGoalByStep(autoScrollDirection);
+      lastAutoScrollStepTime = time;
 
-    if (!canScrollContainer(scrollContainer, autoScrollSpeed)) {
-      stopReorderAutoScroll();
-      return;
+      if (!moved) {
+        stopReorderAutoScroll();
+        return;
+      }
     }
-
-    scrollContainer.scrollTop += autoScrollSpeed;
-
-    moveDraggedGoalAtY(getAutoScrollAnchorY());
-    updateDragGhostPosition();
 
     autoScrollAnimationId = requestAnimationFrame(loop);
   }
@@ -770,20 +764,17 @@ function updateReorderAutoScroll(clientY) {
     return;
   }
 
-  const scrollContainer = getReorderScrollContainer();
-  const edgeSize = 90;
-  const maxSpeed = 8;
+  const edgeSize = 105;
   const viewportHeight = window.innerHeight;
-  const safeY = clampNumber(clientY, 0, viewportHeight);
 
-  if (safeY < edgeSize && canScrollContainer(scrollContainer, -1)) {
-    autoScrollSpeed = -Math.ceil(((edgeSize - safeY) / edgeSize) * maxSpeed);
+  if (clientY < edgeSize) {
+    autoScrollDirection = -1;
     startReorderAutoScrollLoop();
     return;
   }
 
-  if (safeY > viewportHeight - edgeSize && canScrollContainer(scrollContainer, 1)) {
-    autoScrollSpeed = Math.ceil(((safeY - (viewportHeight - edgeSize)) / edgeSize) * maxSpeed);
+  if (clientY > viewportHeight - edgeSize) {
+    autoScrollDirection = 1;
     startReorderAutoScrollLoop();
     return;
   }
