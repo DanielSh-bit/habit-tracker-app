@@ -15,7 +15,7 @@ let calendarDate = new Date();
 let isReorderMode = false;
 let draggedGoalId = null;
 let longPressTimer = null;
-let activeTouch = null;
+let dragState = null;
 
 let autoScrollAnimationId = null;
 let autoScrollSpeed = 0;
@@ -562,6 +562,12 @@ function renderGoalInfoStreaks(goal) {
   `;
 }
 
+function getGoalCardElement(goalId) {
+  return Array.from(document.querySelectorAll("#goalsGrid .goal-card")).find(function(card) {
+    return card.dataset.goalId === goalId;
+  });
+}
+
 function getReorderScrollContainer() {
   const candidates = [
     $("homeScreen"),
@@ -580,10 +586,48 @@ function getReorderScrollContainer() {
   return document.scrollingElement || document.documentElement;
 }
 
-function getRemainingGoalsWithoutDragged() {
-  return goals.filter(function(goal) {
-    return goal.id !== draggedGoalId;
-  });
+function updateDragGhostPosition() {
+  if (!dragState || !dragState.ghost) return;
+
+  dragState.ghost.style.left = `${dragState.x - dragState.offsetX}px`;
+  dragState.ghost.style.top = `${dragState.y - dragState.offsetY}px`;
+}
+
+function createDragGhost(goalId) {
+  if (!dragState) return;
+
+  const sourceCard = getGoalCardElement(goalId);
+  if (!sourceCard) return;
+
+  const rect = sourceCard.getBoundingClientRect();
+  const ghost = sourceCard.cloneNode(true);
+
+  dragState.offsetX = dragState.x - rect.left;
+  dragState.offsetY = dragState.y - rect.top;
+  dragState.ghost = ghost;
+
+  ghost.classList.add("drag-ghost");
+  ghost.style.position = "fixed";
+  ghost.style.left = `${rect.left}px`;
+  ghost.style.top = `${rect.top}px`;
+  ghost.style.width = `${rect.width}px`;
+  ghost.style.height = `${rect.height}px`;
+  ghost.style.zIndex = "9999";
+  ghost.style.pointerEvents = "none";
+  ghost.style.transform = "scale(1.04)";
+  ghost.style.opacity = "0.96";
+  ghost.style.boxShadow = "0 26px 60px rgba(15, 23, 42, 0.34)";
+  ghost.style.touchAction = "none";
+
+  document.body.appendChild(ghost);
+  updateDragGhostPosition();
+}
+
+function removeDragGhost() {
+  if (dragState && dragState.ghost) {
+    dragState.ghost.remove();
+    dragState.ghost = null;
+  }
 }
 
 function moveDraggedGoalAtY(clientY) {
@@ -595,8 +639,11 @@ function moveDraggedGoalAtY(clientY) {
 
   if (!draggedGoal) return;
 
-  const remainingGoals = getRemainingGoalsWithoutDragged();
-  const cards = Array.from(document.querySelectorAll(".goal-card")).filter(function(card) {
+  const remainingGoals = goals.filter(function(goal) {
+    return goal.id !== draggedGoalId;
+  });
+
+  const cards = Array.from(document.querySelectorAll("#goalsGrid .goal-card")).filter(function(card) {
     return card.dataset.goalId !== draggedGoalId;
   });
 
@@ -631,6 +678,7 @@ function moveDraggedGoalAtY(clientY) {
   goals = newGoals;
   saveGoals(goals);
   renderHome();
+  updateDragGhostPosition();
 }
 
 function stopReorderAutoScroll() {
@@ -655,6 +703,7 @@ function startReorderAutoScrollLoop() {
 
     scrollContainer.scrollTop += autoScrollSpeed;
     moveDraggedGoalAtY(lastPointerY);
+    updateDragGhostPosition();
 
     autoScrollAnimationId = requestAnimationFrame(loop);
   }
@@ -668,7 +717,7 @@ function updateReorderAutoScroll(clientY) {
     return;
   }
 
-  const edgeSize = 92;
+  const edgeSize = 95;
   const maxSpeed = 18;
   const viewportHeight = window.innerHeight;
 
@@ -687,44 +736,58 @@ function updateReorderAutoScroll(clientY) {
   stopReorderAutoScroll();
 }
 
-function startSingleGoalReorder(goalId) {
+function beginSingleGoalDrag(goalId) {
+  if (!dragState || dragState.goalId !== goalId) return;
+
   isReorderMode = true;
   draggedGoalId = goalId;
-  suppressClickUntil = Date.now() + 900;
+  dragState.isDragging = true;
+
+  suppressClickUntil = Date.now() + 1000;
 
   document.body.classList.add("is-reordering");
+
+  createDragGhost(goalId);
+  renderHome();
 
   if (navigator.vibrate) {
     navigator.vibrate(18);
   }
-
-  renderHome();
 }
 
-function stopSingleGoalReorder() {
+function endSingleGoalDrag() {
   clearTimeout(longPressTimer);
 
-  if (!isReorderMode) {
-    activeTouch = null;
-    return;
-  }
+  const wasDragging = isReorderMode;
+
+  removeDragGhost();
+  stopReorderAutoScroll();
 
   isReorderMode = false;
   draggedGoalId = null;
-  activeTouch = null;
-  suppressClickUntil = Date.now() + 700;
+  dragState = null;
 
   document.body.classList.remove("is-reordering");
-  stopReorderAutoScroll();
 
-  renderHome();
+  document.removeEventListener("touchmove", handleTouchMove);
+  document.removeEventListener("touchend", handleTouchEnd);
+  document.removeEventListener("touchcancel", handleTouchEnd);
+
+  document.removeEventListener("pointermove", handlePointerMove);
+  document.removeEventListener("pointerup", handlePointerEnd);
+  document.removeEventListener("pointercancel", handlePointerEnd);
+
+  if (wasDragging) {
+    suppressClickUntil = Date.now() + 800;
+    renderHome();
+  }
 }
 
 function getActiveTouch(event) {
-  if (!activeTouch) return null;
+  if (!dragState) return null;
 
   for (const touch of event.touches) {
-    if (touch.identifier === activeTouch.identifier) {
+    if (touch.identifier === dragState.identifier) {
       return touch;
     }
   }
@@ -732,71 +795,69 @@ function getActiveTouch(event) {
   return null;
 }
 
+function cancelPendingDragIfMoved(movedX, movedY) {
+  if (!dragState || dragState.isDragging) return;
+
+  if (movedX > 16 || movedY > 16) {
+    clearTimeout(longPressTimer);
+  }
+}
+
 function handleTouchMove(event) {
-  if (!activeTouch) return;
+  if (!dragState) return;
 
   const touch = getActiveTouch(event);
   if (!touch) return;
 
-  const movedX = Math.abs(touch.clientX - activeTouch.startX);
-  const movedY = Math.abs(touch.clientY - activeTouch.startY);
+  const movedX = Math.abs(touch.clientX - dragState.startX);
+  const movedY = Math.abs(touch.clientY - dragState.startY);
+
+  dragState.x = touch.clientX;
+  dragState.y = touch.clientY;
 
   lastPointerX = touch.clientX;
   lastPointerY = touch.clientY;
 
-  if (!isReorderMode && (movedX > 16 || movedY > 16)) {
-    clearTimeout(longPressTimer);
-    return;
-  }
+  cancelPendingDragIfMoved(movedX, movedY);
 
-  if (!isReorderMode || !draggedGoalId) return;
+  if (!dragState.isDragging) return;
 
   event.preventDefault();
 
+  updateDragGhostPosition();
   moveDraggedGoalAtY(touch.clientY);
   updateReorderAutoScroll(touch.clientY);
 }
 
 function handleTouchEnd() {
-  clearTimeout(longPressTimer);
-
-  document.removeEventListener("touchmove", handleTouchMove);
-  document.removeEventListener("touchend", handleTouchEnd);
-  document.removeEventListener("touchcancel", handleTouchEnd);
-
-  stopSingleGoalReorder();
+  endSingleGoalDrag();
 }
 
 function handlePointerMove(event) {
-  if (!activeTouch) return;
+  if (!dragState) return;
 
-  const movedX = Math.abs(event.clientX - activeTouch.startX);
-  const movedY = Math.abs(event.clientY - activeTouch.startY);
+  const movedX = Math.abs(event.clientX - dragState.startX);
+  const movedY = Math.abs(event.clientY - dragState.startY);
+
+  dragState.x = event.clientX;
+  dragState.y = event.clientY;
 
   lastPointerX = event.clientX;
   lastPointerY = event.clientY;
 
-  if (!isReorderMode && (movedX > 16 || movedY > 16)) {
-    clearTimeout(longPressTimer);
-    return;
-  }
+  cancelPendingDragIfMoved(movedX, movedY);
 
-  if (!isReorderMode || !draggedGoalId) return;
+  if (!dragState.isDragging) return;
 
   event.preventDefault();
 
+  updateDragGhostPosition();
   moveDraggedGoalAtY(event.clientY);
   updateReorderAutoScroll(event.clientY);
 }
 
 function handlePointerEnd() {
-  clearTimeout(longPressTimer);
-
-  document.removeEventListener("pointermove", handlePointerMove);
-  document.removeEventListener("pointerup", handlePointerEnd);
-  document.removeEventListener("pointercancel", handlePointerEnd);
-
-  stopSingleGoalReorder();
+  endSingleGoalDrag();
 }
 
 function setupCardReorderHandlers(card, goal) {
@@ -806,11 +867,17 @@ function setupCardReorderHandlers(card, goal) {
 
     const touch = event.touches[0];
 
-    activeTouch = {
+    dragState = {
+      goalId: goal.id,
       identifier: touch.identifier,
       startX: touch.clientX,
       startY: touch.clientY,
-      goalId: goal.id
+      x: touch.clientX,
+      y: touch.clientY,
+      offsetX: 0,
+      offsetY: 0,
+      ghost: null,
+      isDragging: false
     };
 
     lastPointerX = touch.clientX;
@@ -827,7 +894,7 @@ function setupCardReorderHandlers(card, goal) {
     document.addEventListener("touchcancel", handleTouchEnd);
 
     longPressTimer = setTimeout(function() {
-      startSingleGoalReorder(goal.id);
+      beginSingleGoalDrag(goal.id);
     }, 520);
   }, { passive: true });
 
@@ -836,11 +903,17 @@ function setupCardReorderHandlers(card, goal) {
     if (event.pointerType === "touch") return;
     if (event.button && event.button !== 0) return;
 
-    activeTouch = {
+    dragState = {
+      goalId: goal.id,
       identifier: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
-      goalId: goal.id
+      x: event.clientX,
+      y: event.clientY,
+      offsetX: 0,
+      offsetY: 0,
+      ghost: null,
+      isDragging: false
     };
 
     lastPointerX = event.clientX;
@@ -857,14 +930,14 @@ function setupCardReorderHandlers(card, goal) {
     document.addEventListener("pointercancel", handlePointerEnd);
 
     longPressTimer = setTimeout(function() {
-      startSingleGoalReorder(goal.id);
+      beginSingleGoalDrag(goal.id);
     }, 520);
   });
 }
 
 function openMenu() {
   if (isReorderMode) {
-    stopSingleGoalReorder();
+    endSingleGoalDrag();
     return;
   }
 
@@ -1052,7 +1125,7 @@ function showScreen(screenId, addToHistory = true) {
 
 function goBack() {
   if (isReorderMode) {
-    stopSingleGoalReorder();
+    endSingleGoalDrag();
     return;
   }
 
@@ -1096,6 +1169,7 @@ function renderHome() {
   if (!goalsGrid) return;
 
   goalsGrid.innerHTML = "";
+  goalsGrid.classList.remove("reorder-mode");
 
   goals.forEach(function(goal) {
     const value = getTodayValue(goal);
@@ -1105,9 +1179,9 @@ function renderHome() {
     card.className = "goal-card";
     card.dataset.goalId = goal.id;
 
-    if (draggedGoalId === goal.id) {
-      card.classList.add("dragging-card");
+    if (isReorderMode && draggedGoalId === goal.id) {
       card.classList.add("reorder-card");
+      card.classList.add("dragging-card");
     }
 
     if (goal.type === "yesno" && value >= 1) {
@@ -1810,7 +1884,7 @@ window.addEventListener("popstate", function(event) {
   const state = event.state;
 
   if (isReorderMode) {
-    stopSingleGoalReorder();
+    endSingleGoalDrag();
     return;
   }
 
