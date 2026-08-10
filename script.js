@@ -736,6 +736,28 @@ function updateReorderAutoScroll(clientY) {
   stopReorderAutoScroll();
 }
 
+function forceEndDragOnRelease() {
+  if (isReorderMode) {
+    endSingleGoalDrag();
+  }
+}
+
+function addForceReleaseListeners() {
+  window.addEventListener("touchend", forceEndDragOnRelease, true);
+  window.addEventListener("touchcancel", forceEndDragOnRelease, true);
+  window.addEventListener("pointerup", forceEndDragOnRelease, true);
+  window.addEventListener("pointercancel", forceEndDragOnRelease, true);
+  window.addEventListener("mouseup", forceEndDragOnRelease, true);
+}
+
+function removeForceReleaseListeners() {
+  window.removeEventListener("touchend", forceEndDragOnRelease, true);
+  window.removeEventListener("touchcancel", forceEndDragOnRelease, true);
+  window.removeEventListener("pointerup", forceEndDragOnRelease, true);
+  window.removeEventListener("pointercancel", forceEndDragOnRelease, true);
+  window.removeEventListener("mouseup", forceEndDragOnRelease, true);
+}
+
 function beginSingleGoalDrag(goalId) {
   if (!dragState || dragState.goalId !== goalId) return;
 
@@ -746,6 +768,7 @@ function beginSingleGoalDrag(goalId) {
   suppressClickUntil = Date.now() + 1000;
 
   document.body.classList.add("is-reordering");
+  addForceReleaseListeners();
 
   createDragGhost(goalId);
   renderHome();
@@ -757,6 +780,7 @@ function beginSingleGoalDrag(goalId) {
 
 function endSingleGoalDrag() {
   clearTimeout(longPressTimer);
+  removeForceReleaseListeners();
 
   const wasDragging = isReorderMode;
 
