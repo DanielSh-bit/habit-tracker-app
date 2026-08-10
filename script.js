@@ -568,6 +568,16 @@ function getGoalCardElement(goalId) {
   });
 }
 
+function reorderHomeDomToMatchGoals() {
+  const goalsGrid = $("goalsGrid");
+  if (!goalsGrid) return;
+
+  goals.forEach(function(goal) {
+    const card = getGoalCardElement(goal.id);
+    if (card) goalsGrid.appendChild(card);
+  });
+}
+
 function getReorderScrollContainer() {
   const candidates = [
     $("homeScreen"),
@@ -677,7 +687,7 @@ function moveDraggedGoalAtY(clientY) {
 
   goals = newGoals;
   saveGoals(goals);
-  renderHome();
+  reorderHomeDomToMatchGoals();
   updateDragGhostPosition();
 }
 
@@ -744,18 +754,25 @@ function forceEndDragOnRelease() {
 
 function addForceReleaseListeners() {
   window.addEventListener("touchend", forceEndDragOnRelease, true);
+  window.addEventListener("touchcancel", forceEndDragOnRelease, true);
   window.addEventListener("pointerup", forceEndDragOnRelease, true);
+  window.addEventListener("pointercancel", forceEndDragOnRelease, true);
   window.addEventListener("mouseup", forceEndDragOnRelease, true);
 }
 
 function removeForceReleaseListeners() {
   window.removeEventListener("touchend", forceEndDragOnRelease, true);
+  window.removeEventListener("touchcancel", forceEndDragOnRelease, true);
   window.removeEventListener("pointerup", forceEndDragOnRelease, true);
+  window.removeEventListener("pointercancel", forceEndDragOnRelease, true);
   window.removeEventListener("mouseup", forceEndDragOnRelease, true);
 }
 
 function beginSingleGoalDrag(goalId) {
   if (!dragState || dragState.goalId !== goalId) return;
+
+  const sourceCard = getGoalCardElement(goalId);
+  if (!sourceCard) return;
 
   isReorderMode = true;
   draggedGoalId = goalId;
@@ -767,7 +784,9 @@ function beginSingleGoalDrag(goalId) {
   addForceReleaseListeners();
 
   createDragGhost(goalId);
-  renderHome();
+
+  sourceCard.classList.add("reorder-card");
+  sourceCard.classList.add("dragging-card");
 
   if (navigator.vibrate) {
     navigator.vibrate(18);
@@ -854,15 +873,17 @@ function handleTouchEnd() {
 }
 
 function handleTouchCancel() {
-  clearTimeout(longPressTimer);
-
-  if (!isReorderMode) {
-    dragState = null;
-
-    document.removeEventListener("touchmove", handleTouchMove);
-    document.removeEventListener("touchend", handleTouchEnd);
-    document.removeEventListener("touchcancel", handleTouchCancel);
+  if (isReorderMode) {
+    endSingleGoalDrag();
+    return;
   }
+
+  clearTimeout(longPressTimer);
+  dragState = null;
+
+  document.removeEventListener("touchmove", handleTouchMove);
+  document.removeEventListener("touchend", handleTouchEnd);
+  document.removeEventListener("touchcancel", handleTouchCancel);
 }
 
 function handlePointerMove(event) {
@@ -893,15 +914,17 @@ function handlePointerEnd() {
 }
 
 function handlePointerCancel() {
-  clearTimeout(longPressTimer);
-
-  if (!isReorderMode) {
-    dragState = null;
-
-    document.removeEventListener("pointermove", handlePointerMove);
-    document.removeEventListener("pointerup", handlePointerEnd);
-    document.removeEventListener("pointercancel", handlePointerCancel);
+  if (isReorderMode) {
+    endSingleGoalDrag();
+    return;
   }
+
+  clearTimeout(longPressTimer);
+  dragState = null;
+
+  document.removeEventListener("pointermove", handlePointerMove);
+  document.removeEventListener("pointerup", handlePointerEnd);
+  document.removeEventListener("pointercancel", handlePointerCancel);
 }
 
 function setupCardReorderHandlers(card, goal) {
