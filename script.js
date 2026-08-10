@@ -579,28 +579,63 @@ function reorderHomeDomToMatchGoals() {
 }
 
 function getReorderScrollContainer() {
-  const candidates = [
-    $("homeScreen"),
-    document.querySelector(".screen.active"),
-    document.scrollingElement
-  ];
+  const homeScreen = $("homeScreen");
 
-  for (const candidate of candidates) {
-    if (!candidate) continue;
+  if (homeScreen && homeScreen.scrollHeight > homeScreen.clientHeight + 6) {
+    return homeScreen;
+  }
 
-    if (candidate.scrollHeight > candidate.clientHeight + 6) {
-      return candidate;
-    }
+  const activeScreen = document.querySelector(".screen.active");
+
+  if (activeScreen && activeScreen.scrollHeight > activeScreen.clientHeight + 6) {
+    return activeScreen;
   }
 
   return document.scrollingElement || document.documentElement;
 }
 
+function canScrollContainer(scrollContainer, direction) {
+  if (!scrollContainer) return false;
+
+  const maxScrollTop = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+
+  if (direction < 0) {
+    return scrollContainer.scrollTop > 0;
+  }
+
+  if (direction > 0) {
+    return scrollContainer.scrollTop < maxScrollTop - 1;
+  }
+
+  return false;
+}
+
+function getSafeDragY(y) {
+  const topLimit = 92;
+  const bottomLimit = Math.max(topLimit + 20, window.innerHeight - 92);
+
+  return clampNumber(y, topLimit, bottomLimit);
+}
+
+function getAutoScrollAnchorY() {
+  if (autoScrollSpeed < 0) {
+    return 110;
+  }
+
+  if (autoScrollSpeed > 0) {
+    return Math.max(110, window.innerHeight - 110);
+  }
+
+  return getSafeDragY(lastPointerY);
+}
+
 function updateDragGhostPosition() {
   if (!dragState || !dragState.ghost) return;
 
+  const visualY = getSafeDragY(dragState.y);
+
   dragState.ghost.style.left = `${dragState.x - dragState.offsetX}px`;
-  dragState.ghost.style.top = `${dragState.y - dragState.offsetY}px`;
+  dragState.ghost.style.top = `${visualY - dragState.offsetY}px`;
 }
 
 function createDragGhost(goalId) {
@@ -643,6 +678,8 @@ function removeDragGhost() {
 function moveDraggedGoalAtY(clientY) {
   if (!isReorderMode || !draggedGoalId) return;
 
+  const safeY = getSafeDragY(clientY);
+
   const draggedGoal = goals.find(function(goal) {
     return goal.id === draggedGoalId;
   });
@@ -670,7 +707,7 @@ function moveDraggedGoalAtY(clientY) {
     const rect = card.getBoundingClientRect();
     const middleY = rect.top + rect.height / 2;
 
-    if (clientY < middleY) {
+    if (safeY < middleY) {
       insertIndex = targetIndex;
       break;
     }
@@ -711,8 +748,14 @@ function startReorderAutoScrollLoop() {
 
     const scrollContainer = getReorderScrollContainer();
 
+    if (!canScrollContainer(scrollContainer, autoScrollSpeed)) {
+      stopReorderAutoScroll();
+      return;
+    }
+
     scrollContainer.scrollTop += autoScrollSpeed;
-    moveDraggedGoalAtY(lastPointerY);
+
+    moveDraggedGoalAtY(getAutoScrollAnchorY());
     updateDragGhostPosition();
 
     autoScrollAnimationId = requestAnimationFrame(loop);
@@ -727,18 +770,20 @@ function updateReorderAutoScroll(clientY) {
     return;
   }
 
-  const edgeSize = 95;
-  const maxSpeed = 18;
+  const scrollContainer = getReorderScrollContainer();
+  const edgeSize = 90;
+  const maxSpeed = 8;
   const viewportHeight = window.innerHeight;
+  const safeY = clampNumber(clientY, 0, viewportHeight);
 
-  if (clientY < edgeSize) {
-    autoScrollSpeed = -Math.ceil(((edgeSize - clientY) / edgeSize) * maxSpeed);
+  if (safeY < edgeSize && canScrollContainer(scrollContainer, -1)) {
+    autoScrollSpeed = -Math.ceil(((edgeSize - safeY) / edgeSize) * maxSpeed);
     startReorderAutoScrollLoop();
     return;
   }
 
-  if (clientY > viewportHeight - edgeSize) {
-    autoScrollSpeed = Math.ceil(((clientY - (viewportHeight - edgeSize)) / edgeSize) * maxSpeed);
+  if (safeY > viewportHeight - edgeSize && canScrollContainer(scrollContainer, 1)) {
+    autoScrollSpeed = Math.ceil(((safeY - (viewportHeight - edgeSize)) / edgeSize) * maxSpeed);
     startReorderAutoScrollLoop();
     return;
   }
