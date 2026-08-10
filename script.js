@@ -631,61 +631,15 @@ function removeDragGhost() {
   }
 }
 
-function getHomeScrollContainer() {
-  const candidates = [
-    $("homeScreen"),
-    document.querySelector(".screen.active"),
-    document.scrollingElement,
-    document.documentElement
-  ];
-
-  for (const candidate of candidates) {
-    if (!candidate) continue;
-
-    if (candidate.scrollHeight > candidate.clientHeight + 6) {
-      return candidate;
-    }
-  }
-
-  return document.scrollingElement || document.documentElement;
-}
-
-function getScrollContainerRect(scrollContainer) {
-  if (
-    scrollContainer === document.scrollingElement ||
-    scrollContainer === document.documentElement ||
-    scrollContainer === document.body
-  ) {
-    return {
-      top: 0,
-      bottom: window.innerHeight
-    };
-  }
-
-  return scrollContainer.getBoundingClientRect();
-}
-
 function scrollDraggedCardIntoView(direction) {
   const card = getGoalCardElement(draggedGoalId);
   if (!card) return;
 
-  const scrollContainer = getHomeScrollContainer();
-  const containerRect = getScrollContainerRect(scrollContainer);
-  const cardRect = card.getBoundingClientRect();
-
-  const safeTop = containerRect.top + 120;
-  const safeBottom = containerRect.bottom - 120;
-
-  if (direction < 0 && cardRect.top < safeTop) {
-    const amount = Math.ceil(safeTop - cardRect.top + 12);
-    scrollContainer.scrollTop = Math.max(0, scrollContainer.scrollTop - amount);
-  }
-
-  if (direction > 0 && cardRect.bottom > safeBottom) {
-    const maxScrollTop = scrollContainer.scrollHeight - scrollContainer.clientHeight;
-    const amount = Math.ceil(cardRect.bottom - safeBottom + 12);
-    scrollContainer.scrollTop = Math.min(maxScrollTop, scrollContainer.scrollTop + amount);
-  }
+  card.scrollIntoView({
+    block: direction > 0 ? "end" : "start",
+    inline: "nearest",
+    behavior: "auto"
+  });
 }
 
 function moveDraggedGoalByStep(direction) {
