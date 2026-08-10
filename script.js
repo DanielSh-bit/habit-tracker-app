@@ -744,17 +744,13 @@ function forceEndDragOnRelease() {
 
 function addForceReleaseListeners() {
   window.addEventListener("touchend", forceEndDragOnRelease, true);
-  window.addEventListener("touchcancel", forceEndDragOnRelease, true);
   window.addEventListener("pointerup", forceEndDragOnRelease, true);
-  window.addEventListener("pointercancel", forceEndDragOnRelease, true);
   window.addEventListener("mouseup", forceEndDragOnRelease, true);
 }
 
 function removeForceReleaseListeners() {
   window.removeEventListener("touchend", forceEndDragOnRelease, true);
-  window.removeEventListener("touchcancel", forceEndDragOnRelease, true);
   window.removeEventListener("pointerup", forceEndDragOnRelease, true);
-  window.removeEventListener("pointercancel", forceEndDragOnRelease, true);
   window.removeEventListener("mouseup", forceEndDragOnRelease, true);
 }
 
@@ -795,11 +791,11 @@ function endSingleGoalDrag() {
 
   document.removeEventListener("touchmove", handleTouchMove);
   document.removeEventListener("touchend", handleTouchEnd);
-  document.removeEventListener("touchcancel", handleTouchEnd);
+  document.removeEventListener("touchcancel", handleTouchCancel);
 
   document.removeEventListener("pointermove", handlePointerMove);
   document.removeEventListener("pointerup", handlePointerEnd);
-  document.removeEventListener("pointercancel", handlePointerEnd);
+  document.removeEventListener("pointercancel", handlePointerCancel);
 
   if (wasDragging) {
     suppressClickUntil = Date.now() + 800;
@@ -857,6 +853,18 @@ function handleTouchEnd() {
   endSingleGoalDrag();
 }
 
+function handleTouchCancel() {
+  clearTimeout(longPressTimer);
+
+  if (!isReorderMode) {
+    dragState = null;
+
+    document.removeEventListener("touchmove", handleTouchMove);
+    document.removeEventListener("touchend", handleTouchEnd);
+    document.removeEventListener("touchcancel", handleTouchCancel);
+  }
+}
+
 function handlePointerMove(event) {
   if (!dragState) return;
 
@@ -882,6 +890,18 @@ function handlePointerMove(event) {
 
 function handlePointerEnd() {
   endSingleGoalDrag();
+}
+
+function handlePointerCancel() {
+  clearTimeout(longPressTimer);
+
+  if (!isReorderMode) {
+    dragState = null;
+
+    document.removeEventListener("pointermove", handlePointerMove);
+    document.removeEventListener("pointerup", handlePointerEnd);
+    document.removeEventListener("pointercancel", handlePointerCancel);
+  }
 }
 
 function setupCardReorderHandlers(card, goal) {
@@ -911,11 +931,11 @@ function setupCardReorderHandlers(card, goal) {
 
     document.removeEventListener("touchmove", handleTouchMove);
     document.removeEventListener("touchend", handleTouchEnd);
-    document.removeEventListener("touchcancel", handleTouchEnd);
+    document.removeEventListener("touchcancel", handleTouchCancel);
 
     document.addEventListener("touchmove", handleTouchMove, { passive: false });
     document.addEventListener("touchend", handleTouchEnd);
-    document.addEventListener("touchcancel", handleTouchEnd);
+    document.addEventListener("touchcancel", handleTouchCancel);
 
     longPressTimer = setTimeout(function() {
       beginSingleGoalDrag(goal.id);
@@ -947,11 +967,11 @@ function setupCardReorderHandlers(card, goal) {
 
     document.removeEventListener("pointermove", handlePointerMove);
     document.removeEventListener("pointerup", handlePointerEnd);
-    document.removeEventListener("pointercancel", handlePointerEnd);
+    document.removeEventListener("pointercancel", handlePointerCancel);
 
     document.addEventListener("pointermove", handlePointerMove, { passive: false });
     document.addEventListener("pointerup", handlePointerEnd);
-    document.addEventListener("pointercancel", handlePointerEnd);
+    document.addEventListener("pointercancel", handlePointerCancel);
 
     longPressTimer = setTimeout(function() {
       beginSingleGoalDrag(goal.id);
