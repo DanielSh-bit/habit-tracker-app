@@ -5,6 +5,7 @@ const USER_BEST_SCORE_KEY = "levelup_user_best_streak";
 
 const SUPABASE_URL = "https://gkkdwwprhfsgtzjpnwaj.supabase.co/rest/v1";
 const SUPABASE_KEY = "sb_publishable_zgmgY6On7ttFUxsuXWrEKA_zTYwJmim";
+const PUBLIC_VAPID_KEY = "BNhfN178NyuXgl92H2dc84zEmJy9AFERx6CmcAschHWrcLcCPLPsrahC0OI2fD4jDbLXSKyIuhmH1fg3yPEFJa0";
 
 let currentScreenId = "homeScreen";
 let currentGoalId = null;
