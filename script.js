@@ -518,13 +518,12 @@ async function enablePushNotifications() {
 
     alert("ההתראות הופעלו בהצלחה");
   } catch (error) {
-    console.log("שגיאה בהפעלת התראות:", error);
+    console.log("שגיאה בהפעלת התראות:", {
+      step: step,
+      error: error
+    });
 
-    alert(
-      "לא הצלחנו להפעיל התראות כרגע\n\n" +
-      "שלב: " + step + "\n\n" +
-      "שגיאה: " + (error.message || String(error))
-    );
+    alert("לא הצלחנו להפעיל התראות כרגע. נסה שוב מאוחר יותר או בדוק שההתראות מאושרות בהגדרות.");
   }
 }
 
