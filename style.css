@@ -2282,3 +2282,12 @@ body.is-reordering .goal-card {
   background: #bae6fd !important;
   box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.35) inset !important;
 }
+
+.home-counter-card.home-counter-complete .home-water-fill {
+  display: none !important;
+  animation: none !important;
+}
+
+.home-counter-card.home-counter-complete {
+  background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+}
