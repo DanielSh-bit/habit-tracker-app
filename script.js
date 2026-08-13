@@ -2180,6 +2180,8 @@ document.addEventListener("DOMContentLoaded", function() {
     openScreenFromMenu("addScreen");
   });
 
+  on("enableNotificationsFromMenu", "click", enablePushNotifications);
+  
   on("prevMonthButton", "click", function() {
     calendarDate.setMonth(calendarDate.getMonth() - 1);
     renderGoalInfo();
