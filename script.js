@@ -453,34 +453,42 @@ async function savePushSubscription(subscription) {
   });
 
   if (!response.ok) {
-    throw new Error("Push subscription save failed");
+    const errorText = await response.text();
+    throw new Error(`Supabase save failed: ${response.status} ${errorText}`);
   }
 }
 
 async function enablePushNotifications() {
+  let step = "התחלה";
+
   try {
     closeMenu();
 
+    step = "בדיקת Service Worker";
     if (!("serviceWorker" in navigator)) {
       alert("הדפדפן הזה לא תומך בהתראות דרך Service Worker");
       return;
     }
 
+    step = "בדיקת Notification";
     if (!("Notification" in window)) {
       alert("הדפדפן הזה לא תומך בהתראות");
       return;
     }
 
+    step = "בדיקת PushManager";
     if (!("PushManager" in window)) {
       alert("המכשיר או הדפדפן לא תומכים ב-Push notifications");
       return;
     }
 
+    step = "בדיקת הרשאה";
     if (Notification.permission === "denied") {
       alert("ההתראות חסומות. צריך לאפשר אותן בהגדרות הדפדפן/האפליקציה.");
       return;
     }
 
+    step = "בקשת הרשאה";
     const permission = Notification.permission === "granted"
       ? "granted"
       : await Notification.requestPermission();
@@ -490,23 +498,33 @@ async function enablePushNotifications() {
       return;
     }
 
+    step = "המתנה ל-Service Worker";
     const registration = await navigator.serviceWorker.ready;
 
+    step = "בדיקת subscription קיים";
     let subscription = await registration.pushManager.getSubscription();
 
     if (!subscription) {
+      step = "יצירת subscription חדש";
+
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
       });
     }
 
+    step = "שמירה ב-Supabase";
     await savePushSubscription(subscription);
 
     alert("ההתראות הופעלו בהצלחה");
   } catch (error) {
     console.log("שגיאה בהפעלת התראות:", error);
-    alert("לא הצלחנו להפעיל התראות כרגע");
+
+    alert(
+      "לא הצלחנו להפעיל התראות כרגע\n\n" +
+      "שלב: " + step + "\n\n" +
+      "שגיאה: " + (error.message || String(error))
+    );
   }
 }
 
