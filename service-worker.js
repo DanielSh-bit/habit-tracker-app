@@ -1,4 +1,4 @@
-const CACHE_NAME = "levelup-cache-v52";
+const CACHE_NAME = "levelup-cache-v53";
 
 const FILES_TO_CACHE = [
   "./",
@@ -44,5 +44,57 @@ self.addEventListener("fetch", function(event) {
       .catch(function() {
         return caches.match(event.request);
       })
+  );
+});
+
+self.addEventListener("push", function(event) {
+  let data = {
+    title: "LevelUp",
+    body: "יש לך עדכון חדש",
+    url: "./"
+  };
+
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (error) {
+      data.body = event.data.text();
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || "LevelUp", {
+      body: data.body || "יש לך עדכון חדש",
+      icon: "./icon.svg",
+      badge: "./icon.svg",
+      data: {
+        url: data.url || "./"
+      }
+    })
+  );
+});
+
+self.addEventListener("notificationclick", function(event) {
+  event.notification.close();
+
+  const targetUrl = event.notification.data && event.notification.data.url
+    ? event.notification.data.url
+    : "./";
+
+  event.waitUntil(
+    clients.matchAll({
+      type: "window",
+      includeUncontrolled: true
+    }).then(function(clientList) {
+      for (const client of clientList) {
+        if ("focus" in client) {
+          return client.focus();
+        }
+      }
+
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
   );
 });
