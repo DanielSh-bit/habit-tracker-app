@@ -1410,6 +1410,7 @@ function renderHome() {
 
       if (todayProgress >= 100) {
         card.classList.add("home-counter-complete");
+        card.classList.add("home-goal-complete");
       }
     }
 
