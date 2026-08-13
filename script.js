@@ -415,6 +415,101 @@ function updateAppBadge() {
   }
 }
 
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = `${base64String}${padding}`
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; i++) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+
+  return outputArray;
+}
+
+async function savePushSubscription(subscription) {
+  const payload = {
+    device_id: getDeviceId(),
+    player_name: getPlayerName() || "משתמש",
+    subscription_json: subscription.toJSON(),
+    enabled: true,
+    updated_at: new Date().toISOString(),
+    last_seen_at: new Date().toISOString()
+  };
+
+  const response = await fetch(`${SUPABASE_URL}/levelup_push_subscriptions?on_conflict=device_id`, {
+    method: "POST",
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      "Prefer": "resolution=merge-duplicates,return=minimal"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error("Push subscription save failed");
+  }
+}
+
+async function enablePushNotifications() {
+  try {
+    closeMenu();
+
+    if (!("serviceWorker" in navigator)) {
+      alert("הדפדפן הזה לא תומך בהתראות דרך Service Worker");
+      return;
+    }
+
+    if (!("Notification" in window)) {
+      alert("הדפדפן הזה לא תומך בהתראות");
+      return;
+    }
+
+    if (!("PushManager" in window)) {
+      alert("המכשיר או הדפדפן לא תומכים ב-Push notifications");
+      return;
+    }
+
+    if (Notification.permission === "denied") {
+      alert("ההתראות חסומות. צריך לאפשר אותן בהגדרות הדפדפן/האפליקציה.");
+      return;
+    }
+
+    const permission = Notification.permission === "granted"
+      ? "granted"
+      : await Notification.requestPermission();
+
+    if (permission !== "granted") {
+      alert("לא אושרו התראות");
+      return;
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
+      });
+    }
+
+    await savePushSubscription(subscription);
+
+    alert("ההתראות הופעלו בהצלחה");
+  } catch (error) {
+    console.log("שגיאה בהפעלת התראות:", error);
+    alert("לא הצלחנו להפעיל התראות כרגע");
+  }
+}
+
 function getToneClass(progress) {
   if (progress >= 100) return "tone-100";
   if (progress >= 90) return "tone-90";
