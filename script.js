@@ -2302,6 +2302,10 @@ document.addEventListener("DOMContentLoaded", function() {
     flashInputLimit(event.target);
   });
 
+  on("renameNameInput", "input", function(event) {
+    flashInputLimit(event.target);
+  });
+  
   on("goalTargetInput", "input", function(event) {
     limitNumberInput(event.target, 2, 999);
   });
@@ -2324,6 +2328,7 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   on("nameForm", "submit", saveName);
+  on("renameForm", "submit", saveRenamedPlayerName);
 });
 
 if ("serviceWorker" in navigator) {
