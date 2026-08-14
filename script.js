@@ -2254,6 +2254,10 @@ document.addEventListener("DOMContentLoaded", function() {
     openScreenFromMenu("addScreen");
   });
 
+  on("openRenameFromMenu", "click", function() {
+    openScreenFromMenu("renameScreen");
+  });
+
   on("enableNotificationsFromMenu", "click", enablePushNotifications);
   
   on("prevMonthButton", "click", function() {
