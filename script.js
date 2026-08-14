@@ -527,6 +527,37 @@ async function enablePushNotifications() {
   }
 }
 
+async function syncPushPlayerName() {
+  const name = getPlayerName();
+  if (!name) return;
+
+  try {
+    await fetch(`${SUPABASE_URL}/levelup_push_subscriptions?device_id=eq.${encodeURIComponent(getDeviceId())}`, {
+      method: "PATCH",
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify({
+        player_name: name,
+        updated_at: new Date().toISOString(),
+        last_seen_at: new Date().toISOString()
+      })
+    });
+  } catch (error) {
+    console.log("שגיאה בעדכון שם בטבלת Push:", error);
+  }
+}
+
+function prepareRenameForm() {
+  const renameInput = $("renameNameInput");
+  if (!renameInput) return;
+
+  renameInput.value = getPlayerName();
+}
+
 function getToneClass(progress) {
   if (progress >= 100) return "tone-100";
   if (progress >= 90) return "tone-90";
