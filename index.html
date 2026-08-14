@@ -30,6 +30,7 @@
       <nav class="side-menu-options">
         <button id="openRankingFromMenu">דירוג</button>
         <button id="openAddFromMenu">הוספת אתגר</button>
+        <button id="openRenameFromMenu">שינוי שם</button>
         <button id="enableNotificationsFromMenu">אפשר התראות</button>
       </nav>
     </aside>
@@ -250,6 +251,21 @@
       </header>
 
       <section class="ranking-list" id="rankingList"></section>
+    </section>
+
+    <section class="screen" id="renameScreen">
+      <button class="back-button" data-target="homeScreen">←</button>
+
+      <h1 class="screen-title add-screen-title">שינוי שם</h1>
+
+      <form class="form-card" id="renameForm" novalidate>
+        <label>
+          שם
+          <input type="text" id="renameNameInput" maxlength="16" required>
+        </label>
+
+        <button type="submit">save</button>
+      </form>
     </section>
 
     <section class="screen" id="nameScreen">
