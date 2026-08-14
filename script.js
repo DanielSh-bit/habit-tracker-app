@@ -2046,6 +2046,27 @@ function saveName(event) {
   showScreen("homeScreen");
 }
 
+async function saveRenamedPlayerName(event) {
+  event.preventDefault();
+
+  const nameInput = $("renameNameInput");
+  if (!nameInput) return;
+
+  const name = nameInput.value.trim();
+
+  if (!name) {
+    flashElement(nameInput);
+    return;
+  }
+
+  savePlayerName(name);
+
+  await syncPlayer();
+  await syncPushPlayerName();
+
+  showScreen("homeScreen");
+}
+
 function editGoal(event) {
   event.preventDefault();
 
