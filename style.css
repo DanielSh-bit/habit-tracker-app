@@ -2319,3 +2319,93 @@ body.is-reordering .goal-card {
 .simple-goal-header .goal-counter-score {
   flex-shrink: 0 !important;
 }
+
+/* Weekday picker */
+.weekday-picker {
+  direction: ltr !important;
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  gap: 7px !important;
+}
+
+.weekday-picker button {
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  border: none !important;
+  border-radius: 50% !important;
+  background: rgba(17, 24, 39, 0.10) !important;
+  color: rgba(17, 24, 39, 0.48) !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+}
+
+.weekday-picker button.active {
+  background:
+    linear-gradient(135deg, rgba(17, 24, 39, 0.92), rgba(236, 72, 153, 0.58)) !important;
+  color: white !important;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.18) !important;
+}
+
+.home-goal-not-required {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.22),
+      rgba(236, 72, 153, 0.16)
+    ),
+    rgba(255, 255, 255, 0.62) !important;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.10) !important;
+}
+
+.home-goal-not-required .home-water-fill {
+  display: none !important;
+}
+
+.home-goal-disabled-action,
+.home-goal-action:disabled {
+  color: rgba(17, 24, 39, 0.32) !important;
+  background: rgba(255, 255, 255, 0.42) !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+}
+
+.detail-not-required-today {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.20),
+      rgba(236, 72, 153, 0.14)
+    ),
+    rgba(255, 255, 255, 0.72) !important;
+}
+
+.disabled-goal-button,
+.yesno-disabled-button {
+  color: rgba(17, 24, 39, 0.32) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+}
+
+.big-add-button.disabled-goal-button,
+.small-minus-button.disabled-goal-button {
+  background: rgba(17, 24, 39, 0.06) !important;
+}
+
+.calendar-cell.not-required-day {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.18),
+      rgba(236, 72, 153, 0.12)
+    ),
+    rgba(255, 255, 255, 0.78) !important;
+}
+
+.calendar-cell.not-required-day strong {
+  color: rgba(15, 23, 42, 0.42) !important;
+}
