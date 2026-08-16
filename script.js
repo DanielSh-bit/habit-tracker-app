@@ -1822,9 +1822,13 @@ function renderGoalInfo() {
     const dateKey = formatDateKey(date);
     const future = isFutureDate(date);
     const success = isGoalSuccessOnDate(goal, dateKey);
+    const requiredOnDate = isGoalRequiredOnDate(goal, dateKey);
 
     const cell = document.createElement("div");
     cell.className = "calendar-cell";
+    if (!future && !requiredOnDate) {
+      cell.classList.add("not-required-day");
+    }
     cell.innerHTML = `<span>${day}</span>`;
 
     if (future) {
@@ -2416,6 +2420,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   initializeGoalTypePickers();
+  initializeSchedulePickers();
   initializeTextLimits();
   
   on("openMenuButton", "click", openMenu);
