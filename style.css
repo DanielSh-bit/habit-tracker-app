@@ -2419,3 +2419,12 @@ body.is-reordering .goal-card {
     inset 0 0 0 1px rgba(124, 58, 237, 0.14),
     0 18px 38px rgba(76, 29, 149, 0.16) !important;
 }
+
+/* Background for goals that are not required today */
+body.tone-not-required {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(236, 72, 153, 0.20), transparent 30%),
+    radial-gradient(circle at 80% 10%, rgba(15, 23, 42, 0.24), transparent 28%),
+    radial-gradient(circle at 45% 88%, rgba(124, 58, 237, 0.22), transparent 34%),
+    linear-gradient(135deg, #eef2ff, #c4b5fd) !important;
+}
