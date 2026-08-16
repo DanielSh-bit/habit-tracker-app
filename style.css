@@ -2419,3 +2419,11 @@ body.is-reordering .goal-card {
     inset 0 0 0 1px rgba(124, 58, 237, 0.14),
     0 18px 38px rgba(76, 29, 149, 0.16) !important;
 }
+
+/* יום שבו האתגר לא נדרש - סגול גם בתוך מסך האתגר */
+#goalDetails .detail-card.modern-goal-card.detail-not-required-today {
+  background: rgba(139, 92, 246, 0.24) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(124, 58, 237, 0.14),
+    0 18px 38px rgba(76, 29, 149, 0.16) !important;
+}
