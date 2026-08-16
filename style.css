@@ -2294,3 +2294,28 @@ body.is-reordering .goal-card {
     inset 0 0 0 999px rgba(34, 197, 94, 0.18),
     0 18px 38px rgba(15, 23, 42, 0.16) !important;
 }
+
+/* Goal description layout fix */
+.goal-heading-text {
+  flex: 1 !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+.goal-description {
+  width: 100% !important;
+  max-width: none !important;
+  margin-top: 24px !important;
+  margin-right: 0 !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: break-word !important;
+  word-break: normal !important;
+}
+
+.simple-goal-header {
+  align-items: flex-start !important;
+}
+
+.simple-goal-header .goal-counter-score {
+  flex-shrink: 0 !important;
+}
