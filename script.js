@@ -24,6 +24,7 @@ let lastAutoScrollStepTime = 0;
 let lastPointerX = 0;
 let lastPointerY = 0;
 let suppressClickUntil = 0;
+const limitFlashTimes = new WeakMap();
 
 function $(id) {
   return document.getElementById(id);
@@ -609,14 +610,104 @@ function flashElement(element) {
   element.classList.add("field-error-flash");
 }
 
+function flashLimitElement(input) {
+  if (!input) return;
+
+  const now = Date.now();
+  const lastFlash = limitFlashTimes.get(input) || 0;
+
+  if (now - lastFlash < 650) return;
+
+  limitFlashTimes.set(input, now);
+  flashElement(input);
+}
+
 function flashInputLimit(input) {
   if (!input) return;
 
   const maxLength = Number(input.getAttribute("maxlength") || 0);
 
   if (maxLength > 0 && input.value.length >= maxLength) {
-    flashElement(input);
+    flashLimitElement(input);
   }
+}
+
+function handleTextLimitBeforeInput(event) {
+  const input = event.target;
+  if (!input) return;
+
+  const maxLength = Number(input.getAttribute("maxlength") || 0);
+  if (!maxLength || maxLength <= 0) return;
+
+  const inputType = event.inputType || "";
+
+  if (
+    inputType.startsWith("delete") ||
+    inputType === "historyUndo" ||
+    inputType === "historyRedo"
+  ) {
+    return;
+  }
+
+  const insertedText = typeof event.data === "string" ? event.data : "";
+
+  if (!insertedText) return;
+
+  const selectionStart = input.selectionStart ?? input.value.length;
+  const selectionEnd = input.selectionEnd ?? input.value.length;
+  const selectedLength = Math.max(0, selectionEnd - selectionStart);
+
+  const currentLengthAfterSelectionRemoval = input.value.length - selectedLength;
+
+  if (currentLengthAfterSelectionRemoval + insertedText.length > maxLength) {
+    event.preventDefault();
+    flashLimitElement(input);
+  }
+}
+
+function enforceTextInputLimit(input) {
+  if (!input) return;
+
+  const maxLength = Number(input.getAttribute("maxlength") || 0);
+  if (!maxLength || maxLength <= 0) return;
+
+  if (input.value.length > maxLength) {
+    input.value = input.value.slice(0, maxLength);
+    flashLimitElement(input);
+    return;
+  }
+
+  if (input.value.length === maxLength) {
+    flashLimitElement(input);
+  }
+}
+
+function setupLimitedTextInput(id) {
+  const input = $(id);
+  if (!input) return;
+
+  input.addEventListener("beforeinput", handleTextLimitBeforeInput);
+
+  input.addEventListener("input", function(event) {
+    enforceTextInputLimit(event.target);
+  });
+
+  input.addEventListener("paste", function() {
+    setTimeout(function() {
+      enforceTextInputLimit(input);
+    }, 0);
+  });
+}
+
+function initializeTextLimits() {
+  [
+    "goalNameInput",
+    "goalDescriptionInput",
+    "editGoalNameInput",
+    "editGoalDescriptionInput",
+    "playerNameInput",
+    "renameNameInput"
+  ].forEach(setupLimitedTextInput);
 }
 
 function limitNumberInput(input, min, max) {
@@ -2227,7 +2318,8 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   initializeGoalTypePickers();
-
+  initializeTextLimits();
+  
   on("openMenuButton", "click", openMenu);
   on("menuOverlay", "click", closeMenuFromOverlay);
 
