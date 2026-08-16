@@ -2283,6 +2283,7 @@ function editGoal(event) {
       target: target,
       description: description,
       importance: currentGoal.importance || 3
+      activeDays: getSelectedDaysFromPicker("editGoalSchedulePicker")
     };
   });
 
