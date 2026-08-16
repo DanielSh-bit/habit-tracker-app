@@ -1704,7 +1704,7 @@ function openGoalSettings(goalId, addToHistory = true) {
   if ($("editGoalTargetInput")) {
     $("editGoalTargetInput").value = goal.type === "counter" ? goal.target : "";
   }
-
+  setSelectedDaysInPicker("editGoalSchedulePicker", goal.activeDays);
   showScreen("goalSettingsScreen", addToHistory);
 }
 
