@@ -2010,6 +2010,7 @@ function resetAddGoalForm() {
   if ($("goalTargetWrapper")) $("goalTargetWrapper").classList.add("hidden");
   if ($("goalTargetInput")) $("goalTargetInput").required = false;
   if ($("goalDescriptionInput")) $("goalDescriptionInput").value = "";
+  setSelectedDaysInPicker("goalSchedulePicker", DEFAULT_ACTIVE_DAYS);
 }
 
 function initializeGoalTypePickers() {
