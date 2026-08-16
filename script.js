@@ -133,41 +133,10 @@ function escapeHtml(text) {
 
 function formatDescription(text) {
   const cleanText = String(text || "").trim();
-  const maxLineLength = 26;
 
   if (!cleanText) return "";
 
-  const words = cleanText.split(/\s+/);
-  const lines = [];
-  let currentLine = "";
-
-  words.forEach(function(word) {
-    if (word.length > maxLineLength) {
-      if (currentLine) {
-        lines.push(currentLine);
-        currentLine = "";
-      }
-
-      for (let i = 0; i < word.length; i += maxLineLength) {
-        lines.push(word.slice(i, i + maxLineLength));
-      }
-
-      return;
-    }
-
-    const nextLine = currentLine ? `${currentLine} ${word}` : word;
-
-    if (nextLine.length > maxLineLength) {
-      lines.push(currentLine);
-      currentLine = word;
-    } else {
-      currentLine = nextLine;
-    }
-  });
-
-  if (currentLine) lines.push(currentLine);
-
-  return lines.map(escapeHtml).join("<br>");
+  return escapeHtml(cleanText);
 }
 
 function getDeviceId() {
