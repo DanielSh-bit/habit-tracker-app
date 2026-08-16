@@ -2069,6 +2069,54 @@ function initializeGoalTypePickers() {
   });
 }
 
+function getSelectedDaysFromPicker(pickerId) {
+  const picker = $(pickerId);
+  if (!picker) return [...DEFAULT_ACTIVE_DAYS];
+
+  const selectedDays = Array.from(picker.querySelectorAll("button.active")).map(function(button) {
+    return Number(button.dataset.day);
+  });
+
+  return normalizeActiveDays(selectedDays);
+}
+
+function setSelectedDaysInPicker(pickerId, activeDays) {
+  const picker = $(pickerId);
+  if (!picker) return;
+
+  const cleanDays = normalizeActiveDays(activeDays);
+
+  picker.querySelectorAll("button").forEach(function(button) {
+    const day = Number(button.dataset.day);
+
+    if (cleanDays.includes(day)) {
+      button.classList.add("active");
+    } else {
+      button.classList.remove("active");
+    }
+  });
+}
+
+function initializeSchedulePickers() {
+  ["goalSchedulePicker", "editGoalSchedulePicker"].forEach(function(pickerId) {
+    const picker = $(pickerId);
+    if (!picker) return;
+
+    picker.querySelectorAll("button").forEach(function(button) {
+      button.addEventListener("click", function() {
+        const activeButtons = picker.querySelectorAll("button.active");
+
+        if (button.classList.contains("active") && activeButtons.length <= 1) {
+          flashElement(button);
+          return;
+        }
+
+        button.classList.toggle("active");
+      });
+    });
+  });
+}
+
 function addGoal(event) {
   event.preventDefault();
 
