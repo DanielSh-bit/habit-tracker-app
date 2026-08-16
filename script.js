@@ -2171,6 +2171,7 @@ function addGoal(event) {
     description: description,
     importance: 3,
     createdAt: getTodayKey(),
+    activeDays: getSelectedDaysFromPicker("goalSchedulePicker"),
     records: {}
   };
 
