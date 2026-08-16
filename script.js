@@ -1627,6 +1627,7 @@ function openGoal(goalId, addToHistory = true) {
 
   const value = getTodayValue(goal);
   const progress = getTodayProgress(goal);
+  const requiredToday = isGoalRequiredToday(goal);
 
   const descriptionText = goal.description
     ? `<p class="goal-description">${formatDescription(goal.description)}</p>`
@@ -1636,7 +1637,22 @@ function openGoal(goalId, addToHistory = true) {
 
   let actionHtml = "";
 
-  if (goal.type === "yesno") {
+  if (!requiredToday) {
+    if (goal.type === "yesno") {
+      actionHtml = `
+        <section class="yesno-action-area">
+          <button class="yesno-main-button yesno-disabled-button" disabled>✕</button>
+        </section>
+      `;
+    } else {
+      actionHtml = `
+        <section class="counter-action-area">
+          <button class="big-add-button disabled-goal-button" disabled>+</button>
+          <button class="small-minus-button disabled-goal-button" disabled>−</button>
+        </section>
+      `;
+    }
+  } else if (goal.type === "yesno") {
     if (value >= 1) {
       actionHtml = `
         <section class="yesno-action-area">
@@ -1660,7 +1676,7 @@ function openGoal(goalId, addToHistory = true) {
   }
 
   $("goalDetails").innerHTML = `
-    <div class="detail-card modern-goal-card">
+    <div class="detail-card modern-goal-card ${requiredToday ? "" : "detail-not-required-today"}">
       <header class="simple-goal-header">
         <div class="goal-heading-text">
           <h1>${escapeHtml(goal.title)}</h1>
@@ -1676,6 +1692,8 @@ function openGoal(goalId, addToHistory = true) {
   `;
 
   showScreen("goalScreen", addToHistory);
+
+  if (!requiredToday) return;
 
   if (goal.type === "yesno") {
     on("markYesNoButton", "click", function() {
