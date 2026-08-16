@@ -594,10 +594,26 @@ function applyBackground(progress) {
     "tone-60",
     "tone-75",
     "tone-90",
-    "tone-100"
+    "tone-100",
+    "tone-not-required"
   );
 
   document.body.classList.add(getToneClass(progress));
+}
+
+function applyNotRequiredBackground() {
+  document.body.classList.remove(
+    "tone-0",
+    "tone-15",
+    "tone-30",
+    "tone-45",
+    "tone-60",
+    "tone-75",
+    "tone-90",
+    "tone-100"
+  );
+
+  document.body.classList.add("tone-not-required");
 }
 
 function applyGeneralBackground() {
