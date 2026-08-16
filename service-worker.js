@@ -1,4 +1,4 @@
-const CACHE_NAME = "levelup-cache-v63";
+const CACHE_NAME = "levelup-cache-v64";
 
 const FILES_TO_CACHE = [
   "./",
@@ -6,7 +6,8 @@ const FILES_TO_CACHE = [
   "./style.css",
   "./script.js",
   "./manifest.json",
-  "./icon.svg"
+  "./icon-192.png",
+  "./icon-512.png"
 ];
 
 self.addEventListener("install", function(event) {
@@ -65,8 +66,8 @@ self.addEventListener("push", function(event) {
   event.waitUntil(
     self.registration.showNotification(data.title || "LevelUp", {
       body: data.body || "יש לך עדכון חדש",
-      icon: "./icon.svg",
-      badge: "./icon.svg",
+      icon: "./icon-512.png",
+      badge: "./icon-192.png",
       data: {
         url: data.url || "./"
       }
