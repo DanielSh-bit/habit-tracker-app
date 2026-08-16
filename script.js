@@ -1531,11 +1531,15 @@ function renderHome() {
   goals.forEach(function(goal) {
     const value = getTodayValue(goal);
     const todayProgress = getTodayProgress(goal);
-
+    const requiredToday = isGoalRequiredToday(goal);
     const card = document.createElement("article");
     card.className = "goal-card";
     card.dataset.goalId = goal.id;
-
+    
+    if (!requiredToday) {
+      card.classList.add("home-goal-not-required");
+    }
+    
     if (isReorderMode && draggedGoalId === goal.id) {
       card.classList.add("reorder-card");
       card.classList.add("dragging-card");
@@ -1555,8 +1559,14 @@ function renderHome() {
       }
     }
 
-    const actionSymbol = goal.type === "yesno" ? "✓" : "+";
-    const actionClass = goal.type === "yesno" ? "home-goal-check" : "home-goal-plus";
+    const actionSymbol = !requiredToday
+      ? (goal.type === "yesno" ? "✕" : "+")
+      : (goal.type === "yesno" ? "✓" : "+");
+
+    const actionClass = !requiredToday
+      ? "home-goal-disabled-action"
+      : (goal.type === "yesno" ? "home-goal-check" : "home-goal-plus");
+    
     const waterHtml = goal.type === "counter" ? `<div class="home-water-fill"></div>` : "";
 
     card.innerHTML = `
@@ -1572,13 +1582,17 @@ function renderHome() {
     `;
 
     const actionButton = card.querySelector(".home-goal-action");
-
+    
+    if (!requiredToday) {
+      actionButton.disabled = true;
+    }
+    
     actionButton.addEventListener("click", function(event) {
       event.stopPropagation();
 
       if (Date.now() < suppressClickUntil) return;
       if (isReorderMode) return;
-
+      if (!requiredToday) return;
       if (goal.type === "yesno") {
         setTodayValue(goal.id, value >= 1 ? 0 : 1);
       } else {
