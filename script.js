@@ -285,6 +285,10 @@ function saveGoals(goalsToSave) {
 let goals = loadGoals();
 
 function getTodayValue(goal) {
+  if (!isGoalRequiredToday(goal)) {
+    return Number(goal.target);
+  }
+
   return Number(goal.records[getTodayKey()] || 0);
 }
 
