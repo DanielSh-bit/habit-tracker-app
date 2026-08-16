@@ -2,6 +2,7 @@ const STORAGE_KEY = "levelup_goals";
 const PLAYER_NAME_KEY = "levelup_player_name";
 const DEVICE_ID_KEY = "levelup_device_id";
 const USER_BEST_SCORE_KEY = "levelup_user_best_streak";
+const DEFAULT_ACTIVE_DAYS = [0, 1, 2, 3, 4, 5, 6];
 
 const SUPABASE_URL = "https://gkkdwwprhfsgtzjpnwaj.supabase.co/rest/v1";
 const SUPABASE_KEY = "sb_publishable_zgmgY6On7ttFUxsuXWrEKA_zTYwJmim";
