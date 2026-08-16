@@ -303,6 +303,14 @@ function getTodayProgress(goal) {
 }
 
 function isGoalSuccessOnDate(goal, dateKey) {
+  if (compareDateKeys(dateKey, goal.createdAt || getTodayKey()) < 0) {
+    return false;
+  }
+
+  if (!isGoalRequiredOnDate(goal, dateKey)) {
+    return true;
+  }
+
   return Number(goal.records[dateKey] || 0) >= Number(goal.target);
 }
 
