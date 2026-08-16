@@ -123,6 +123,35 @@ function isFutureDate(date) {
   return getDateStart(date) > getDateStart(new Date());
 }
 
+function normalizeActiveDays(activeDays) {
+  if (!Array.isArray(activeDays)) return [...DEFAULT_ACTIVE_DAYS];
+
+  const cleanDays = activeDays
+    .map(function(day) {
+      return Number(day);
+    })
+    .filter(function(day) {
+      return Number.isInteger(day) && day >= 0 && day <= 6;
+    });
+
+  const uniqueDays = Array.from(new Set(cleanDays)).sort(function(a, b) {
+    return a - b;
+  });
+
+  return uniqueDays.length > 0 ? uniqueDays : [...DEFAULT_ACTIVE_DAYS];
+}
+
+function isGoalRequiredOnDate(goal, dateKey) {
+  const activeDays = normalizeActiveDays(goal.activeDays);
+  const date = parseDateKey(dateKey);
+
+  return activeDays.includes(date.getDay());
+}
+
+function isGoalRequiredToday(goal) {
+  return isGoalRequiredOnDate(goal, getTodayKey());
+}
+
 function escapeHtml(text) {
   return String(text || "")
     .replaceAll("&", "&amp;")
