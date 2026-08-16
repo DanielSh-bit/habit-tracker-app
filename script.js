@@ -225,6 +225,7 @@ function getDefaultGoals() {
       description: "",
       importance: 3,
       createdAt: today,
+      activeDays: [...DEFAULT_ACTIVE_DAYS],
       records: {}
     },
     {
@@ -235,6 +236,7 @@ function getDefaultGoals() {
       description: "",
       importance: 3,
       createdAt: today,
+      activeDays: [...DEFAULT_ACTIVE_DAYS],
       records: {}
     },
     {
@@ -245,6 +247,7 @@ function getDefaultGoals() {
       description: "",
       importance: 3,
       createdAt: today,
+      activeDays: [...DEFAULT_ACTIVE_DAYS],
       records: {}
     }
   ];
