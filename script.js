@@ -1649,7 +1649,11 @@ function openGoal(goalId, addToHistory = true) {
     ? `<p class="goal-description">${formatDescription(goal.description)}</p>`
     : "";
 
-  applyBackground(progress);
+  if (requiredToday) {
+    applyBackground(progress);
+  } else {
+    applyNotRequiredBackground();
+  }
 
   let actionHtml = "";
 
