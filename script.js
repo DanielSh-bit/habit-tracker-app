@@ -208,6 +208,7 @@ function normalizeGoal(goal) {
     description: goal.description || "",
     importance: getGoalImportance(goal),
     createdAt: goal.createdAt || fallbackCreatedAt,
+    activeDays: normalizeActiveDays(goal.activeDays),
     records: goal.records || {}
   };
 }
