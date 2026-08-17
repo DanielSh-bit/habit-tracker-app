@@ -284,6 +284,54 @@
       <section class="ranking-list" id="rankingList"></section>
     </section>
 
+    <section class="screen" id="adminScreen">
+  <button class="back-button" data-target="homeScreen">←</button>
+
+  <h1 class="screen-title add-screen-title">ניהול</h1>
+
+  <section class="form-card" id="adminLoginBox">
+    <form id="adminLoginForm" novalidate>
+      <label>
+        סיסמת מנהל
+        <input
+          type="password"
+          id="adminPasswordInput"
+          maxlength="32"
+          required
+        >
+      </label>
+
+      <button type="submit">כניסה</button>
+    </form>
+  </section>
+
+  <section class="admin-panel hidden" id="adminPanel">
+    <section class="form-card">
+      <h2 class="admin-section-title">שינוי סיסמה</h2>
+
+      <form id="adminPasswordForm" novalidate>
+        <label>
+          סיסמה חדשה
+          <input
+            type="password"
+            id="newAdminPasswordInput"
+            maxlength="32"
+            required
+          >
+        </label>
+
+        <button type="submit">save</button>
+      </form>
+    </section>
+
+    <section class="form-card">
+      <h2 class="admin-section-title">משתמשים</h2>
+
+      <div class="admin-users-list" id="adminUsersList"></div>
+    </section>
+  </section>
+</section>
+    
     <section class="screen" id="renameScreen">
       <button class="back-button" data-target="homeScreen">←</button>
 
