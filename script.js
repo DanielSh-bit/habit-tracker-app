@@ -26,6 +26,7 @@ let lastPointerX = 0;
 let lastPointerY = 0;
 let suppressClickUntil = 0;
 const limitFlashTimes = new WeakMap();
+let isAdminUnlocked = false;
 
 function $(id) {
   return document.getElementById(id);
