@@ -1948,6 +1948,282 @@ async function fetchPlayers() {
     ];
   }
 }
+async function fetchAdminPassword() {
+  try {
+    const response = await fetch(`${SUPABASE_URL}/levelup_admin_settings?id=eq.1&select=admin_password`, {
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`
+      }
+    });
+
+    if (!response.ok) throw new Error("Admin password fetch failed");
+
+    const rows = await response.json();
+    return rows[0] && rows[0].admin_password ? String(rows[0].admin_password) : "1234";
+  } catch (error) {
+    console.log("שגיאה בקריאת סיסמת מנהל:", error);
+    return "1234";
+  }
+}
+
+async function updateAdminPassword(newPassword) {
+  const response = await fetch(`${SUPABASE_URL}/levelup_admin_settings?id=eq.1`, {
+    method: "PATCH",
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      "Prefer": "return=minimal"
+    },
+    body: JSON.stringify({
+      admin_password: newPassword,
+      updated_at: new Date().toISOString()
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error("Admin password update failed");
+  }
+}
+
+async function fetchAdminPlayers() {
+  const response = await fetch(`${SUPABASE_URL}/levelup_players?select=device_id,name,current_score,best_score,updated_at&order=updated_at.desc`, {
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error("Admin players fetch failed");
+  }
+
+  return await response.json();
+}
+
+async function updateAdminPlayerName(deviceId, newName) {
+  const response = await fetch(`${SUPABASE_URL}/levelup_players?device_id=eq.${encodeURIComponent(deviceId)}`, {
+    method: "PATCH",
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      "Prefer": "return=minimal"
+    },
+    body: JSON.stringify({
+      name: newName,
+      updated_at: new Date().toISOString()
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error("Player rename failed");
+  }
+
+  try {
+    await fetch(`${SUPABASE_URL}/levelup_push_subscriptions?device_id=eq.${encodeURIComponent(deviceId)}`, {
+      method: "PATCH",
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify({
+        player_name: newName,
+        updated_at: new Date().toISOString()
+      })
+    });
+  } catch (error) {
+    console.log("שם עודכן בדירוג, אבל לא בטבלת Push:", error);
+  }
+
+  if (deviceId === getDeviceId()) {
+    savePlayerName(newName);
+  }
+}
+
+async function deleteAdminPlayer(deviceId) {
+  const response = await fetch(`${SUPABASE_URL}/levelup_players?device_id=eq.${encodeURIComponent(deviceId)}`, {
+    method: "DELETE",
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "Prefer": "return=minimal"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error("Player delete failed");
+  }
+}
+
+function setAdminPanelState(unlocked) {
+  const loginBox = $("adminLoginBox");
+  const adminPanel = $("adminPanel");
+
+  if (loginBox) {
+    loginBox.style.display = unlocked ? "none" : "block";
+  }
+
+  if (adminPanel) {
+    adminPanel.style.display = unlocked ? "block" : "none";
+  }
+}
+
+function prepareAdminScreen() {
+  const passwordInput = $("adminPasswordInput");
+  const newPasswordInput = $("newAdminPasswordInput");
+
+  if (passwordInput) passwordInput.value = "";
+  if (newPasswordInput) newPasswordInput.value = "";
+
+  setAdminPanelState(isAdminUnlocked);
+
+  if (isAdminUnlocked) {
+    renderAdminUsers();
+  }
+}
+
+async function handleAdminLogin(event) {
+  event.preventDefault();
+
+  const passwordInput = $("adminPasswordInput");
+  if (!passwordInput) return;
+
+  const enteredPassword = passwordInput.value.trim();
+
+  if (!enteredPassword) {
+    flashElement(passwordInput);
+    return;
+  }
+
+  const savedPassword = await fetchAdminPassword();
+
+  if (enteredPassword !== savedPassword) {
+    flashElement(passwordInput);
+    alert("סיסמה שגויה");
+    return;
+  }
+
+  isAdminUnlocked = true;
+  prepareAdminScreen();
+}
+
+async function saveNewAdminPassword(event) {
+  event.preventDefault();
+
+  const passwordInput = $("newAdminPasswordInput");
+  if (!passwordInput) return;
+
+  const newPassword = passwordInput.value.trim();
+
+  if (!newPassword) {
+    flashElement(passwordInput);
+    return;
+  }
+
+  try {
+    await updateAdminPassword(newPassword);
+    passwordInput.value = "";
+    alert("הסיסמה עודכנה");
+  } catch (error) {
+    console.log("שגיאה בעדכון סיסמת מנהל:", error);
+    alert("לא הצלחנו לעדכן סיסמה");
+  }
+}
+
+async function renderAdminUsers() {
+  const list = $("adminUsersList");
+  if (!list) return;
+
+  list.innerHTML = `<p class="admin-empty-text">טוען משתמשים...</p>`;
+
+  try {
+    const players = await fetchAdminPlayers();
+
+    if (!players.length) {
+      list.innerHTML = `<p class="admin-empty-text">אין משתמשים להצגה</p>`;
+      return;
+    }
+
+    list.innerHTML = "";
+
+    players.forEach(function(player) {
+      const row = document.createElement("article");
+      row.className = "admin-user-row";
+
+      const isThisDevice = player.device_id === getDeviceId();
+
+      row.innerHTML = `
+        <div class="admin-user-info">
+          <strong>${escapeHtml(player.name)}${isThisDevice ? " · המכשיר הזה" : ""}</strong>
+          <span>נוכחי: ${Number(player.current_score || 0)} · שיא: ${Number(player.best_score || 0)}</span>
+        </div>
+
+        <div class="admin-user-actions">
+          <button type="button" class="admin-rename-button">שם</button>
+          <button type="button" class="admin-delete-button">מחק</button>
+        </div>
+      `;
+
+      row.querySelector(".admin-rename-button").addEventListener("click", function() {
+        renameAdminPlayer(player.device_id, player.name);
+      });
+
+      row.querySelector(".admin-delete-button").addEventListener("click", function() {
+        deleteAdminPlayerFromList(player.device_id, player.name);
+      });
+
+      list.appendChild(row);
+    });
+  } catch (error) {
+    console.log("שגיאה בטעינת משתמשים לניהול:", error);
+    list.innerHTML = `<p class="admin-empty-text">לא הצלחנו לטעון משתמשים</p>`;
+  }
+}
+
+async function renameAdminPlayer(deviceId, currentName) {
+  const newName = prompt("שם חדש:", currentName || "");
+
+  if (newName === null) return;
+
+  const cleanName = newName.trim();
+
+  if (!cleanName) {
+    alert("שם לא יכול להיות ריק");
+    return;
+  }
+
+  try {
+    await updateAdminPlayerName(deviceId, cleanName);
+    await renderAdminUsers();
+    syncPlayer();
+
+    if (currentScreenId === "rankingScreen") {
+      renderRanking();
+    }
+  } catch (error) {
+    console.log("שגיאה בשינוי שם משתמש:", error);
+    alert("לא הצלחנו לשנות שם");
+  }
+}
+
+async function deleteAdminPlayerFromList(deviceId, playerName) {
+  const approved = confirm(`למחוק את ${playerName}?`);
+
+  if (!approved) return;
+
+  try {
+    await deleteAdminPlayer(deviceId);
+    await renderAdminUsers();
+    syncPlayer();
+  } catch (error) {
+    console.log("שגיאה במחיקת משתמש:", error);
+    alert("לא הצלחנו למחוק משתמש");
+  }
+}
 
 async function renderRanking() {
   if (!$("rankingList")) return;
