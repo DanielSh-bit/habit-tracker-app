@@ -1471,13 +1471,17 @@ function showScreen(screenId, addToHistory = true) {
     renderRanking();
   }
 
-  if (screenId === "addScreen" || screenId === "nameScreen" || screenId === "renameScreen") {
+  if (screenId === "addScreen" || screenId === "nameScreen" || screenId === "renameScreen" || screenId === "adminScreen") {
     currentGoalId = null;
     applyGeneralBackground();
   }
 
   if (screenId === "renameScreen") {
     prepareRenameForm();
+  }
+
+  if (screenId === "adminScreen") {
+    prepareAdminScreen();
   }
 
   if (screenId === "goalSettingsScreen" || screenId === "goalInfoScreen") {
