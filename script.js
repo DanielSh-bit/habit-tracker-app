@@ -2756,6 +2756,10 @@ document.addEventListener("DOMContentLoaded", function() {
     openScreenFromMenu("renameScreen");
   });
 
+  on("openAdminFromMenu", "click", function() {
+    openScreenFromMenu("adminScreen");
+  });
+  
   on("enableNotificationsFromMenu", "click", enablePushNotifications);
   
   on("prevMonthButton", "click", function() {
@@ -2827,6 +2831,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
   on("nameForm", "submit", saveName);
   on("renameForm", "submit", saveRenamedPlayerName);
+  on("adminLoginForm", "submit", handleAdminLogin);
+  on("adminPasswordForm", "submit", saveNewAdminPassword);
 });
 
 if ("serviceWorker" in navigator) {
