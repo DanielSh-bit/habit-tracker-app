@@ -738,7 +738,9 @@ function initializeTextLimits() {
     "editGoalNameInput",
     "editGoalDescriptionInput",
     "playerNameInput",
-    "renameNameInput"
+    "renameNameInput",
+    "adminPasswordInput",
+    "newAdminPasswordInput"
   ].forEach(setupLimitedTextInput);
 }
 
