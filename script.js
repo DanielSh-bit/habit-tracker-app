@@ -901,14 +901,12 @@ function removeDragGhost() {
 }
 
 function scrollDraggedCardIntoView(direction) {
-  const card = getGoalCardElement(draggedGoalId);
-  if (!card) return;
+  const goalsGrid = $("goalsGrid");
+  if (!goalsGrid) return;
 
-  card.scrollIntoView({
-    block: direction > 0 ? "end" : "start",
-    inline: "nearest",
-    behavior: "auto"
-  });
+  const scrollStep = 118;
+
+  goalsGrid.scrollTop += direction > 0 ? scrollStep : -scrollStep;
 }
 
 function moveDraggedGoalByStep(direction) {
@@ -1033,16 +1031,23 @@ function updateReorderAutoScroll(clientY) {
     return;
   }
 
-  const edgeSize = 105;
-  const viewportHeight = window.innerHeight;
+  const goalsGrid = $("goalsGrid");
 
-  if (clientY < edgeSize) {
+  if (!goalsGrid) {
+    stopReorderAutoScroll();
+    return;
+  }
+
+  const rect = goalsGrid.getBoundingClientRect();
+  const edgeSize = 115;
+
+  if (clientY < rect.top + edgeSize) {
     autoScrollDirection = -1;
     startReorderAutoScrollLoop();
     return;
   }
 
-  if (clientY > viewportHeight - edgeSize) {
+  if (clientY > rect.bottom - edgeSize) {
     autoScrollDirection = 1;
     startReorderAutoScrollLoop();
     return;
