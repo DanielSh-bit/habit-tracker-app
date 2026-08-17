@@ -849,8 +849,18 @@ function reorderHomeDomToMatchGoals() {
 }
 
 function getSafeDragY(y) {
-  const topLimit = 96;
-  const bottomLimit = Math.max(topLimit + 30, window.innerHeight - 96);
+  const goalsGrid = $("goalsGrid");
+
+  if (!goalsGrid) {
+    const topLimit = 96;
+    const bottomLimit = Math.max(topLimit + 30, window.innerHeight - 96);
+    return clampNumber(y, topLimit, bottomLimit);
+  }
+
+  const rect = goalsGrid.getBoundingClientRect();
+  const topLimit = rect.top + 8;
+  const bottomLimit = rect.bottom - 8;
+
   return clampNumber(y, topLimit, bottomLimit);
 }
 
