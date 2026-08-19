@@ -2600,3 +2600,40 @@ body.tone-not-required {
   font-weight: 800;
   opacity: 0.72;
 }
+
+/* Intro result redesign */
+.intro-label {
+  font-size: 36px !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0 !important;
+  margin-bottom: 22px !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+  text-shadow: 0 5px 22px rgba(0, 0, 0, 0.55) !important;
+}
+
+#introStreakNumber {
+  display: block !important;
+  font-size: clamp(150px, 42vw, 260px) !important;
+  font-weight: 1000 !important;
+  line-height: 0.82 !important;
+
+  color: #1f2937 !important;
+  background:
+    radial-gradient(circle at 22% 20%, rgba(248, 113, 113, 0.95) 0 4%, transparent 11%),
+    radial-gradient(circle at 68% 64%, rgba(251, 146, 60, 0.95) 0 3%, transparent 10%),
+    radial-gradient(circle at 42% 78%, rgba(239, 68, 68, 0.85) 0 3%, transparent 9%),
+    linear-gradient(135deg, #020617 0%, #374151 28%, #111827 48%, #ef4444 58%, #1f2937 72%, #020617 100%) !important;
+
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+
+  filter:
+    drop-shadow(0 8px 0 rgba(0, 0, 0, 0.28))
+    drop-shadow(0 22px 38px rgba(0, 0, 0, 0.58)) !important;
+}
+
+.intro-result span,
+.intro-result small {
+  display: none !important;
+}
