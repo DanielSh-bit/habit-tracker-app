@@ -744,6 +744,82 @@ function initializeTextLimits() {
   ].forEach(setupLimitedTextInput);
 }
 
+function animateIntroNumber(targetNumber) {
+  const numberElement = $("introStreakNumber");
+  if (!numberElement) return;
+
+  const target = Math.max(0, Number(targetNumber) || 0);
+  const duration = 850;
+  const startTime = performance.now();
+
+  function step(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const easedProgress = 1 - Math.pow(1 - progress, 3);
+    const currentValue = Math.round(target * easedProgress);
+
+    numberElement.textContent = String(currentValue);
+
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    }
+  }
+
+  requestAnimationFrame(step);
+}
+
+function initializeIntroSequence() {
+  const overlay = $("introOverlay");
+  const video = $("introVideo");
+
+  if (!overlay || !video) return;
+  if (!getPlayerName()) return;
+
+  let resultShown = false;
+  const streak = getUserCurrentScore();
+
+  function showResult() {
+    if (resultShown) return;
+
+    resultShown = true;
+    overlay.classList.add("show-result");
+    animateIntroNumber(streak);
+  }
+
+  function closeIntro() {
+    overlay.classList.add("hidden");
+
+    try {
+      video.pause();
+      video.currentTime = 0;
+    } catch (error) {}
+  }
+
+  overlay.classList.remove("hidden");
+  overlay.classList.remove("show-result");
+
+  video.currentTime = 0;
+
+  const playPromise = video.play();
+
+  if (playPromise && typeof playPromise.catch === "function") {
+    playPromise.catch(function() {
+      showResult();
+    });
+  }
+
+  video.addEventListener("ended", showResult, { once: true });
+
+  setTimeout(showResult, 4500);
+
+  overlay.addEventListener("click", function() {
+    if (resultShown) {
+      closeIntro();
+    } else {
+      showResult();
+    }
+  }, { once: false });
+}
+
 function limitNumberInput(input, min, max) {
   if (!input) return;
 
@@ -2735,6 +2811,7 @@ document.addEventListener("DOMContentLoaded", function() {
   } else {
     renderHome();
     syncPlayer();
+    initializeIntroSequence();
   }
 
   initializeGoalTypePickers();
