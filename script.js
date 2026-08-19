@@ -807,9 +807,17 @@ function initializeIntroSequence() {
     });
   }
 
-  video.addEventListener("ended", showResult, { once: true });
+  video.addEventListener("timeupdate", function() {
+  if (!video.duration || Number.isNaN(video.duration)) return;
 
-  setTimeout(showResult, 4500);
+  if (video.duration - video.currentTime <= 1) {
+    showResult();
+  }
+});
+
+video.addEventListener("ended", showResult, { once: true });
+
+setTimeout(showResult, 4500);
 
   overlay.addEventListener("click", function() {
     if (resultShown) {
