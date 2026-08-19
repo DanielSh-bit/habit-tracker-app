@@ -732,21 +732,16 @@ function launchCounterPlusEffect(sourceElement, newValue) {
   plusOne.textContent = "+1";
   burst.appendChild(plusOne);
 
-  const spark = document.createElement("span");
-  spark.className = "counter-fire-spark";
-  spark.textContent = "🔥";
-  burst.appendChild(spark);
-
   for (let i = 0; i < emojiCount; i++) {
     const floatingEmoji = document.createElement("span");
     floatingEmoji.className = "counter-floating-emoji";
     floatingEmoji.textContent = emoji;
 
-    const sideMovement = Math.random() * 190 - 95;
-    const travelUp = Math.max(240, originY - 24) + Math.random() * 90;
-    const rotation = Math.random() * 90 - 45;
-    const delay = Math.random() * 0.18;
-    const size = 22 + Math.random() * 14;
+    const sideMovement = 60 + Math.random() * 340;
+    const travelUp = Math.max(260, originY - 24) + Math.random() * 110;
+    const rotation = Math.random() * 100 - 50;
+    const delay = Math.random() * 0.22;
+    const size = 34 + Math.random() * 22;
 
     floatingEmoji.style.setProperty("--emoji-x", `${sideMovement}px`);
     floatingEmoji.style.setProperty("--emoji-y", `${-travelUp}px`);
