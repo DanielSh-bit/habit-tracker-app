@@ -26,6 +26,21 @@ let lastPointerX = 0;
 let lastPointerY = 0;
 let suppressClickUntil = 0;
 const limitFlashTimes = new WeakMap();
+const COUNTER_EMOJI_BAG_KEY = "levelup_counter_emoji_bag";
+const COUNTER_EMOJI_INDEX_KEY = "levelup_counter_emoji_index";
+
+const COUNTER_EMOJI_POOL = [
+  "🔥", "✨", "⭐", "🌟", "💫", "⚡", "🚀", "🏆", "💎", "🎯",
+  "🥇", "🎉", "☄️", "🌋", "👑", "🛡️", "🐉", "🦅", "🦁", "🐺",
+  "🐯", "🦊", "🐻", "🐼", "🐵", "🦄", "🐲", "🦖", "🦕", "🦋",
+  "🌈", "☀️", "🌙", "🌍", "🪐", "🌌", "🌠", "💥", "💨", "🌪️",
+  "🌊", "❄️", "🍀", "🌿", "🌱", "🌴", "🌵", "🌸", "🌺", "🌻",
+  "🍎", "🍊", "🍋", "🍉", "🍓", "🍒", "🥝", "🍍", "🥥", "🍇",
+  "🍕", "🍔", "🍟", "🌮", "🍣", "🍪", "🍩", "🍫", "🍿", "🥤",
+  "⚽", "🏀", "🏈", "🎾", "🏐", "🏓", "🥊", "🏋️", "🚴", "🏄",
+  "🎮", "🎲", "🎸", "🎧", "🎬", "📚", "🧠", "💡", "🔋", "🧲",
+  "🧨", "🔮", "🪄", "🪙", "💰", "🎁", "🔔", "📣", "🧡", "💜"
+];
 let isAdminUnlocked = false;
 
 function $(id) {
@@ -632,6 +647,121 @@ function getGoalTypeName(type) {
   if (type === "yesno") return "כן / לא";
   if (type === "counter") return "מספר";
   return "לא ידוע";
+}
+
+function shuffleArray(items) {
+  const shuffled = [...items];
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const randomIndex = Math.floor(Math.random() * (i + 1));
+    const temporary = shuffled[i];
+
+    shuffled[i] = shuffled[randomIndex];
+    shuffled[randomIndex] = temporary;
+  }
+
+  return shuffled;
+}
+
+function createNewCounterEmojiBag() {
+  const newBag = shuffleArray(COUNTER_EMOJI_POOL);
+
+  localStorage.setItem(COUNTER_EMOJI_BAG_KEY, JSON.stringify(newBag));
+  localStorage.setItem(COUNTER_EMOJI_INDEX_KEY, "0");
+
+  return newBag;
+}
+
+function getCounterEmojiBag() {
+  try {
+    const savedBag = JSON.parse(localStorage.getItem(COUNTER_EMOJI_BAG_KEY) || "[]");
+
+    if (Array.isArray(savedBag) && savedBag.length === COUNTER_EMOJI_POOL.length) {
+      return savedBag;
+    }
+  } catch (error) {}
+
+  return createNewCounterEmojiBag();
+}
+
+function getNextCounterEmoji() {
+  let bag = getCounterEmojiBag();
+  let index = Number(localStorage.getItem(COUNTER_EMOJI_INDEX_KEY) || 0);
+
+  if (!Number.isInteger(index) || index < 0) {
+    index = 0;
+  }
+
+  if (index >= bag.length) {
+    bag = createNewCounterEmojiBag();
+    index = 0;
+  }
+
+  const emoji = bag[index];
+
+  localStorage.setItem(COUNTER_EMOJI_INDEX_KEY, String(index + 1));
+
+  return emoji;
+}
+
+function popCounterScore() {
+  const score = document.querySelector(".goal-counter-score");
+  if (!score) return;
+
+  score.classList.remove("counter-score-pop");
+  void score.offsetWidth;
+  score.classList.add("counter-score-pop");
+}
+
+function launchCounterPlusEffect(sourceElement, newValue) {
+  if (!sourceElement) return;
+
+  const rect = sourceElement.getBoundingClientRect();
+  const originX = rect.left + rect.width / 2;
+  const originY = rect.top + rect.height / 2;
+  const emoji = getNextCounterEmoji();
+  const emojiCount = Math.min(15, Math.max(1, Number(newValue) || 1));
+
+  const burst = document.createElement("div");
+  burst.className = "counter-plus-burst";
+  burst.style.left = `${originX}px`;
+  burst.style.top = `${originY}px`;
+
+  const plusOne = document.createElement("span");
+  plusOne.className = "counter-plus-one";
+  plusOne.textContent = "+1";
+  burst.appendChild(plusOne);
+
+  const spark = document.createElement("span");
+  spark.className = "counter-fire-spark";
+  spark.textContent = "🔥";
+  burst.appendChild(spark);
+
+  for (let i = 0; i < emojiCount; i++) {
+    const floatingEmoji = document.createElement("span");
+    floatingEmoji.className = "counter-floating-emoji";
+    floatingEmoji.textContent = emoji;
+
+    const sideMovement = Math.random() * 190 - 95;
+    const travelUp = Math.max(240, originY - 24) + Math.random() * 90;
+    const rotation = Math.random() * 90 - 45;
+    const delay = Math.random() * 0.18;
+    const size = 22 + Math.random() * 14;
+
+    floatingEmoji.style.setProperty("--emoji-x", `${sideMovement}px`);
+    floatingEmoji.style.setProperty("--emoji-y", `${-travelUp}px`);
+    floatingEmoji.style.setProperty("--emoji-rotate", `${rotation}deg`);
+    floatingEmoji.style.setProperty("--emoji-delay", `${delay}s`);
+    floatingEmoji.style.setProperty("--emoji-size", `${size}px`);
+
+    burst.appendChild(floatingEmoji);
+  }
+
+  document.body.appendChild(burst);
+
+  window.setTimeout(function() {
+    burst.remove();
+  }, 1900);
 }
 
 function flashElement(element) {
@@ -1730,7 +1860,13 @@ function renderHome() {
       if (goal.type === "yesno") {
         setTodayValue(goal.id, value >= 1 ? 0 : 1);
       } else {
-        setTodayValue(goal.id, Math.min(goal.target, value + 1));
+        const newValue = Math.min(goal.target, value + 1);
+
+        if (newValue > value) {
+          launchCounterPlusEffect(actionButton, newValue);
+        }
+
+        setTodayValue(goal.id, newValue);
       }
 
       renderHome();
@@ -1844,9 +1980,18 @@ function openGoal(goalId, addToHistory = true) {
       openGoal(goal.id, false);
     });
   } else {
-    on("increaseButton", "click", function() {
-      setTodayValue(goal.id, Math.min(goal.target, value + 1));
+        on("increaseButton", "click", function() {
+      const increaseButton = $("increaseButton");
+      const newValue = Math.min(goal.target, value + 1);
+
+      if (newValue > value) {
+        launchCounterPlusEffect(increaseButton, newValue);
+      }
+
+      setTodayValue(goal.id, newValue);
       openGoal(goal.id, false);
+
+      window.requestAnimationFrame(popCounterScore);
     });
 
     on("decreaseButton", "click", function() {
