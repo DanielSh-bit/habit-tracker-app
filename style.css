@@ -2519,3 +2519,84 @@ body.tone-not-required {
   font-weight: 800;
   text-align: center;
 }
+
+/* Intro video overlay */
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: #020617;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.intro-overlay.hidden {
+  display: none !important;
+}
+
+#introVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.intro-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.08), transparent 38%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.12), rgba(2, 6, 23, 0.62));
+  pointer-events: none;
+}
+
+.intro-result {
+  position: relative;
+  z-index: 2;
+  opacity: 0;
+  transform: scale(0.82) translateY(18px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  text-align: center;
+  color: white;
+  text-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+
+.intro-overlay.show-result .intro-result {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.intro-label {
+  font-size: 22px;
+  font-weight: 1000;
+  letter-spacing: 3px;
+  margin-bottom: 8px;
+  opacity: 0.88;
+}
+
+#introStreakNumber {
+  display: block;
+  font-size: 112px;
+  font-weight: 1000;
+  line-height: 0.9;
+}
+
+.intro-result span {
+  display: block;
+  margin-top: 12px;
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.intro-result small {
+  display: block;
+  margin-top: 28px;
+  font-size: 15px;
+  font-weight: 800;
+  opacity: 0.72;
+}
