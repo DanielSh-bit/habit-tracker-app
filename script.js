@@ -777,12 +777,24 @@ function initializeIntroSequence() {
   let resultShown = false;
   const streak = getUserCurrentScore();
 
-  function showResult() {
+    function showResult() {
     if (resultShown) return;
 
     resultShown = true;
     overlay.classList.add("show-result");
     animateIntroNumber(streak);
+  }
+
+  function skipIntroToFinalState() {
+    try {
+      if (video.duration && !Number.isNaN(video.duration)) {
+        video.currentTime = Math.max(0, video.duration - 0.05);
+      }
+
+      video.pause();
+    } catch (error) {}
+
+    showResult();
   }
 
   function closeIntro() {
@@ -807,13 +819,13 @@ function initializeIntroSequence() {
     });
   }
 
-  video.addEventListener("timeupdate", function() {
-  if (!video.duration || Number.isNaN(video.duration)) return;
+    video.addEventListener("timeupdate", function() {
+    if (!video.duration || Number.isNaN(video.duration)) return;
 
-  if (video.duration - video.currentTime <= 1) {
-    showResult();
-  }
-});
+    if (video.duration - video.currentTime <= 3) {
+      showResult();
+    }
+  });
 
 video.addEventListener("ended", showResult, { once: true });
 
@@ -823,7 +835,7 @@ setTimeout(showResult, 4500);
     if (resultShown) {
       closeIntro();
     } else {
-      showResult();
+      skipIntroToFinalState();
     }
   }, { once: false });
 }
