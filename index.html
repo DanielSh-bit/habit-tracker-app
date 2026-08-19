@@ -11,6 +11,19 @@
   <meta name="theme-color" content="#111827">
 </head>
 <body>
+  <div class="intro-overlay hidden" id="introOverlay">
+    <video id="introVideo" muted playsinline preload="auto">
+      <source src="intro.mp4" type="video/mp4">
+    </video>
+
+    <div class="intro-result" id="introResult">
+      <div class="intro-label">LEVEL UP</div>
+      <strong id="introStreakNumber">0</strong>
+      <span>ימי התמדה</span>
+      <small>לחץ להמשך</small>
+    </div>
+  </div>
+
   <main class="app">
 
     <section class="screen active" id="homeScreen">
