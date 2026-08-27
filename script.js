@@ -900,37 +900,52 @@ function initializeIntroSequence() {
   if (!getPlayerName()) return;
 
   let resultShown = false;
+  let introCloseTimer = null;
   const streak = getUserCurrentScore();
 
-    function showResult() {
-    if (resultShown) return;
-
-    resultShown = true;
-    overlay.classList.add("show-result");
-    animateIntroNumber(streak);
+  function scheduleIntroClose() {
+  if (introCloseTimer) {
+    clearTimeout(introCloseTimer);
   }
 
-  function skipIntroToFinalState() {
-    try {
-      if (video.duration && !Number.isNaN(video.duration)) {
-        video.currentTime = Math.max(0, video.duration - 0.05);
-      }
+  introCloseTimer = window.setTimeout(function() {
+    closeIntro();
+  }, 1300);
+}
 
+function showResult() {
+  if (resultShown) return;
+
+  resultShown = true;
+  overlay.classList.add("show-result");
+  animateIntroNumber(streak);
+  scheduleIntroClose();
+}
+
+function skipIntroToFinalState() {
+  try {
+    if (video.duration && !Number.isNaN(video.duration)) {
       video.pause();
-    } catch (error) {}
+      video.currentTime = Math.max(0, video.duration - 0.08);
+    }
+  } catch (error) {}
 
-    showResult();
+  showResult();
+}
+
+function closeIntro() {
+  if (introCloseTimer) {
+    clearTimeout(introCloseTimer);
+    introCloseTimer = null;
   }
 
-  function closeIntro() {
-    overlay.classList.add("hidden");
+  overlay.classList.add("hidden");
 
-    try {
-      video.pause();
-      video.currentTime = 0;
-    } catch (error) {}
-  }
-
+  try {
+    video.pause();
+    video.currentTime = 0;
+  } catch (error) {}
+}
   overlay.classList.remove("hidden");
   overlay.classList.remove("show-result");
 
@@ -947,7 +962,7 @@ function initializeIntroSequence() {
     video.addEventListener("timeupdate", function() {
     if (!video.duration || Number.isNaN(video.duration)) return;
 
-    if (video.duration - video.currentTime <= 3) {
+    if (video.duration - video.currentTime <= 2) {
       showResult();
     }
   });
@@ -959,9 +974,10 @@ setTimeout(showResult, 4500);
   overlay.addEventListener("click", function() {
     if (resultShown) {
       closeIntro();
-    } else {
-      skipIntroToFinalState();
+      return;
     }
+
+    skipIntroToFinalState();
   }, { once: false });
 }
 
