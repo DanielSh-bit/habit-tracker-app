@@ -901,6 +901,7 @@ function initializeIntroSequence() {
 
   let resultShown = false;
   let introCloseTimer = null;
+  let introIsSeekingToFinalFrame = false;
   const streak = getUserCurrentScore();
 
   function scheduleIntroClose() {
@@ -927,32 +928,39 @@ function skipIntroToFinalState() {
     if (video.duration && !Number.isNaN(video.duration)) {
       const finalFrameTime = Math.max(0, video.duration - 0.08);
 
-      video.pause();
+      introIsSeekingToFinalFrame = true;
 
-      const showAfterSeek = function() {
-        window.requestAnimationFrame(function() {
-          showResult();
-        });
-      };
-
-      if (Math.abs(video.currentTime - finalFrameTime) < 0.08) {
-        showAfterSeek();
-        return;
+      if (introCloseTimer) {
+        clearTimeout(introCloseTimer);
+        introCloseTimer = null;
       }
 
-      video.addEventListener("seeked", showAfterSeek, { once: true });
+      overlay.classList.remove("show-result");
+      video.pause();
+
+      function revealAfterFinalFramePainted() {
+        window.requestAnimationFrame(function() {
+          window.requestAnimationFrame(function() {
+            introIsSeekingToFinalFrame = false;
+            showResult();
+          });
+        });
+      }
+
+      video.addEventListener("seeked", revealAfterFinalFramePainted, { once: true });
       video.currentTime = finalFrameTime;
 
       window.setTimeout(function() {
-        if (!resultShown) {
-          showResult();
+        if (!resultShown && introIsSeekingToFinalFrame) {
+          revealAfterFinalFramePainted();
         }
-      }, 350);
+      }, 700);
 
       return;
     }
   } catch (error) {}
 
+  introIsSeekingToFinalFrame = false;
   showResult();
 }
 
@@ -985,7 +993,7 @@ function closeIntro() {
     video.addEventListener("timeupdate", function() {
     if (!video.duration || Number.isNaN(video.duration)) return;
 
-    if (video.duration - video.currentTime <= 2) {
+    if (!introIsSeekingToFinalFrame && video.duration - video.currentTime <= 2) {
       showResult();
     }
   });
