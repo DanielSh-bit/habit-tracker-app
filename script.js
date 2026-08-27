@@ -911,7 +911,7 @@ function initializeIntroSequence() {
 
   introCloseTimer = window.setTimeout(function() {
     closeIntro();
-  }, 2800);
+  }, 2300);
 }
 
 function showResult() {
