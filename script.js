@@ -910,7 +910,7 @@ function initializeIntroSequence() {
 
   introCloseTimer = window.setTimeout(function() {
     closeIntro();
-  }, 1300);
+  }, 2800);
 }
 
 function showResult() {
@@ -925,8 +925,31 @@ function showResult() {
 function skipIntroToFinalState() {
   try {
     if (video.duration && !Number.isNaN(video.duration)) {
+      const finalFrameTime = Math.max(0, video.duration - 0.08);
+
       video.pause();
-      video.currentTime = Math.max(0, video.duration - 0.08);
+
+      const showAfterSeek = function() {
+        window.requestAnimationFrame(function() {
+          showResult();
+        });
+      };
+
+      if (Math.abs(video.currentTime - finalFrameTime) < 0.08) {
+        showAfterSeek();
+        return;
+      }
+
+      video.addEventListener("seeked", showAfterSeek, { once: true });
+      video.currentTime = finalFrameTime;
+
+      window.setTimeout(function() {
+        if (!resultShown) {
+          showResult();
+        }
+      }, 350);
+
+      return;
     }
   } catch (error) {}
 
