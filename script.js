@@ -795,7 +795,7 @@ function isGoalCompletedByValue(goal, value) {
 function shouldPlayChallengeCompleteEffect(goal, oldValue, newValue) {
   if (!goal) return false;
 
-  if (typeof isGoalRequiredOnDate === "function" && !isGoalRequiredOnDate(goal, new Date())) {
+  if (!isGoalRequiredToday(goal)) {
     return false;
   }
 
