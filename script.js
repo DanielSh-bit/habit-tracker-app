@@ -1865,13 +1865,10 @@ function renderHome() {
       }
     }
 
-    const actionSymbol = !requiredToday
-      ? (goal.type === "yesno" ? "✕" : "+")
-      : (goal.type === "yesno" ? "✓" : "+");
+    const counterReachedTarget = goal.type === "counter" && requiredToday && value >= goal.target;
 
-    const actionClass = !requiredToday
-      ? "home-goal-disabled-action"
-      : (goal.type === "yesno" ? "home-goal-check" : "home-goal-plus");
+    const actionSymbol = goal.type === "yesno" || counterReachedTarget ? "✓" : "+";
+    const actionClass = goal.type === "yesno" || counterReachedTarget ? "home-goal-check" : "home-goal-plus";
     
     const waterHtml = goal.type === "counter" ? `<div class="home-water-fill"></div>` : "";
 
@@ -1899,16 +1896,21 @@ function renderHome() {
       if (Date.now() < suppressClickUntil) return;
       if (isReorderMode) return;
       if (!requiredToday) return;
+      
       if (goal.type === "yesno") {
         setTodayValue(goal.id, value >= 1 ? 0 : 1);
       } else {
-        const newValue = Math.min(goal.target, value + 1);
+        if (value >= goal.target) {
+          setTodayValue(goal.id, Math.max(0, value - 1));
+        } else {
+          const newValue = Math.min(goal.target, value + 1);
 
-        if (newValue > value) {
-          launchCounterPlusEffect(actionButton, newValue);
+          if (newValue > value) {
+            launchCounterPlusEffect(actionButton, newValue);
+          }
+
+          setTodayValue(goal.id, newValue);
         }
-
-        setTodayValue(goal.id, newValue);
       }
 
       renderHome();
