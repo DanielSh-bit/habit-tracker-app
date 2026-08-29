@@ -42,6 +42,8 @@ const COUNTER_EMOJI_POOL = [
   "🧨", "🔮", "🪄", "🪙", "💰", "🎁", "🔔", "📣", "🧡", "💜"
 ];
 let isAdminUnlocked = false;
+let lastChallengeActionElement = null;
+let lastChallengeActionTime = 0;
 
 function $(id) {
   return document.getElementById(id);
@@ -757,6 +759,117 @@ function launchCounterPlusEffect(sourceElement, newValue) {
   window.setTimeout(function() {
     burst.remove();
   }, 1900);
+}
+
+function rememberChallengeActionElement(event) {
+  const button = event.target.closest("button");
+
+  if (!button) return;
+
+  lastChallengeActionElement = button;
+  lastChallengeActionTime = Date.now();
+}
+
+function getRecentChallengeActionElement() {
+  if (!lastChallengeActionElement) return null;
+
+  if (Date.now() - lastChallengeActionTime > 1200) {
+    return null;
+  }
+
+  return lastChallengeActionElement;
+}
+
+function isGoalCompletedByValue(goal, value) {
+  if (!goal) return false;
+
+  const numericValue = Number(value) || 0;
+
+  if (goal.type === "counter") {
+    return numericValue >= Number(goal.target || 1);
+  }
+
+  return numericValue >= 1;
+}
+
+function shouldPlayChallengeCompleteEffect(goal, oldValue, newValue) {
+  if (!goal) return false;
+
+  if (typeof isGoalRequiredOnDate === "function" && !isGoalRequiredOnDate(goal, new Date())) {
+    return false;
+  }
+
+  return !isGoalCompletedByValue(goal, oldValue) && isGoalCompletedByValue(goal, newValue);
+}
+
+function launchChallengeCompleteEffect(sourceElement) {
+  if (!sourceElement) return;
+
+  const anchor =
+    sourceElement.closest(".goal-card") ||
+    sourceElement.closest(".goal-detail-card") ||
+    sourceElement.closest(".detail-card") ||
+    sourceElement.closest(".form-card") ||
+    sourceElement;
+
+  const rect = anchor.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  anchor.classList.remove("challenge-complete-card-flash");
+  void anchor.offsetWidth;
+  anchor.classList.add("challenge-complete-card-flash");
+
+  window.setTimeout(function() {
+    anchor.classList.remove("challenge-complete-card-flash");
+  }, 1200);
+
+  const burst = document.createElement("div");
+  burst.className = "challenge-complete-burst";
+  burst.style.left = `${centerX}px`;
+  burst.style.top = `${centerY}px`;
+  burst.style.width = `${Math.max(160, rect.width)}px`;
+  burst.style.height = `${Math.max(120, rect.height)}px`;
+
+  const aura = document.createElement("div");
+  aura.className = "challenge-complete-aura";
+  burst.appendChild(aura);
+
+  const shockwave = document.createElement("div");
+  shockwave.className = "challenge-complete-shockwave";
+  burst.appendChild(shockwave);
+
+  const check = document.createElement("div");
+  check.className = "challenge-complete-check";
+  check.textContent = "✓";
+  burst.appendChild(check);
+
+  for (let i = 0; i < 32; i++) {
+    const particle = document.createElement("span");
+    particle.className = "challenge-complete-particle";
+
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 80 + Math.random() * 155;
+    const x = Math.cos(angle) * distance;
+    const y = Math.sin(angle) * distance;
+    const size = 5 + Math.random() * 10;
+    const delay = Math.random() * 0.16;
+    const rotation = Math.random() * 220 - 110;
+
+    particle.style.setProperty("--particle-x", `${x}px`);
+    particle.style.setProperty("--particle-y", `${y}px`);
+    particle.style.setProperty("--particle-size", `${size}px`);
+    particle.style.setProperty("--particle-delay", `${delay}s`);
+    particle.style.setProperty("--particle-rotate", `${rotation}deg`);
+
+    burst.appendChild(particle);
+  }
+
+  document.body.appendChild(burst);
+
+  window.setTimeout(function() {
+    burst.remove();
+  }, 1700);
 }
 
 function flashElement(element) {
@@ -2202,6 +2315,24 @@ function setTodayValue(goalId, newValue) {
   updateAppBadge();
 }
 
+const originalSetTodayValue = setTodayValue;
+
+setTodayValue = function(goalId, value) {
+  const goal = goals.find(function(item) {
+    return item.id === goalId;
+  });
+
+  const oldValue = goal ? getTodayValue(goal) : 0;
+
+  originalSetTodayValue(goalId, value);
+
+  const sourceElement = getRecentChallengeActionElement();
+
+  if (sourceElement && shouldPlayChallengeCompleteEffect(goal, oldValue, value)) {
+    launchChallengeCompleteEffect(sourceElement);
+  }
+};
+
 async function syncPlayer() {
   const name = getPlayerName();
   if (!name) return;
@@ -3003,6 +3134,7 @@ window.addEventListener("popstate", function(event) {
 });
 
 document.addEventListener("DOMContentLoaded", function() {
+  document.addEventListener("click", rememberChallengeActionElement, true);
   history.replaceState(
     {
       screenId: "homeScreen",
