@@ -919,11 +919,14 @@ function getDayCompleteMeterData() {
   };
 }
 
-function showDayCompleteMeter(overlay) {
+function showDayCompleteMeter(overlay, instant = false) {
   if (!overlay) return;
 
   const data = getDayCompleteMeterData();
 
+  overlay.classList.remove("show-dragon-video");
+  overlay.classList.add("active");
+  overlay.classList.add("black");
   overlay.classList.add("show-meter");
 
   overlay.innerHTML = `
@@ -941,6 +944,17 @@ function showDayCompleteMeter(overlay) {
   const fill = $("dayStreakMeterFill");
   if (!fill) return;
 
+  if (instant) {
+    fill.style.transition = "none";
+    fill.style.height = `${data.currentPercent}%`;
+
+    window.requestAnimationFrame(function() {
+      fill.style.transition = "";
+    });
+
+    return;
+  }
+
   fill.style.height = `${data.previousPercent}%`;
 
   window.requestAnimationFrame(function() {
@@ -956,10 +970,7 @@ function playDayCompleteDragonVideo(overlay, onFinished) {
     return;
   }
 
-  overlay.classList.remove("show-meter");
-  overlay.classList.add("active");
-  overlay.classList.add("black");
-  overlay.classList.add("show-dragon-video");
+  overlay.classList.remove("show-meter", "black", "show-dragon-video");
 
   overlay.innerHTML = `
     <video class="day-complete-dragon-video" id="dayCompleteDragonVideo" muted playsinline preload="auto">
@@ -974,6 +985,7 @@ function playDayCompleteDragonVideo(overlay, onFinished) {
     return;
   }
 
+  let started = false;
   let finished = false;
 
   function finishVideo() {
@@ -987,6 +999,7 @@ function playDayCompleteDragonVideo(overlay, onFinished) {
 
     overlay.classList.remove("show-dragon-video");
     overlay.innerHTML = "";
+    overlay.classList.add("active");
     overlay.classList.add("black");
 
     window.setTimeout(function() {
@@ -994,22 +1007,34 @@ function playDayCompleteDragonVideo(overlay, onFinished) {
     }, 300);
   }
 
+  function startVideo() {
+    if (started || finished) return;
+
+    started = true;
+
+    overlay.classList.add("active");
+    overlay.classList.add("show-dragon-video");
+
+    const playPromise = video.play();
+
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(function() {
+        finishVideo();
+      });
+    }
+  }
+
+  video.addEventListener("loadeddata", startVideo, { once: true });
+  video.addEventListener("canplay", startVideo, { once: true });
   video.addEventListener("ended", finishVideo, { once: true });
   video.addEventListener("error", finishVideo, { once: true });
 
-  const playPromise = video.play();
-
-  if (playPromise && typeof playPromise.catch === "function") {
-    playPromise.catch(function() {
-      finishVideo();
-    });
-  }
+  window.setTimeout(startVideo, 350);
 
   window.setTimeout(function() {
     finishVideo();
   }, 8000);
 }
-
 function launchDayCompleteAnimation() {
   showScreen("homeScreen", false);
 
@@ -1020,10 +1045,78 @@ function launchDayCompleteAnimation() {
 
     const shuffledElements = shuffleArray(homeElements);
     const overlay = ensureDayCompleteOverlay();
+    const timers = [];
+
+    let skippedToFinalMeter = false;
+
+    function addTimer(callback, delay) {
+      const timerId = window.setTimeout(callback, delay);
+      timers.push(timerId);
+      return timerId;
+    }
+
+    function clearTimers() {
+      timers.forEach(function(timerId) {
+        clearTimeout(timerId);
+      });
+
+      timers.length = 0;
+    }
+
+    function cleanVanishedElements() {
+      document.querySelectorAll(".day-complete-vanish").forEach(function(element) {
+        element.classList.remove("day-complete-vanish");
+        element.style.removeProperty("--day-complete-x");
+        element.style.removeProperty("--day-complete-y");
+        element.style.removeProperty("--day-complete-rotate");
+      });
+    }
+
+    function finishDayCompleteAnimation() {
+      clearTimers();
+
+      overlay.removeEventListener("click", skipToFinalMeter);
+      overlay.style.pointerEvents = "";
+
+      overlay.classList.remove("active", "black", "flicker", "show-meter", "show-dragon-video");
+      overlay.innerHTML = "";
+
+      cleanVanishedElements();
+
+      dayCompleteAnimationRunning = false;
+      renderHome();
+      applyGeneralBackground();
+    }
+
+    function skipToFinalMeter() {
+      if (skippedToFinalMeter) return;
+
+      skippedToFinalMeter = true;
+      clearTimers();
+
+      const video = $("dayCompleteDragonVideo");
+
+      if (video) {
+        try {
+          video.pause();
+        } catch (error) {}
+      }
+
+      cleanVanishedElements();
+
+      showDayCompleteMeter(overlay, true);
+
+      addTimer(function() {
+        finishDayCompleteAnimation();
+      }, 3000);
+    }
 
     overlay.innerHTML = "";
-    overlay.classList.remove("show-meter");
-    
+    overlay.classList.remove("show-meter", "show-dragon-video", "black", "flicker");
+    overlay.classList.add("active");
+    overlay.style.pointerEvents = "auto";
+    overlay.addEventListener("click", skipToFinalMeter);
+
     shuffledElements.forEach(function(element, index) {
       const x = Math.random() * 220 - 110;
       const y = Math.random() * 180 - 90;
@@ -1034,39 +1127,26 @@ function launchDayCompleteAnimation() {
       element.style.setProperty("--day-complete-y", `${y}px`);
       element.style.setProperty("--day-complete-rotate", `${rotate}deg`);
 
-      window.setTimeout(function() {
+      addTimer(function() {
         element.classList.add("day-complete-vanish");
       }, delay);
     });
 
     const vanishTime = 900 + shuffledElements.length * 95;
 
-    window.setTimeout(function() {
-      overlay.classList.add("active");
-      overlay.classList.add("black");
-    }, vanishTime);
+    addTimer(function() {
+      if (skippedToFinalMeter) return;
 
-    window.setTimeout(function() {
       playDayCompleteDragonVideo(overlay, function() {
-        showDayCompleteMeter(overlay);
+        if (skippedToFinalMeter) return;
 
-        window.setTimeout(function() {
-          overlay.classList.remove("active", "black", "flicker", "show-meter", "show-dragon-video");
-          overlay.innerHTML = "";
+        showDayCompleteMeter(overlay, false);
 
-          document.querySelectorAll(".day-complete-vanish").forEach(function(element) {
-            element.classList.remove("day-complete-vanish");
-            element.style.removeProperty("--day-complete-x");
-            element.style.removeProperty("--day-complete-y");
-            element.style.removeProperty("--day-complete-rotate");
-          });
-
-          dayCompleteAnimationRunning = false;
-          renderHome();
-          applyGeneralBackground();
+        addTimer(function() {
+          finishDayCompleteAnimation();
         }, 4300);
       });
-    }, vanishTime + 350);
+    }, vanishTime);
   });
 }
 
