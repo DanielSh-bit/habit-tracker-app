@@ -1,4 +1,4 @@
-const CACHE_NAME = "levelup-cache-v87";
+const CACHE_NAME = "levelup-cache-v88";
 
 const FILES_TO_CACHE = [
   "./",
@@ -8,7 +8,8 @@ const FILES_TO_CACHE = [
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png",
-  "./intro.mp4"
+  "./intro.mp4",
+  "./day-complete-dragon.mp4"
 ];
 
 self.addEventListener("install", function(event) {
