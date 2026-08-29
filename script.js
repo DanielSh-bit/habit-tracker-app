@@ -910,7 +910,7 @@ function launchDayCompleteAnimation() {
 
   window.requestAnimationFrame(function() {
     const homeElements = Array.from(
-      document.querySelectorAll("#homeScreen .home-header, #goalsGrid .goal-card")
+      document.querySelectorAll("#homeScreen .home-header, #goalsGrid .goal-card, #openMenuButton")
     );
 
     const shuffledElements = shuffleArray(homeElements);
