@@ -44,6 +44,7 @@ const COUNTER_EMOJI_POOL = [
 let isAdminUnlocked = false;
 let lastChallengeActionElement = null;
 let lastChallengeActionTime = 0;
+let dayCompleteAnimationRunning = false;
 
 function $(id) {
   return document.getElementById(id);
@@ -878,6 +879,85 @@ function flashElement(element) {
   element.classList.remove("field-error-flash");
   void element.offsetWidth;
   element.classList.add("field-error-flash");
+}
+
+function ensureDayCompleteOverlay() {
+  let overlay = $("dayCompleteOverlay");
+
+  if (overlay) return overlay;
+
+  overlay = document.createElement("div");
+  overlay.id = "dayCompleteOverlay";
+  overlay.className = "day-complete-overlay";
+
+  document.body.appendChild(overlay);
+
+  return overlay;
+}
+
+function scheduleDayCompleteAnimation(delay) {
+  if (dayCompleteAnimationRunning) return;
+
+  dayCompleteAnimationRunning = true;
+
+  window.setTimeout(function() {
+    launchDayCompleteAnimation();
+  }, delay);
+}
+
+function launchDayCompleteAnimation() {
+  showScreen("homeScreen", false);
+
+  window.requestAnimationFrame(function() {
+    const homeElements = Array.from(
+      document.querySelectorAll("#homeScreen .home-header, #goalsGrid .goal-card")
+    );
+
+    const shuffledElements = shuffleArray(homeElements);
+    const overlay = ensureDayCompleteOverlay();
+
+    shuffledElements.forEach(function(element, index) {
+      const x = Math.random() * 220 - 110;
+      const y = Math.random() * 180 - 90;
+      const rotate = Math.random() * 34 - 17;
+      const delay = index * 95 + Math.random() * 130;
+
+      element.style.setProperty("--day-complete-x", `${x}px`);
+      element.style.setProperty("--day-complete-y", `${y}px`);
+      element.style.setProperty("--day-complete-rotate", `${rotate}deg`);
+
+      window.setTimeout(function() {
+        element.classList.add("day-complete-vanish");
+      }, delay);
+    });
+
+    const vanishTime = 900 + shuffledElements.length * 95;
+
+    window.setTimeout(function() {
+      overlay.classList.add("active");
+      overlay.classList.add("flicker");
+    }, vanishTime);
+
+    window.setTimeout(function() {
+      overlay.classList.remove("flicker");
+      overlay.classList.add("black");
+    }, vanishTime + 1250);
+
+    window.setTimeout(function() {
+      overlay.classList.remove("active", "black", "flicker");
+
+      document.querySelectorAll(".day-complete-vanish").forEach(function(element) {
+        element.classList.remove("day-complete-vanish");
+        element.style.removeProperty("--day-complete-x");
+        element.style.removeProperty("--day-complete-y");
+        element.style.removeProperty("--day-complete-rotate");
+      });
+
+      dayCompleteAnimationRunning = false;
+      renderHome();
+      applyGeneralBackground();
+    }, vanishTime + 2400);
+  });
 }
 
 function flashLimitElement(input) {
@@ -2318,6 +2398,9 @@ function setTodayValue(goalId, newValue) {
 const originalSetTodayValue = setTodayValue;
 
 setTodayValue = function(goalId, value) {
+  const todayKey = getTodayKey();
+  const wasDayCompleteBefore = isFullSuccessOnDate(todayKey);
+
   const goal = goals.find(function(item) {
     return item.id === goalId;
   });
@@ -2326,10 +2409,18 @@ setTodayValue = function(goalId, value) {
 
   originalSetTodayValue(goalId, value);
 
+  const isDayCompleteNow = isFullSuccessOnDate(todayKey);
   const sourceElement = getRecentChallengeActionElement();
 
-  if (sourceElement && shouldPlayChallengeCompleteEffect(goal, oldValue, value)) {
+  const shouldPlaySingleChallengeEffect =
+    sourceElement && shouldPlayChallengeCompleteEffect(goal, oldValue, value);
+
+  if (shouldPlaySingleChallengeEffect) {
     launchChallengeCompleteEffect(sourceElement);
+  }
+
+  if (!wasDayCompleteBefore && isDayCompleteNow) {
+    scheduleDayCompleteAnimation(shouldPlaySingleChallengeEffect ? 1750 : 350);
   }
 };
 
