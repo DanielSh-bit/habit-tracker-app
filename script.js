@@ -905,6 +905,51 @@ function scheduleDayCompleteAnimation(delay) {
   }, delay);
 }
 
+function getDayCompleteMeterData() {
+  const currentScore = Math.max(0, getUserCurrentScore());
+  const bestScore = Math.max(1, getUserBestScore(), currentScore);
+  const previousScore = Math.max(0, currentScore - 1);
+
+  return {
+    previousScore: previousScore,
+    currentScore: currentScore,
+    bestScore: bestScore,
+    previousPercent: Math.min(100, Math.round((previousScore / bestScore) * 100)),
+    currentPercent: Math.min(100, Math.round((currentScore / bestScore) * 100))
+  };
+}
+
+function showDayCompleteMeter(overlay) {
+  if (!overlay) return;
+
+  const data = getDayCompleteMeterData();
+
+  overlay.classList.add("show-meter");
+
+  overlay.innerHTML = `
+    <div class="day-streak-meter-stage">
+      <div class="day-streak-best-label">שיא ${data.bestScore}</div>
+
+      <div class="day-streak-meter-shell">
+        <div class="day-streak-meter-fill" id="dayStreakMeterFill"></div>
+      </div>
+
+      <div class="day-streak-current-number">${data.currentScore}</div>
+    </div>
+  `;
+
+  const fill = $("dayStreakMeterFill");
+  if (!fill) return;
+
+  fill.style.height = `${data.previousPercent}%`;
+
+  window.requestAnimationFrame(function() {
+    window.requestAnimationFrame(function() {
+      fill.style.height = `${data.currentPercent}%`;
+    });
+  });
+}
+
 function launchDayCompleteAnimation() {
   showScreen("homeScreen", false);
 
@@ -916,6 +961,9 @@ function launchDayCompleteAnimation() {
     const shuffledElements = shuffleArray(homeElements);
     const overlay = ensureDayCompleteOverlay();
 
+    overlay.innerHTML = "";
+    overlay.classList.remove("show-meter");
+    
     shuffledElements.forEach(function(element, index) {
       const x = Math.random() * 220 - 110;
       const y = Math.random() * 180 - 90;
@@ -943,8 +991,13 @@ function launchDayCompleteAnimation() {
       overlay.classList.add("black");
     }, vanishTime + 1250);
 
+        window.setTimeout(function() {
+      showDayCompleteMeter(overlay);
+    }, vanishTime + 1650);
+
     window.setTimeout(function() {
-      overlay.classList.remove("active", "black", "flicker");
+      overlay.classList.remove("active", "black", "flicker", "show-meter");
+      overlay.innerHTML = "";
 
       document.querySelectorAll(".day-complete-vanish").forEach(function(element) {
         element.classList.remove("day-complete-vanish");
@@ -956,7 +1009,7 @@ function launchDayCompleteAnimation() {
       dayCompleteAnimationRunning = false;
       renderHome();
       applyGeneralBackground();
-    }, vanishTime + 2400);
+    }, vanishTime + 5600);
   });
 }
 
