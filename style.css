@@ -2829,3 +2829,209 @@ body.tone-not-required {
     transform: translate(-50%, -190%) scale(0.9);
   }
 }
+
+/* Challenge complete burst */
+.challenge-complete-card-flash {
+  animation: challengeCompleteCardFlash 1.05s ease-out;
+}
+
+.challenge-complete-burst {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 3500;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.challenge-complete-aura {
+  position: absolute;
+  width: 115%;
+  height: 115%;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.92) 0 9%, transparent 18%),
+    radial-gradient(circle, rgba(250, 204, 21, 0.82) 0 18%, transparent 45%),
+    radial-gradient(circle, rgba(249, 115, 22, 0.66) 0 34%, transparent 68%),
+    radial-gradient(circle, rgba(124, 58, 237, 0.42) 0 48%, transparent 78%);
+  filter: blur(1px);
+  animation: challengeCompleteAura 1.25s ease-out forwards;
+}
+
+.challenge-complete-shockwave {
+  position: absolute;
+  width: 62%;
+  aspect-ratio: 1 / 1;
+  border-radius: 999px;
+  border: 5px solid rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 0 22px rgba(250, 204, 21, 0.8),
+    0 0 42px rgba(249, 115, 22, 0.58),
+    inset 0 0 24px rgba(255, 255, 255, 0.36);
+  animation: challengeCompleteShockwave 1.15s ease-out forwards;
+}
+
+.challenge-complete-check {
+  position: relative;
+  z-index: 3;
+  font-size: clamp(105px, 30vw, 190px);
+  font-weight: 1000;
+  line-height: 1;
+  color: #ffffff;
+  -webkit-text-stroke: 5px rgba(250, 204, 21, 0.95);
+  text-shadow:
+    0 5px 0 rgba(120, 53, 15, 0.5),
+    0 14px 30px rgba(0, 0, 0, 0.42),
+    0 0 32px rgba(255, 255, 255, 0.9),
+    0 0 54px rgba(249, 115, 22, 0.72);
+  transform-origin: center;
+  animation: challengeCompleteCheckPop 1.2s cubic-bezier(.18, 1.35, .32, 1) forwards;
+}
+
+.challenge-complete-particle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--particle-size);
+  height: var(--particle-size);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 30%, #ffffff 0 12%, #facc15 22%, #f97316 58%, #7c2d12 100%);
+  box-shadow:
+    0 0 12px rgba(250, 204, 21, 0.9),
+    0 0 24px rgba(249, 115, 22, 0.62);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.3);
+  animation: challengeCompleteParticle 1.25s ease-out forwards;
+  animation-delay: var(--particle-delay);
+}
+
+.challenge-complete-particle:nth-child(3n) {
+  border-radius: 4px;
+}
+
+.challenge-complete-particle:nth-child(4n) {
+  background:
+    radial-gradient(circle at 35% 30%, #ffffff 0 10%, #c084fc 28%, #7c3aed 70%, #312e81 100%);
+  box-shadow:
+    0 0 12px rgba(216, 180, 254, 0.86),
+    0 0 24px rgba(124, 58, 237, 0.6);
+}
+
+@keyframes challengeCompleteCardFlash {
+  0% {
+    transform: scale(1);
+    box-shadow: inherit;
+    filter: brightness(1);
+  }
+
+  18% {
+    transform: scale(1.035);
+    filter: brightness(1.12);
+    box-shadow:
+      0 0 0 2px rgba(255, 255, 255, 0.95),
+      0 0 28px rgba(250, 204, 21, 0.75),
+      0 18px 42px rgba(249, 115, 22, 0.28);
+  }
+
+  34% {
+    transform: scale(0.985);
+  }
+
+  58% {
+    transform: scale(1.018);
+  }
+
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes challengeCompleteAura {
+  0% {
+    opacity: 0;
+    transform: scale(0.35) rotate(0deg);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.6) rotate(28deg);
+  }
+}
+
+@keyframes challengeCompleteShockwave {
+  0% {
+    opacity: 0;
+    transform: scale(0.25);
+  }
+
+  16% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(2.25);
+  }
+}
+
+@keyframes challengeCompleteCheckPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.15) rotate(-18deg);
+  }
+
+  18% {
+    opacity: 1;
+    transform: scale(1.24) rotate(5deg);
+  }
+
+  42% {
+    transform: scale(0.94) rotate(-2deg);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scale(1.04) rotate(0deg);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.84) rotate(0deg);
+  }
+}
+
+@keyframes challengeCompleteParticle {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2) rotate(0deg);
+  }
+
+  14% {
+    opacity: 1;
+  }
+
+  82% {
+    opacity: 0.95;
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translate(
+        calc(-50% + var(--particle-x)),
+        calc(-50% + var(--particle-y))
+      )
+      scale(1.08)
+      rotate(var(--particle-rotate));
+  }
+}
