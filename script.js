@@ -983,17 +983,12 @@ function launchDayCompleteAnimation() {
 
     window.setTimeout(function() {
       overlay.classList.add("active");
-      overlay.classList.add("flicker");
+      overlay.classList.add("black");
     }, vanishTime);
 
     window.setTimeout(function() {
-      overlay.classList.remove("flicker");
-      overlay.classList.add("black");
-    }, vanishTime + 1250);
-
-        window.setTimeout(function() {
       showDayCompleteMeter(overlay);
-    }, vanishTime + 1650);
+    }, vanishTime + 450);
 
     window.setTimeout(function() {
       overlay.classList.remove("active", "black", "flicker", "show-meter");
@@ -2473,7 +2468,7 @@ setTodayValue = function(goalId, value) {
   }
 
   if (!wasDayCompleteBefore && isDayCompleteNow) {
-    scheduleDayCompleteAnimation(shouldPlaySingleChallengeEffect ? 1750 : 350);
+    scheduleDayCompleteAnimation(shouldPlaySingleChallengeEffect ? 750 : 350);
   }
 };
 
