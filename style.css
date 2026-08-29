@@ -3035,3 +3035,102 @@ body.tone-not-required {
       rotate(var(--particle-rotate));
   }
 }
+
+/* Day complete animation - phase 1 */
+.day-complete-vanish {
+  animation: dayCompleteVanish 0.72s cubic-bezier(.18, .9, .22, 1) forwards !important;
+  pointer-events: none !important;
+}
+
+.day-complete-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4200;
+  pointer-events: none;
+  opacity: 0;
+  background: transparent;
+}
+
+.day-complete-overlay.active {
+  opacity: 1;
+}
+
+.day-complete-overlay.flicker {
+  animation: dayCompleteBlackFlicker 1.25s steps(1, end) forwards;
+}
+
+.day-complete-overlay.black {
+  background: #000000;
+  opacity: 1;
+}
+
+@keyframes dayCompleteVanish {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    filter: blur(0) brightness(1);
+  }
+
+  35% {
+    opacity: 1;
+    transform:
+      translate(
+        calc(var(--day-complete-x) * 0.28),
+        calc(var(--day-complete-y) * 0.28)
+      )
+      scale(1.04)
+      rotate(calc(var(--day-complete-rotate) * 0.35));
+    filter: blur(0) brightness(1.22);
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translate(var(--day-complete-x), var(--day-complete-y))
+      scale(0.62)
+      rotate(var(--day-complete-rotate));
+    filter: blur(6px) brightness(0.25);
+  }
+}
+
+@keyframes dayCompleteBlackFlicker {
+  0% {
+    background: transparent;
+    opacity: 0;
+  }
+
+  12% {
+    background: #000000;
+    opacity: 1;
+  }
+
+  22% {
+    background: transparent;
+    opacity: 0;
+  }
+
+  34% {
+    background: #000000;
+    opacity: 1;
+  }
+
+  48% {
+    background: transparent;
+    opacity: 0;
+  }
+
+  62% {
+    background: #000000;
+    opacity: 1;
+  }
+
+  74% {
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 1;
+  }
+
+  100% {
+    background: #000000;
+    opacity: 1;
+  }
+}
