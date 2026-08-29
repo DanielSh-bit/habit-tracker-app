@@ -3254,3 +3254,19 @@ body.tone-not-required {
     transform: scale(1);
   }
 }
+
+/* Day complete dragon video */
+.day-complete-overlay.show-dragon-video {
+  background: #000000 !important;
+  opacity: 1 !important;
+  display: block !important;
+}
+
+.day-complete-dragon-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000000;
+}
