@@ -3543,3 +3543,95 @@ body.interactive-page-swipe .bottom-tab-bar {
   font-weight: 900;
   box-shadow: 0 14px 30px rgba(15, 23, 42, 0.24);
 }
+
+/* Edit goal images */
+.edit-goal-images-section {
+  margin: 18px 20px 32px;
+  padding: 18px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow:
+    0 16px 34px rgba(15, 23, 42, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.70);
+  direction: rtl;
+}
+
+.edit-goal-images-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.edit-goal-images-header h3 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 1000;
+  color: #111827;
+}
+
+.edit-goal-images-header p {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.58);
+}
+
+.add-goal-image-button {
+  border: none;
+  border-radius: 18px;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.92);
+  color: white;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.add-goal-image-button:disabled {
+  opacity: 0.55;
+}
+
+.edit-goal-images-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.edit-goal-image-item {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.12);
+}
+
+.edit-goal-image-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.delete-goal-image-button {
+  position: absolute;
+  left: 7px;
+  bottom: 7px;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(127, 29, 29, 0.88);
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.edit-goal-images-empty {
+  grid-column: 1 / -1;
+  padding: 24px 12px;
+  text-align: center;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.52);
+  color: rgba(15, 23, 42, 0.58);
+  font-weight: 900;
+}
