@@ -2535,6 +2535,201 @@ function goBack() {
   history.back();
 }
 
+const GOAL_IMAGES_DB_NAME = "levelup_goal_images_db";
+const GOAL_IMAGES_DB_VERSION = 1;
+const GOAL_IMAGES_STORE = "goal_images";
+let goalImagesDbPromise = null;
+
+function createLocalImageId(goalId) {
+  if (window.crypto && typeof window.crypto.randomUUID === "function") {
+    return `${goalId}_${crypto.randomUUID()}`;
+  }
+
+  return `${goalId}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+function openGoalImagesDb() {
+  if (goalImagesDbPromise) {
+    return goalImagesDbPromise;
+  }
+
+  goalImagesDbPromise = new Promise(function(resolve, reject) {
+    const request = indexedDB.open(GOAL_IMAGES_DB_NAME, GOAL_IMAGES_DB_VERSION);
+
+    request.onerror = function() {
+      reject(request.error);
+    };
+
+    request.onsuccess = function() {
+      resolve(request.result);
+    };
+
+    request.onupgradeneeded = function() {
+      const db = request.result;
+
+      if (!db.objectStoreNames.contains(GOAL_IMAGES_STORE)) {
+        const store = db.createObjectStore(GOAL_IMAGES_STORE, {
+          keyPath: "id"
+        });
+
+        store.createIndex("goalId", "goalId", {
+          unique: false
+        });
+      }
+    };
+  });
+
+  return goalImagesDbPromise;
+}
+
+function compressGoalImageFile(file) {
+  return new Promise(function(resolve, reject) {
+    if (!file || !file.type || !file.type.startsWith("image/")) {
+      reject(new Error("Invalid image file"));
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onerror = function() {
+      reject(reader.error);
+    };
+
+    reader.onload = function() {
+      const image = new Image();
+
+      image.onerror = function() {
+        reject(new Error("Could not load image"));
+      };
+
+      image.onload = function() {
+        const maxSize = 1400;
+        const originalWidth = image.width;
+        const originalHeight = image.height;
+
+        let targetWidth = originalWidth;
+        let targetHeight = originalHeight;
+
+        if (originalWidth > originalHeight && originalWidth > maxSize) {
+          targetWidth = maxSize;
+          targetHeight = Math.round((originalHeight * maxSize) / originalWidth);
+        } else if (originalHeight >= originalWidth && originalHeight > maxSize) {
+          targetHeight = maxSize;
+          targetWidth = Math.round((originalWidth * maxSize) / originalHeight);
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+
+        const context = canvas.getContext("2d");
+        context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+        canvas.toBlob(
+          function(blob) {
+            if (!blob) {
+              reject(new Error("Could not compress image"));
+              return;
+            }
+
+            resolve(blob);
+          },
+          "image/jpeg",
+          0.82
+        );
+      };
+
+      image.src = reader.result;
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
+async function addGoalImage(goalId, file) {
+  const db = await openGoalImagesDb();
+  const blob = await compressGoalImageFile(file);
+
+  const imageRecord = {
+    id: createLocalImageId(goalId),
+    goalId,
+    blob,
+    createdAt: Date.now()
+  };
+
+  return new Promise(function(resolve, reject) {
+    const transaction = db.transaction(GOAL_IMAGES_STORE, "readwrite");
+    const store = transaction.objectStore(GOAL_IMAGES_STORE);
+    const request = store.put(imageRecord);
+
+    request.onerror = function() {
+      reject(request.error);
+    };
+
+    request.onsuccess = function() {
+      resolve(imageRecord);
+    };
+  });
+}
+
+async function getGoalImages(goalId) {
+  const db = await openGoalImagesDb();
+
+  return new Promise(function(resolve, reject) {
+    const transaction = db.transaction(GOAL_IMAGES_STORE, "readonly");
+    const store = transaction.objectStore(GOAL_IMAGES_STORE);
+    const index = store.index("goalId");
+    const request = index.getAll(goalId);
+
+    request.onerror = function() {
+      reject(request.error);
+    };
+
+    request.onsuccess = function() {
+      const images = request.result || [];
+
+      images.sort(function(a, b) {
+        return Number(a.createdAt) - Number(b.createdAt);
+      });
+
+      resolve(images);
+    };
+  });
+}
+
+async function deleteGoalImage(imageId) {
+  const db = await openGoalImagesDb();
+
+  return new Promise(function(resolve, reject) {
+    const transaction = db.transaction(GOAL_IMAGES_STORE, "readwrite");
+    const store = transaction.objectStore(GOAL_IMAGES_STORE);
+    const request = store.delete(imageId);
+
+    request.onerror = function() {
+      reject(request.error);
+    };
+
+    request.onsuccess = function() {
+      resolve();
+    };
+  });
+}
+
+async function deleteAllGoalImages(goalId) {
+  const images = await getGoalImages(goalId);
+
+  await Promise.all(
+    images.map(function(image) {
+      return deleteGoalImage(image.id);
+    })
+  );
+}
+
+function createGoalImageUrl(imageRecord) {
+  if (!imageRecord || !imageRecord.blob) return "";
+  return URL.createObjectURL(imageRecord.blob);
+}
+
 function renderHome() {
   const goalsGrid = $("goalsGrid");
   if (!goalsGrid) return;
