@@ -3635,3 +3635,110 @@ body.interactive-page-swipe .bottom-tab-bar {
   color: rgba(15, 23, 42, 0.58);
   font-weight: 900;
 }
+
+/* Goal screen floating camera */
+.goal-camera-button {
+  position: fixed;
+  right: 22px;
+  bottom: 28px;
+  z-index: 340;
+  width: 62px;
+  height: 62px;
+  border: none;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.42), transparent 34%),
+    rgba(15, 23, 42, 0.92);
+  color: #ffffff;
+  font-size: 1.75rem;
+  box-shadow:
+    0 18px 36px rgba(15, 23, 42, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.goal-camera-button:active {
+  transform: scale(0.94);
+}
+
+/* Old gallery button safety */
+.goal-gallery-open-button {
+  display: none !important;
+}
+
+/* Move yes/no action lower inside challenge card */
+.modern-goal-card {
+  min-height: min(620px, calc(100dvh - 150px)) !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.yesno-action-area {
+  margin-top: auto !important;
+  padding-top: 34px !important;
+  padding-bottom: 18px !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+}
+
+.yesno-main-button {
+  width: clamp(158px, 48vw, 198px) !important;
+  height: clamp(158px, 48vw, 198px) !important;
+  font-size: clamp(5.1rem, 16vw, 6.5rem) !important;
+}
+
+/* Cleaner edit-goal image area */
+.edit-goal-images-header p {
+  display: none !important;
+}
+
+.add-goal-image-button {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  padding: 0 !important;
+  border-radius: 18px !important;
+  font-size: 2rem !important;
+  line-height: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.delete-goal-image-button {
+  left: 7px !important;
+  bottom: 7px !important;
+  width: 30px !important;
+  height: 30px !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  font-size: 1.25rem !important;
+  line-height: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Larger clean gallery view */
+.goal-gallery-header,
+.goal-gallery-nav {
+  display: none !important;
+}
+
+.goal-gallery-screen {
+  padding: 58px 8px 10px !important;
+  gap: 0 !important;
+}
+
+.goal-gallery-stage {
+  min-height: calc(100dvh - 78px) !important;
+  border-radius: 30px !important;
+  background: rgba(255, 255, 255, 0.42) !important;
+}
+
+.goal-gallery-image {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: calc(100dvh - 78px) !important;
+  object-fit: contain !important;
+}
