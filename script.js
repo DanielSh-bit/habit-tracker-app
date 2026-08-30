@@ -13,7 +13,7 @@ let currentGoalId = null;
 let rankingSortMode = "current";
 let rankingRenderId = 0;
 let calendarDate = new Date();
-
+f
 let currentGalleryImages = [];
 let currentGalleryIndex = 0;
 let currentGalleryImageUrl = "";
@@ -2876,11 +2876,10 @@ function ensureEditGoalImagesSection() {
     <div class="edit-goal-images-header">
       <div>
         <h3>תמונות</h3>
-        <p>הוספה ומחיקה של תמונות לאתגר הזה</p>
       </div>
 
       <button type="button" class="add-goal-image-button" id="addGoalImageButton">
-        + הוסף תמונה
+        +
       </button>
     </div>
 
@@ -2950,7 +2949,7 @@ async function renderEditGoalImages() {
           class="delete-goal-image-button"
           data-delete-goal-image-id="${escapeHtml(image.id)}"
         >
-          מחק
+          ×
         </button>
       </article>
     `;
@@ -2984,7 +2983,7 @@ async function handleEditGoalImageInput(event) {
   } finally {
     if (addButton) {
       addButton.disabled = false;
-      addButton.textContent = "+ הוסף תמונה";
+      addButton.textContent = "+";
     }
   }
 }
@@ -3156,24 +3155,24 @@ function openGoal(goalId, addToHistory = true) {
   }
 
   $("goalDetails").innerHTML = `
-    <div class="detail-card modern-goal-card ${requiredToday ? "" : "detail-not-required-today"}">
-      <header class="simple-goal-header">
-        <div class="goal-heading-text">
-          <h1>${escapeHtml(goal.title)}</h1>
-          <p class="goal-type-label">${getGoalTypeName(goal.type)}</p>
-          ${descriptionText}
-        </div>
+  <div class="detail-card modern-goal-card ${requiredToday ? "" : "detail-not-required-today"}">
+    <header class="simple-goal-header">
+      <div class="goal-heading-text">
+        <h1>${escapeHtml(goal.title)}</h1>
+        <p class="goal-type-label">${getGoalTypeName(goal.type)}</p>
+        ${descriptionText}
+      </div>
 
-        ${goal.type === "counter" ? `<strong class="goal-counter-score">${value}/${goal.target}</strong>` : ""}
-      </header>
+      ${goal.type === "counter" ? `<strong class="goal-counter-score">${value}/${goal.target}</strong>` : ""}
+    </header>
 
-      ${actionHtml}
+    ${actionHtml}
+  </div>
 
-    <button type="button" class="goal-gallery-open-button" id="openGoalGalleryButton">
-      גלריה
-    </button>
-    </div>
-  `;
+  <button type="button" class="goal-camera-button" id="openGoalGalleryButton" aria-label="גלריה">
+    📷
+  </button>
+`;
 
   showScreen("goalScreen", addToHistory);
 
