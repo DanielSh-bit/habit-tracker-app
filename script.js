@@ -45,6 +45,7 @@ let isAdminUnlocked = false;
 let lastChallengeActionElement = null;
 let lastChallengeActionTime = 0;
 let dayCompleteAnimationRunning = false;
+let activeDayCompleteVideoFinish = null;
 let quickSwipeStartX = 0;
 let quickSwipeStartY = 0;
 let quickSwipeStartTime = 0;
@@ -1030,7 +1031,8 @@ function playDayCompleteDragonVideo(overlay, onFinished) {
 
   function finishVideo() {
     if (finished) return;
-
+    if (activeDayCompleteVideoFinish !== finishVideo) return;
+    
     finished = true;
 
     try {
@@ -1076,7 +1078,8 @@ function playDayCompleteDragonVideo(overlay, onFinished) {
         finishVideo();
       });
     }
-
+    activeDayCompleteVideoFinish = finishVideo;
+    
     window.setTimeout(function() {
       finishVideo();
     }, 8000);
@@ -1162,7 +1165,7 @@ function launchDayCompleteAnimation() {
 
       addTimer(function() {
         finishDayCompleteAnimation();
-      }, 3000);
+      }, 1500);
     }
 
     function skipToFinalMeter() {
@@ -1170,7 +1173,8 @@ function launchDayCompleteAnimation() {
 
       skippedToFinalMeter = true;
       clearTimers();
-
+      activeDayCompleteVideoFinish = null;
+      
       const video = $("dayCompleteDragonVideo");
 
       if (video) {
@@ -1219,7 +1223,7 @@ function launchDayCompleteAnimation() {
 
         addTimer(function() {
           finishDayCompleteAnimation();
-        }, 4300);
+        }, 2150);
       });
     }, vanishTime);
   });
