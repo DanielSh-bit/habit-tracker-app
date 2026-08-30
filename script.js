@@ -985,7 +985,6 @@ function playDayCompleteDragonVideo(overlay, onFinished) {
     return;
   }
 
-  let started = false;
   let finished = false;
 
   function finishVideo() {
@@ -1004,37 +1003,32 @@ function playDayCompleteDragonVideo(overlay, onFinished) {
 
     window.setTimeout(function() {
       onFinished();
-    }, 300);
+    }, 180);
   }
 
-  function startVideo() {
-    if (started || finished) return;
-
-    started = true;
-
-    overlay.classList.add("active");
-    overlay.classList.add("show-dragon-video");
-
-    const playPromise = video.play();
-
-    if (playPromise && typeof playPromise.catch === "function") {
-      playPromise.catch(function() {
-        finishVideo();
-      });
-    }
-  }
-
-  video.addEventListener("loadeddata", startVideo, { once: true });
-  video.addEventListener("canplay", startVideo, { once: true });
   video.addEventListener("ended", finishVideo, { once: true });
   video.addEventListener("error", finishVideo, { once: true });
 
-  window.setTimeout(startVideo, 350);
+  overlay.classList.add("active");
+  overlay.classList.add("show-dragon-video");
+
+  try {
+    video.currentTime = 0;
+  } catch (error) {}
+
+  const playPromise = video.play();
+
+  if (playPromise && typeof playPromise.catch === "function") {
+    playPromise.catch(function() {
+      finishVideo();
+    });
+  }
 
   window.setTimeout(function() {
     finishVideo();
   }, 8000);
 }
+
 function launchDayCompleteAnimation() {
   showScreen("homeScreen", false);
 
@@ -1076,8 +1070,9 @@ function launchDayCompleteAnimation() {
       clearTimers();
 
       overlay.removeEventListener("click", skipToFinalMeter);
-      overlay.style.pointerEvents = "";
+      overlay.removeEventListener("click", finishDayCompleteAnimation);
 
+      overlay.style.pointerEvents = "";
       overlay.classList.remove("active", "black", "flicker", "show-meter", "show-dragon-video");
       overlay.innerHTML = "";
 
@@ -1086,6 +1081,20 @@ function launchDayCompleteAnimation() {
       dayCompleteAnimationRunning = false;
       renderHome();
       applyGeneralBackground();
+    }
+
+    function switchClickToFinishMode() {
+      overlay.removeEventListener("click", skipToFinalMeter);
+      overlay.addEventListener("click", finishDayCompleteAnimation);
+    }
+
+    function showFinalMeterInstantly() {
+      showDayCompleteMeter(overlay, true);
+      switchClickToFinishMode();
+
+      addTimer(function() {
+        finishDayCompleteAnimation();
+      }, 3000);
     }
 
     function skipToFinalMeter() {
@@ -1103,18 +1112,15 @@ function launchDayCompleteAnimation() {
       }
 
       cleanVanishedElements();
-
-      showDayCompleteMeter(overlay, true);
-
-      addTimer(function() {
-        finishDayCompleteAnimation();
-      }, 3000);
+      showFinalMeterInstantly();
     }
 
     overlay.innerHTML = "";
     overlay.classList.remove("show-meter", "show-dragon-video", "black", "flicker");
     overlay.classList.add("active");
     overlay.style.pointerEvents = "auto";
+
+    overlay.removeEventListener("click", finishDayCompleteAnimation);
     overlay.addEventListener("click", skipToFinalMeter);
 
     shuffledElements.forEach(function(element, index) {
@@ -1132,7 +1138,7 @@ function launchDayCompleteAnimation() {
       }, delay);
     });
 
-    const vanishTime = 900 + shuffledElements.length * 95;
+    const vanishTime = 780 + shuffledElements.length * 95;
 
     addTimer(function() {
       if (skippedToFinalMeter) return;
@@ -1141,6 +1147,7 @@ function launchDayCompleteAnimation() {
         if (skippedToFinalMeter) return;
 
         showDayCompleteMeter(overlay, false);
+        switchClickToFinishMode();
 
         addTimer(function() {
           finishDayCompleteAnimation();
