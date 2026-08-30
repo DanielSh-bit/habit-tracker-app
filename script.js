@@ -3298,29 +3298,16 @@ async function renderRanking() {
     const row = document.createElement("article");
     row.className = `ranking-row rank-${index + 1}`;
 
-    const primaryLabel = rankingSortMode === "current" ? "נוכחי" : "שיא";
-    const secondaryLabel = rankingSortMode === "current" ? "שיא" : "נוכחי";
-
-    const primaryValue = rankingSortMode === "current"
+    const activeValue = rankingSortMode === "current"
       ? Number(player.current_score)
       : Number(player.best_score);
-
-    const secondaryValue = rankingSortMode === "current"
-      ? Number(player.best_score)
-      : Number(player.current_score);
 
     row.innerHTML = `
       <div class="ranking-name">${escapeHtml(player.name)}</div>
 
       <div class="ranking-scores">
-        <div class="score-box active-score">
-          <span>${primaryLabel}</span>
-          <strong>${primaryValue}</strong>
-        </div>
-
-        <div class="score-box muted-score">
-          <span>${secondaryLabel}</span>
-          <strong>${secondaryValue}</strong>
+        <div class="score-box active-score single-score">
+          <strong>${activeValue}</strong>
         </div>
       </div>
     `;
