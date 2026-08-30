@@ -19,6 +19,7 @@ let currentGalleryIndex = 0;
 let currentGalleryImageUrl = "";
 let goalGalleryTouchStartX = 0;
 let goalGalleryTouchStartY = 0;
+let editGoalImageUrls = [];
 
 let isReorderMode = false;
 let draggedGoalId = null;
@@ -2853,6 +2854,141 @@ function handleGoalGalleryTouchEnd(event) {
   }
 }
 
+function clearEditGoalImageUrls() {
+  editGoalImageUrls.forEach(function(url) {
+    URL.revokeObjectURL(url);
+  });
+
+  editGoalImageUrls = [];
+}
+
+function ensureEditGoalImagesSection() {
+  if ($("editGoalImagesSection")) return;
+
+  const editForm = $("editGoalForm");
+  if (!editForm) return;
+
+  const section = document.createElement("section");
+  section.id = "editGoalImagesSection";
+  section.className = "edit-goal-images-section";
+
+  section.innerHTML = `
+    <div class="edit-goal-images-header">
+      <div>
+        <h3>תמונות</h3>
+        <p>הוספה ומחיקה של תמונות לאתגר הזה</p>
+      </div>
+
+      <button type="button" class="add-goal-image-button" id="addGoalImageButton">
+        + הוסף תמונה
+      </button>
+    </div>
+
+    <input type="file" id="editGoalImageInput" accept="image/*" multiple hidden>
+
+    <div class="edit-goal-images-list" id="editGoalImagesList">
+      <div class="edit-goal-images-empty">אין עדיין תמונות</div>
+    </div>
+  `;
+
+  editForm.insertAdjacentElement("afterend", section);
+
+  on("addGoalImageButton", "click", function() {
+    const input = $("editGoalImageInput");
+    if (input) input.click();
+  });
+
+  on("editGoalImageInput", "change", handleEditGoalImageInput);
+
+  const list = $("editGoalImagesList");
+
+  if (list) {
+    list.addEventListener("click", async function(event) {
+      const deleteButton = event.target.closest("[data-delete-goal-image-id]");
+      if (!deleteButton) return;
+
+      const imageId = deleteButton.getAttribute("data-delete-goal-image-id");
+      if (!imageId) return;
+
+      await deleteGoalImage(imageId);
+      renderEditGoalImages();
+    });
+  }
+}
+
+async function renderEditGoalImages() {
+  ensureEditGoalImagesSection();
+
+  const list = $("editGoalImagesList");
+  if (!list || !currentGoalId) return;
+
+  clearEditGoalImageUrls();
+
+  let images = [];
+
+  try {
+    images = await getGoalImages(currentGoalId);
+  } catch (error) {
+    images = [];
+  }
+
+  if (images.length === 0) {
+    list.innerHTML = `<div class="edit-goal-images-empty">אין עדיין תמונות</div>`;
+    return;
+  }
+
+  list.innerHTML = images.map(function(image) {
+    const imageUrl = createGoalImageUrl(image);
+    editGoalImageUrls.push(imageUrl);
+
+    return `
+      <article class="edit-goal-image-item">
+        <img src="${imageUrl}" alt="תמונה של האתגר">
+
+        <button
+          type="button"
+          class="delete-goal-image-button"
+          data-delete-goal-image-id="${escapeHtml(image.id)}"
+        >
+          מחק
+        </button>
+      </article>
+    `;
+  }).join("");
+}
+
+async function handleEditGoalImageInput(event) {
+  if (!currentGoalId) return;
+
+  const input = event.target;
+  const files = Array.from(input.files || []);
+
+  if (files.length === 0) return;
+
+  const addButton = $("addGoalImageButton");
+
+  if (addButton) {
+    addButton.disabled = true;
+    addButton.textContent = "מוסיף...";
+  }
+
+  try {
+    for (const file of files) {
+      await addGoalImage(currentGoalId, file);
+    }
+
+    input.value = "";
+    await renderEditGoalImages();
+  } catch (error) {
+    alert("לא הצלחנו להוסיף את התמונה");
+  } finally {
+    if (addButton) {
+      addButton.disabled = false;
+      addButton.textContent = "+ הוסף תמונה";
+    }
+  }
+}
+
 function renderHome() {
   const goalsGrid = $("goalsGrid");
   if (!goalsGrid) return;
@@ -3099,6 +3235,7 @@ function openGoalSettings(goalId, addToHistory = true) {
   }
   setSelectedDaysInPicker("editGoalSchedulePicker", goal.activeDays);
   showScreen("goalSettingsScreen", addToHistory);
+  renderEditGoalImages();
 }
 
 function openGoalInfo(goalId, addToHistory = true) {
@@ -3981,11 +4118,17 @@ function editGoal(event) {
   openGoal(currentGoalId, false);
 }
 
-function deleteCurrentGoal() {
+async function deleteCurrentGoal() {
   if (!currentGoalId) return;
 
+  const goalIdToDelete = currentGoalId;
+
+  try {
+    await deleteAllGoalImages(goalIdToDelete);
+  } catch (error) {}
+  
   goals = goals.filter(function(goal) {
-    return goal.id !== currentGoalId;
+    return goal.id !== goalIdToDelete;
   });
 
   closeDeleteConfirm();
