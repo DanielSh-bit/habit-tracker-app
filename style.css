@@ -3356,3 +3356,46 @@ body.tone-not-required {
 #rankingScreen.active .ranking-list {
   padding-bottom: 104px !important;
 }
+
+/* Interactive page swipe between Goals and Scores */
+body.interactive-page-swipe .app {
+  overflow: hidden !important;
+}
+
+.swipe-screen-layer {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  box-sizing: border-box !important;
+  padding: 26px 20px 104px !important;
+  background: transparent !important;
+  will-change: transform !important;
+  transition: none !important;
+  z-index: 180 !important;
+}
+
+#homeScreen.swipe-screen-layer {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+#rankingScreen.swipe-screen-layer {
+  display: block !important;
+  overflow-y: auto !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+#rankingScreen.swipe-screen-layer::-webkit-scrollbar {
+  display: none !important;
+}
+
+.swipe-screen-layer.swipe-animate {
+  transition: transform 0.24s cubic-bezier(.18, .9, .22, 1) !important;
+}
+
+body.interactive-page-swipe .bottom-tab-bar {
+  z-index: 500 !important;
+}
