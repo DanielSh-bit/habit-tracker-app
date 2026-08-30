@@ -2181,6 +2181,20 @@ function openGoalScreenFromOptions(screenName) {
   }
 }
 
+function updateBottomTabs() {
+  const bar = $("bottomTabBar");
+  const goalsTab = $("bottomGoalsTab");
+  const scoresTab = $("bottomScoresTab");
+
+  if (!bar || !goalsTab || !scoresTab) return;
+
+  const shouldShow = currentScreenId === "homeScreen" || currentScreenId === "rankingScreen";
+
+  bar.classList.toggle("visible", shouldShow);
+  goalsTab.classList.toggle("active", currentScreenId === "homeScreen");
+  scoresTab.classList.toggle("active", currentScreenId === "rankingScreen");
+}
+
 function showScreen(screenId, addToHistory = true) {
   closeMenu();
   closeGoalOptionsMenu();
@@ -2196,7 +2210,7 @@ function showScreen(screenId, addToHistory = true) {
   });
 
   $(screenId).classList.add("active");
-
+  updateBottomTabs();
   if (screenId === "homeScreen") {
     currentGoalId = null;
     applyGeneralBackground();
@@ -3587,6 +3601,16 @@ document.addEventListener("DOMContentLoaded", function() {
   initializeGoalTypePickers();
   initializeSchedulePickers();
   initializeTextLimits();
+
+  on("bottomGoalsTab", "click", function() {
+    showScreen("homeScreen");
+  });
+
+  on("bottomScoresTab", "click", function() {
+    showScreen("rankingScreen");
+  });
+
+  updateBottomTabs();
   
   on("openMenuButton", "click", openMenu);
   on("menuOverlay", "click", closeMenuFromOverlay);
