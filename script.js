@@ -49,6 +49,11 @@ let quickSwipeStartX = 0;
 let quickSwipeStartY = 0;
 let quickSwipeStartTime = 0;
 let quickSwipeTracking = false;
+let quickSwipeDragging = false;
+let quickSwipeFromScreen = "";
+let quickSwipeTargetScreen = "";
+let quickSwipeDirection = 0;
+let quickSwipeProgress = 0;
 let preloadedDayCompleteDragonVideo = null;
 let dayCompleteDragonVideoReady = false;
 
@@ -2280,6 +2285,112 @@ function isQuickRankingSwipeAllowed(event) {
   return true;
 }
 
+function getInteractiveSwipeScreens() {
+  return {
+    homeScreen: $("homeScreen"),
+    rankingScreen: $("rankingScreen")
+  };
+}
+
+function prepareInteractiveSwipeScreens() {
+  const screens = getInteractiveSwipeScreens();
+  if (!screens.homeScreen || !screens.rankingScreen) return false;
+
+  document.body.classList.add("interactive-page-swipe");
+
+  screens.homeScreen.classList.add("active", "swipe-screen-layer");
+  screens.rankingScreen.classList.add("active", "swipe-screen-layer");
+
+  screens.homeScreen.classList.remove("swipe-animate");
+  screens.rankingScreen.classList.remove("swipe-animate");
+
+  if (quickSwipeTargetScreen === "rankingScreen") {
+    renderRanking();
+  }
+
+  if (quickSwipeTargetScreen === "homeScreen") {
+    renderHome();
+  }
+
+  return true;
+}
+
+function setInteractiveSwipeProgress(progress) {
+  const screens = getInteractiveSwipeScreens();
+  if (!screens.homeScreen || !screens.rankingScreen) return;
+
+  quickSwipeProgress = clampNumber(progress, 0, 1);
+
+  if (quickSwipeDirection === -1) {
+    screens.homeScreen.style.transform = `translateX(${-quickSwipeProgress * 100}%)`;
+    screens.rankingScreen.style.transform = `translateX(${(1 - quickSwipeProgress) * 100}%)`;
+  }
+
+  if (quickSwipeDirection === 1) {
+    screens.rankingScreen.style.transform = `translateX(${quickSwipeProgress * 100}%)`;
+    screens.homeScreen.style.transform = `translateX(${(-1 + quickSwipeProgress) * 100}%)`;
+  }
+}
+
+function resetInteractiveSwipeState() {
+  quickSwipeStartX = 0;
+  quickSwipeStartY = 0;
+  quickSwipeStartTime = 0;
+  quickSwipeTracking = false;
+  quickSwipeDragging = false;
+  quickSwipeFromScreen = "";
+  quickSwipeTargetScreen = "";
+  quickSwipeDirection = 0;
+  quickSwipeProgress = 0;
+}
+
+function cleanupInteractiveSwipe(finalScreenId, addToHistory) {
+  const screens = getInteractiveSwipeScreens();
+
+  if (finalScreenId) {
+    showScreen(finalScreenId, addToHistory);
+  }
+
+  document.body.classList.remove("interactive-page-swipe");
+
+  Object.values(screens).forEach(function(screen) {
+    if (!screen) return;
+
+    screen.classList.remove("swipe-screen-layer", "swipe-animate");
+    screen.style.transform = "";
+  });
+
+  resetInteractiveSwipeState();
+}
+
+function animateInteractiveSwipeTo(progress, finalScreenId, addToHistory) {
+  const screens = getInteractiveSwipeScreens();
+
+  Object.values(screens).forEach(function(screen) {
+    if (screen) screen.classList.add("swipe-animate");
+  });
+
+  setInteractiveSwipeProgress(progress);
+
+  window.setTimeout(function() {
+    cleanupInteractiveSwipe(finalScreenId, addToHistory);
+  }, 260);
+}
+
+function beginInteractiveSwipe(direction) {
+  quickSwipeDirection = direction;
+  quickSwipeFromScreen = currentScreenId;
+  quickSwipeTargetScreen = direction === -1 ? "rankingScreen" : "homeScreen";
+  quickSwipeDragging = prepareInteractiveSwipeScreens();
+
+  if (!quickSwipeDragging) {
+    resetInteractiveSwipeState();
+    return;
+  }
+
+  setInteractiveSwipeProgress(0);
+}
+
 function handleQuickSwipeStart(event) {
   if (!event.touches || event.touches.length !== 1) return;
   if (!isQuickRankingSwipeAllowed(event)) return;
@@ -2290,43 +2401,93 @@ function handleQuickSwipeStart(event) {
   quickSwipeStartY = touch.clientY;
   quickSwipeStartTime = Date.now();
   quickSwipeTracking = true;
+  quickSwipeDragging = false;
 }
 
-function handleQuickSwipeEnd(event) {
+function handleQuickSwipeMove(event) {
   if (!quickSwipeTracking) return;
-  if (!event.changedTouches || event.changedTouches.length !== 1) return;
+  if (!event.touches || event.touches.length !== 1) return;
 
-  quickSwipeTracking = false;
-
-  const touch = event.changedTouches[0];
+  const touch = event.touches[0];
   const deltaX = touch.clientX - quickSwipeStartX;
   const deltaY = touch.clientY - quickSwipeStartY;
-  const elapsedTime = Date.now() - quickSwipeStartTime;
 
   const absX = Math.abs(deltaX);
   const absY = Math.abs(deltaY);
 
-  const isFastEnough = elapsedTime <= 900;
-  const isLongEnough = absX >= 90;
-  const isHorizontalEnough = absX > absY * 1.7;
+  if (!quickSwipeDragging) {
+    if (absY > 22 && absY > absX * 1.15) {
+      resetInteractiveSwipeState();
+      return;
+    }
 
-  if (!isFastEnough || !isLongEnough || !isHorizontalEnough) {
+    if (absX < 18 || absX < absY * 1.35) {
+      return;
+    }
+
+    if (currentScreenId === "homeScreen" && deltaX < 0) {
+      beginInteractiveSwipe(-1);
+    } else if (currentScreenId === "rankingScreen" && deltaX > 0) {
+      beginInteractiveSwipe(1);
+    } else {
+      resetInteractiveSwipeState();
+      return;
+    }
+  }
+
+  if (!quickSwipeDragging) return;
+
+  event.preventDefault();
+
+  const progress = Math.min(absX / window.innerWidth, 1);
+  setInteractiveSwipeProgress(progress);
+}
+
+function handleQuickSwipeEnd(event) {
+  if (!quickSwipeTracking) return;
+
+  const wasDragging = quickSwipeDragging;
+
+  if (!wasDragging) {
+    resetInteractiveSwipeState();
     return;
   }
 
-  if (currentScreenId === "homeScreen" && deltaX < 0) {
-    showScreen("rankingScreen");
+  quickSwipeTracking = false;
+
+  let deltaX = 0;
+
+  if (event.changedTouches && event.changedTouches.length === 1) {
+    deltaX = event.changedTouches[0].clientX - quickSwipeStartX;
+  }
+
+  const elapsedTime = Date.now() - quickSwipeStartTime;
+  const absX = Math.abs(deltaX);
+
+  const isQuickSwipe = elapsedTime < 320 && absX > 70;
+  const shouldComplete = quickSwipeProgress >= 0.34 || isQuickSwipe;
+
+  if (shouldComplete) {
+    animateInteractiveSwipeTo(1, quickSwipeTargetScreen, true);
+  } else {
+    animateInteractiveSwipeTo(0, quickSwipeFromScreen, false);
+  }
+}
+
+function handleQuickSwipeCancel() {
+  if (quickSwipeDragging) {
+    animateInteractiveSwipeTo(0, quickSwipeFromScreen, false);
     return;
   }
 
-  if (currentScreenId === "rankingScreen" && deltaX > 0) {
-    showScreen("homeScreen");
-  }
+  resetInteractiveSwipeState();
 }
 
 function initializeQuickRankingSwipe() {
   document.addEventListener("touchstart", handleQuickSwipeStart, { passive: true });
+  document.addEventListener("touchmove", handleQuickSwipeMove, { passive: false });
   document.addEventListener("touchend", handleQuickSwipeEnd, { passive: true });
+  document.addEventListener("touchcancel", handleQuickSwipeCancel, { passive: true });
 }
 
 function goBack() {
