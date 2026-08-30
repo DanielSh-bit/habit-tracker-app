@@ -45,6 +45,10 @@ let isAdminUnlocked = false;
 let lastChallengeActionElement = null;
 let lastChallengeActionTime = 0;
 let dayCompleteAnimationRunning = false;
+let quickSwipeStartX = 0;
+let quickSwipeStartY = 0;
+let quickSwipeStartTime = 0;
+let quickSwipeTracking = false;
 let preloadedDayCompleteDragonVideo = null;
 let dayCompleteDragonVideoReady = false;
 
@@ -2235,6 +2239,82 @@ function showScreen(screenId, addToHistory = true) {
   }
 }
 
+function isQuickRankingSwipeAllowed(event) {
+  if (isReorderMode) return false;
+  if (dayCompleteAnimationRunning) return false;
+  if (isMenuOpen()) return false;
+  if (isGoalOptionsOpen()) return false;
+  if (isDeleteConfirmOpen()) return false;
+  if (isDayDetailOpen()) return false;
+
+  if (currentScreenId !== "homeScreen" && currentScreenId !== "rankingScreen") {
+    return false;
+  }
+
+  const target = event.target;
+
+  if (
+    target.closest("button") ||
+    target.closest("input") ||
+    target.closest("textarea") ||
+    target.closest("select") ||
+    target.closest(".side-menu")
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function handleQuickSwipeStart(event) {
+  if (!event.touches || event.touches.length !== 1) return;
+  if (!isQuickRankingSwipeAllowed(event)) return;
+
+  const touch = event.touches[0];
+
+  quickSwipeStartX = touch.clientX;
+  quickSwipeStartY = touch.clientY;
+  quickSwipeStartTime = Date.now();
+  quickSwipeTracking = true;
+}
+
+function handleQuickSwipeEnd(event) {
+  if (!quickSwipeTracking) return;
+  if (!event.changedTouches || event.changedTouches.length !== 1) return;
+
+  quickSwipeTracking = false;
+
+  const touch = event.changedTouches[0];
+  const deltaX = touch.clientX - quickSwipeStartX;
+  const deltaY = touch.clientY - quickSwipeStartY;
+  const elapsedTime = Date.now() - quickSwipeStartTime;
+
+  const absX = Math.abs(deltaX);
+  const absY = Math.abs(deltaY);
+
+  const isFastEnough = elapsedTime <= 900;
+  const isLongEnough = absX >= 90;
+  const isHorizontalEnough = absX > absY * 1.7;
+
+  if (!isFastEnough || !isLongEnough || !isHorizontalEnough) {
+    return;
+  }
+
+  if (currentScreenId === "homeScreen" && deltaX < 0) {
+    showScreen("rankingScreen");
+    return;
+  }
+
+  if (currentScreenId === "rankingScreen" && deltaX > 0) {
+    showScreen("homeScreen");
+  }
+}
+
+function initializeQuickRankingSwipe() {
+  document.addEventListener("touchstart", handleQuickSwipeStart, { passive: true });
+  document.addEventListener("touchend", handleQuickSwipeEnd, { passive: true });
+}
+
 function goBack() {
   if (isReorderMode) {
     endSingleGoalDrag();
@@ -3494,6 +3574,7 @@ document.addEventListener("DOMContentLoaded", function() {
   hideImportanceFields();
   applyGeneralBackground();
   preloadDayCompleteDragonVideo();
+  initializeQuickRankingSwipe();
   
   if (!getPlayerName()) {
     showScreen("nameScreen", false);
