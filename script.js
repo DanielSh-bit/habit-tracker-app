@@ -45,6 +45,8 @@ let isAdminUnlocked = false;
 let lastChallengeActionElement = null;
 let lastChallengeActionTime = 0;
 let dayCompleteAnimationRunning = false;
+let preloadedDayCompleteDragonVideo = null;
+let dayCompleteDragonVideoReady = false;
 
 function $(id) {
   return document.getElementById(id);
@@ -964,28 +966,58 @@ function showDayCompleteMeter(overlay, instant = false) {
   });
 }
 
+function preloadDayCompleteDragonVideo() {
+  if (preloadedDayCompleteDragonVideo) {
+    return preloadedDayCompleteDragonVideo;
+  }
+
+  const video = document.createElement("video");
+
+  video.src = "day-complete-dragon.mp4";
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = "auto";
+
+  video.style.position = "fixed";
+  video.style.left = "-9999px";
+  video.style.top = "-9999px";
+  video.style.width = "1px";
+  video.style.height = "1px";
+  video.style.opacity = "0";
+  video.style.pointerEvents = "none";
+
+  video.addEventListener("loadeddata", function() {
+    dayCompleteDragonVideoReady = true;
+  }, { once: true });
+
+  video.addEventListener("canplay", function() {
+    dayCompleteDragonVideoReady = true;
+  }, { once: true });
+
+  document.body.appendChild(video);
+
+  try {
+    video.load();
+  } catch (error) {}
+
+  preloadedDayCompleteDragonVideo = video;
+
+  return video;
+}
+
 function playDayCompleteDragonVideo(overlay, onFinished) {
   if (!overlay) {
     onFinished();
     return;
   }
 
+  const video = preloadDayCompleteDragonVideo();
+
   overlay.classList.remove("show-meter", "black", "show-dragon-video");
-
-  overlay.innerHTML = `
-    <video class="day-complete-dragon-video" id="dayCompleteDragonVideo" muted playsinline preload="auto">
-      <source src="day-complete-dragon.mp4" type="video/mp4">
-    </video>
-  `;
-
-  const video = $("dayCompleteDragonVideo");
-
-  if (!video) {
-    onFinished();
-    return;
-  }
+  overlay.innerHTML = "";
 
   let finished = false;
+  let started = false;
 
   function finishVideo() {
     if (finished) return;
@@ -1006,27 +1038,54 @@ function playDayCompleteDragonVideo(overlay, onFinished) {
     }, 180);
   }
 
-  video.addEventListener("ended", finishVideo, { once: true });
-  video.addEventListener("error", finishVideo, { once: true });
+  function startVideo() {
+    if (started || finished) return;
 
-  overlay.classList.add("active");
-  overlay.classList.add("show-dragon-video");
+    started = true;
 
-  try {
-    video.currentTime = 0;
-  } catch (error) {}
+    try {
+      video.pause();
+      video.currentTime = 0;
+    } catch (error) {}
 
-  const playPromise = video.play();
+    video.className = "day-complete-dragon-video";
+    video.removeAttribute("style");
 
-  if (playPromise && typeof playPromise.catch === "function") {
-    playPromise.catch(function() {
+    overlay.innerHTML = "";
+    overlay.appendChild(video);
+
+    overlay.classList.add("active");
+    overlay.classList.add("show-dragon-video");
+
+    video.addEventListener("ended", finishVideo, { once: true });
+    video.addEventListener("error", finishVideo, { once: true });
+
+    const playPromise = video.play();
+
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(function() {
+        finishVideo();
+      });
+    }
+
+    window.setTimeout(function() {
       finishVideo();
-    });
+    }, 8000);
   }
 
+  if (dayCompleteDragonVideoReady || video.readyState >= 2) {
+    startVideo();
+    return;
+  }
+
+  video.addEventListener("loadeddata", startVideo, { once: true });
+  video.addEventListener("canplay", startVideo, { once: true });
+
   window.setTimeout(function() {
-    finishVideo();
-  }, 8000);
+    if (!started) {
+      startVideo();
+    }
+  }, 900);
 }
 
 function launchDayCompleteAnimation() {
@@ -3434,7 +3493,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
   hideImportanceFields();
   applyGeneralBackground();
-
+  preloadDayCompleteDragonVideo();
+  
   if (!getPlayerName()) {
     showScreen("nameScreen", false);
   } else {
