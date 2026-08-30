@@ -3270,3 +3270,13 @@ body.tone-not-required {
   object-fit: cover;
   background: #000000;
 }
+
+/* Remove black flash before day-complete dragon video */
+.day-complete-overlay.show-dragon-video {
+  background: transparent !important;
+}
+
+.day-complete-dragon-video {
+  background: transparent !important;
+  display: block !important;
+}
