@@ -3280,3 +3280,79 @@ body.tone-not-required {
   background: transparent !important;
   display: block !important;
 }
+
+/* Bottom tab bar */
+.bottom-tab-bar {
+  position: fixed;
+  left: 18px;
+  right: 18px;
+  bottom: 14px;
+  z-index: 260;
+  height: 74px;
+  border-radius: 28px;
+  background: rgba(15, 23, 42, 0.88);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(14px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 8px;
+  box-sizing: border-box;
+  direction: ltr;
+  transform: translateY(130%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.24s ease, opacity 0.24s ease;
+}
+
+.bottom-tab-bar.visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.bottom-tab-button {
+  border: none;
+  border-radius: 22px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 13px;
+  font-weight: 900;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0;
+}
+
+.bottom-tab-icon {
+  font-size: 24px;
+  line-height: 1;
+  filter: grayscale(0.6);
+}
+
+.bottom-tab-button.active {
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.30), transparent 38%),
+    linear-gradient(135deg, rgba(250, 204, 21, 0.95), rgba(249, 115, 22, 0.82));
+  color: #111827;
+  box-shadow:
+    0 10px 24px rgba(249, 115, 22, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.bottom-tab-button.active .bottom-tab-icon {
+  filter: none;
+  transform: scale(1.08);
+}
+
+#homeScreen.active .goals-grid {
+  padding-bottom: 104px !important;
+}
+
+#rankingScreen.active .ranking-list {
+  padding-bottom: 104px !important;
+}
