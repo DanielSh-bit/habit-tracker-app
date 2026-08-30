@@ -14,6 +14,12 @@ let rankingSortMode = "current";
 let rankingRenderId = 0;
 let calendarDate = new Date();
 
+let currentGalleryImages = [];
+let currentGalleryIndex = 0;
+let currentGalleryImageUrl = "";
+let goalGalleryTouchStartX = 0;
+let goalGalleryTouchStartY = 0;
+
 let isReorderMode = false;
 let draggedGoalId = null;
 let longPressTimer = null;
@@ -2250,6 +2256,15 @@ function showScreen(screenId, addToHistory = true) {
     if (goal) applyBackground(getTodayProgress(goal));
   }
 
+  if (screenId === "goalGalleryScreen") {
+    const goal = getCurrentGoal();
+
+    if (goal) {
+      applyBackground(getTodayProgress(goal));
+      renderGoalGallery();
+    }
+  }
+  
   if (addToHistory) {
     history.pushState(
       {
@@ -2730,6 +2745,114 @@ function createGoalImageUrl(imageRecord) {
   return URL.createObjectURL(imageRecord.blob);
 }
 
+function clearCurrentGalleryImageUrl() {
+  if (currentGalleryImageUrl) {
+    URL.revokeObjectURL(currentGalleryImageUrl);
+    currentGalleryImageUrl = "";
+  }
+}
+
+async function openGoalGallery(goalId, addToHistory = true) {
+  const goal = goals.find(function(item) {
+    return item.id === goalId;
+  });
+
+  if (!goal) return;
+
+  currentGoalId = goalId;
+  currentGalleryIndex = 0;
+
+  showScreen("goalGalleryScreen", addToHistory);
+}
+
+async function renderGoalGallery() {
+  const goal = getCurrentGoal();
+
+  if (!goal || !$("goalGalleryStage")) return;
+
+  $("goalGalleryTitle").textContent = goal.title;
+
+  clearCurrentGalleryImageUrl();
+
+  try {
+    currentGalleryImages = await getGoalImages(goal.id);
+  } catch (error) {
+    currentGalleryImages = [];
+  }
+
+  if (currentGalleryImages.length === 0) {
+    currentGalleryIndex = 0;
+
+    $("goalGalleryCounter").textContent = "0/0";
+    $("goalGalleryStage").innerHTML = `
+      <div class="goal-gallery-empty">
+        אין עדיין תמונות<br>
+        הוספה תתבצע מתוך עריכת האתגר
+      </div>
+    `;
+
+    if ($("galleryPrevButton")) $("galleryPrevButton").disabled = true;
+    if ($("galleryNextButton")) $("galleryNextButton").disabled = true;
+
+    return;
+  }
+
+  currentGalleryIndex = clampNumber(currentGalleryIndex, 0, currentGalleryImages.length - 1);
+
+  const imageRecord = currentGalleryImages[currentGalleryIndex];
+  currentGalleryImageUrl = createGoalImageUrl(imageRecord);
+
+  $("goalGalleryCounter").textContent = `${currentGalleryIndex + 1}/${currentGalleryImages.length}`;
+
+  $("goalGalleryStage").innerHTML = `
+    <img class="goal-gallery-image" src="${currentGalleryImageUrl}" alt="תמונה של האתגר">
+  `;
+
+  if ($("galleryPrevButton")) $("galleryPrevButton").disabled = currentGalleryIndex === 0;
+  if ($("galleryNextButton")) $("galleryNextButton").disabled = currentGalleryIndex >= currentGalleryImages.length - 1;
+}
+
+function moveGoalGallery(direction) {
+  if (!currentGalleryImages || currentGalleryImages.length === 0) return;
+
+  const nextIndex = clampNumber(
+    currentGalleryIndex + direction,
+    0,
+    currentGalleryImages.length - 1
+  );
+
+  if (nextIndex === currentGalleryIndex) return;
+
+  currentGalleryIndex = nextIndex;
+  renderGoalGallery();
+}
+
+function handleGoalGalleryTouchStart(event) {
+  if (!event.touches || event.touches.length !== 1) return;
+
+  const touch = event.touches[0];
+
+  goalGalleryTouchStartX = touch.clientX;
+  goalGalleryTouchStartY = touch.clientY;
+}
+
+function handleGoalGalleryTouchEnd(event) {
+  if (!event.changedTouches || event.changedTouches.length !== 1) return;
+
+  const touch = event.changedTouches[0];
+  const deltaX = touch.clientX - goalGalleryTouchStartX;
+  const deltaY = touch.clientY - goalGalleryTouchStartY;
+
+  if (Math.abs(deltaX) < 60) return;
+  if (Math.abs(deltaX) < Math.abs(deltaY) * 1.4) return;
+
+  if (deltaX < 0) {
+    moveGoalGallery(1);
+  } else {
+    moveGoalGallery(-1);
+  }
+}
+
 function renderHome() {
   const goalsGrid = $("goalsGrid");
   if (!goalsGrid) return;
@@ -2909,11 +3032,19 @@ function openGoal(goalId, addToHistory = true) {
       </header>
 
       ${actionHtml}
+
+    <button type="button" class="goal-gallery-open-button" id="openGoalGalleryButton">
+      גלריה
+    </button>
     </div>
   `;
 
   showScreen("goalScreen", addToHistory);
 
+  on("openGoalGalleryButton", "click", function() {
+    openGoalGallery(goal.id);
+  });
+  
   if (!requiredToday) return;
 
   if (goal.type === "yesno") {
@@ -3918,6 +4049,11 @@ window.addEventListener("popstate", function(event) {
     return;
   }
 
+  if (state.screenId === "goalGalleryScreen" && state.goalId) {
+    openGoalGallery(state.goalId, false);
+    return;
+  }
+  
   showScreen(state.screenId, false);
 });
 
@@ -3958,6 +4094,19 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   updateBottomTabs();
+
+  on("galleryPrevButton", "click", function() {
+    moveGoalGallery(-1);
+  });
+
+  on("galleryNextButton", "click", function() {
+    moveGoalGallery(1);
+  });
+
+  if ($("goalGalleryStage")) {
+    $("goalGalleryStage").addEventListener("touchstart", handleGoalGalleryTouchStart, { passive: true });
+    $("goalGalleryStage").addEventListener("touchend", handleGoalGalleryTouchEnd, { passive: true });
+  }
   
   on("openMenuButton", "click", openMenu);
   on("menuOverlay", "click", closeMenuFromOverlay);
