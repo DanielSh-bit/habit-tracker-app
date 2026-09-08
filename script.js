@@ -24,6 +24,7 @@ let currentGalleryImageUrls = [];
 let goalGalleryTouchStartTime = 0;
 let goalGalleryTouchTracking = false;
 let goalGalleryTouchDragging = false;
+let goalGalleryPageWidth = 0;
 
 let editGoalImageUrls = [];
 
@@ -2794,7 +2795,10 @@ function updateGoalGalleryCounter() {
 
 function setGoalGalleryPagerPosition(animate = true) {
   const pager = $("goalGalleryViewPager");
-  if (!pager) return;
+  const stage = $("goalGalleryStage");
+  if (!pager || !stage) return;
+
+  goalGalleryPageWidth = stage.clientWidth || window.innerWidth;
 
   if (!animate) {
     pager.classList.add("no-transition");
@@ -2802,7 +2806,7 @@ function setGoalGalleryPagerPosition(animate = true) {
     pager.classList.remove("no-transition");
   }
 
-  pager.style.transform = `translateX(${-currentGalleryIndex * 100}%)`;
+  pager.style.transform = `translate3d(${-currentGalleryIndex * goalGalleryPageWidth}px, 0, 0)`;
 
   if (!animate) {
     window.requestAnimationFrame(function() {
@@ -2929,7 +2933,8 @@ function handleGoalGalleryTouchMove(event) {
     limitedDeltaX = deltaX * 0.28;
   }
 
-  pager.style.transform = `translateX(calc(${-currentGalleryIndex * 100}% + ${limitedDeltaX}px))`;
+  goalGalleryPageWidth = $("goalGalleryStage").clientWidth || window.innerWidth;
+  pager.style.transform = `translate3d(${(-currentGalleryIndex * goalGalleryPageWidth) + limitedDeltaX}px, 0, 0)`;
 }
 
 function handleGoalGalleryTouchEnd(event) {
