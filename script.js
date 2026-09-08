@@ -19,6 +19,12 @@ let currentGalleryIndex = 0;
 let currentGalleryImageUrl = "";
 let goalGalleryTouchStartX = 0;
 let goalGalleryTouchStartY = 0;
+
+let currentGalleryImageUrls = [];
+let goalGalleryTouchStartTime = 0;
+let goalGalleryTouchTracking = false;
+let goalGalleryTouchDragging = false;
+
 let editGoalImageUrls = [];
 
 let isReorderMode = false;
@@ -4252,7 +4258,9 @@ document.addEventListener("DOMContentLoaded", function() {
   
   on("openMenuButton", "click", openMenu);
   on("menuOverlay", "click", closeMenuFromOverlay);
-
+  
+  on("goalGalleryBackButton", "click", goBack);
+  
   on("openGoalOptionsButton", "click", function(event) {
     event.stopPropagation();
     openGoalOptionsMenu();
