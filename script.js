@@ -2757,6 +2757,12 @@ function clearCurrentGalleryImageUrl() {
     URL.revokeObjectURL(currentGalleryImageUrl);
     currentGalleryImageUrl = "";
   }
+
+  currentGalleryImageUrls.forEach(function(url) {
+    URL.revokeObjectURL(url);
+  });
+
+  currentGalleryImageUrls = [];
 }
 
 async function openGoalGallery(goalId, addToHistory = true) {
@@ -2772,12 +2778,45 @@ async function openGoalGallery(goalId, addToHistory = true) {
   showScreen("goalGalleryScreen", addToHistory);
 }
 
+function updateGoalGalleryCounter() {
+  const counter = $("goalGalleryFloatingCounter");
+  if (!counter) return;
+
+  if (!currentGalleryImages || currentGalleryImages.length === 0) {
+    counter.textContent = "";
+    counter.classList.add("hidden");
+    return;
+  }
+
+  counter.textContent = `${currentGalleryIndex + 1}/${currentGalleryImages.length}`;
+  counter.classList.remove("hidden");
+}
+
+function setGoalGalleryPagerPosition(animate = true) {
+  const pager = $("goalGalleryViewPager");
+  if (!pager) return;
+
+  if (!animate) {
+    pager.classList.add("no-transition");
+  } else {
+    pager.classList.remove("no-transition");
+  }
+
+  pager.style.transform = `translateX(${-currentGalleryIndex * 100}%)`;
+
+  if (!animate) {
+    window.requestAnimationFrame(function() {
+      pager.classList.remove("no-transition");
+    });
+  }
+
+  updateGoalGalleryCounter();
+}
+
 async function renderGoalGallery() {
   const goal = getCurrentGoal();
 
   if (!goal || !$("goalGalleryStage")) return;
-
-  $("goalGalleryTitle").textContent = goal.title;
 
   clearCurrentGalleryImageUrl();
 
@@ -2790,33 +2829,36 @@ async function renderGoalGallery() {
   if (currentGalleryImages.length === 0) {
     currentGalleryIndex = 0;
 
-    $("goalGalleryCounter").textContent = "0/0";
     $("goalGalleryStage").innerHTML = `
       <div class="goal-gallery-empty">
-        אין עדיין תמונות<br>
-        הוספה תתבצע מתוך עריכת האתגר
+        אין עדיין תמונות
       </div>
     `;
-
-    if ($("galleryPrevButton")) $("galleryPrevButton").disabled = true;
-    if ($("galleryNextButton")) $("galleryNextButton").disabled = true;
 
     return;
   }
 
   currentGalleryIndex = clampNumber(currentGalleryIndex, 0, currentGalleryImages.length - 1);
 
-  const imageRecord = currentGalleryImages[currentGalleryIndex];
-  currentGalleryImageUrl = createGoalImageUrl(imageRecord);
-
-  $("goalGalleryCounter").textContent = `${currentGalleryIndex + 1}/${currentGalleryImages.length}`;
+  currentGalleryImageUrls = currentGalleryImages.map(function(imageRecord) {
+    return createGoalImageUrl(imageRecord);
+  });
 
   $("goalGalleryStage").innerHTML = `
-    <img class="goal-gallery-image" src="${currentGalleryImageUrl}" alt="תמונה של האתגר">
+    <div class="goal-gallery-floating-counter" id="goalGalleryFloatingCounter"></div>
+
+    <div class="goal-gallery-viewpager no-transition" id="goalGalleryViewPager">
+      ${currentGalleryImageUrls.map(function(imageUrl) {
+        return `
+          <div class="goal-gallery-page">
+            <img class="goal-gallery-image" src="${imageUrl}" alt="תמונה של האתגר">
+          </div>
+        `;
+      }).join("")}
+    </div>
   `;
 
-  if ($("galleryPrevButton")) $("galleryPrevButton").disabled = currentGalleryIndex === 0;
-  if ($("galleryNextButton")) $("galleryNextButton").disabled = currentGalleryIndex >= currentGalleryImages.length - 1;
+  setGoalGalleryPagerPosition(false);
 }
 
 function moveGoalGallery(direction) {
@@ -2831,33 +2873,102 @@ function moveGoalGallery(direction) {
   if (nextIndex === currentGalleryIndex) return;
 
   currentGalleryIndex = nextIndex;
-  renderGoalGallery();
+  setGoalGalleryPagerPosition(true);
 }
 
 function handleGoalGalleryTouchStart(event) {
   if (!event.touches || event.touches.length !== 1) return;
+  if (!currentGalleryImages || currentGalleryImages.length <= 1) return;
 
   const touch = event.touches[0];
 
   goalGalleryTouchStartX = touch.clientX;
   goalGalleryTouchStartY = touch.clientY;
+  goalGalleryTouchStartTime = Date.now();
+  goalGalleryTouchTracking = true;
+  goalGalleryTouchDragging = false;
 }
 
-function handleGoalGalleryTouchEnd(event) {
-  if (!event.changedTouches || event.changedTouches.length !== 1) return;
+function handleGoalGalleryTouchMove(event) {
+  if (!goalGalleryTouchTracking) return;
+  if (!event.touches || event.touches.length !== 1) return;
 
-  const touch = event.changedTouches[0];
+  const pager = $("goalGalleryViewPager");
+  if (!pager) return;
+
+  const touch = event.touches[0];
   const deltaX = touch.clientX - goalGalleryTouchStartX;
   const deltaY = touch.clientY - goalGalleryTouchStartY;
 
-  if (Math.abs(deltaX) < 60) return;
-  if (Math.abs(deltaX) < Math.abs(deltaY) * 1.4) return;
+  const absX = Math.abs(deltaX);
+  const absY = Math.abs(deltaY);
 
-  if (deltaX < 0) {
-    moveGoalGallery(1);
-  } else {
-    moveGoalGallery(-1);
+  if (!goalGalleryTouchDragging) {
+    if (absY > 18 && absY > absX * 1.15) {
+      goalGalleryTouchTracking = false;
+      return;
+    }
+
+    if (absX < 10 || absX < absY * 1.25) {
+      return;
+    }
+
+    goalGalleryTouchDragging = true;
+    pager.classList.add("no-transition");
   }
+
+  event.preventDefault();
+
+  let limitedDeltaX = deltaX;
+
+  if (currentGalleryIndex === 0 && deltaX > 0) {
+    limitedDeltaX = deltaX * 0.28;
+  }
+
+  if (currentGalleryIndex === currentGalleryImages.length - 1 && deltaX < 0) {
+    limitedDeltaX = deltaX * 0.28;
+  }
+
+  pager.style.transform = `translateX(calc(${-currentGalleryIndex * 100}% + ${limitedDeltaX}px))`;
+}
+
+function handleGoalGalleryTouchEnd(event) {
+  if (!goalGalleryTouchTracking) return;
+
+  const pager = $("goalGalleryViewPager");
+
+  goalGalleryTouchTracking = false;
+
+  if (!pager || !event.changedTouches || event.changedTouches.length !== 1) {
+    goalGalleryTouchDragging = false;
+    setGoalGalleryPagerPosition(true);
+    return;
+  }
+
+  const touch = event.changedTouches[0];
+  const deltaX = touch.clientX - goalGalleryTouchStartX;
+  const elapsedTime = Date.now() - goalGalleryTouchStartTime;
+
+  const absX = Math.abs(deltaX);
+  const fastSwipe = elapsedTime < 280 && absX > 55;
+  const passedEnough = absX > window.innerWidth * 0.23;
+
+  pager.classList.remove("no-transition");
+
+  if ((fastSwipe || passedEnough) && deltaX < 0 && currentGalleryIndex < currentGalleryImages.length - 1) {
+    currentGalleryIndex++;
+  } else if ((fastSwipe || passedEnough) && deltaX > 0 && currentGalleryIndex > 0) {
+    currentGalleryIndex--;
+  }
+
+  goalGalleryTouchDragging = false;
+  setGoalGalleryPagerPosition(true);
+}
+
+function handleGoalGalleryTouchCancel() {
+  goalGalleryTouchTracking = false;
+  goalGalleryTouchDragging = false;
+  setGoalGalleryPagerPosition(true);
 }
 
 function clearEditGoalImageUrls() {
@@ -4253,7 +4364,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
   if ($("goalGalleryStage")) {
     $("goalGalleryStage").addEventListener("touchstart", handleGoalGalleryTouchStart, { passive: true });
+    $("goalGalleryStage").addEventListener("touchmove", handleGoalGalleryTouchMove, { passive: false });
     $("goalGalleryStage").addEventListener("touchend", handleGoalGalleryTouchEnd, { passive: true });
+    $("goalGalleryStage").addEventListener("touchcancel", handleGoalGalleryTouchCancel, { passive: true });
   }
   
   on("openMenuButton", "click", openMenu);
