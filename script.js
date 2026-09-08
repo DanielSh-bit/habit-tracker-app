@@ -2932,7 +2932,7 @@ async function renderEditGoalImages() {
   }
 
   if (images.length === 0) {
-    list.innerHTML = `<div class="edit-goal-images-empty">אין עדיין תמונות</div>`;
+    list.innerHTML = "";
     return;
   }
 
