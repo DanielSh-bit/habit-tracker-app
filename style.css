@@ -3904,3 +3904,21 @@ body.interactive-page-swipe .bottom-tab-bar {
   left: 72px !important;
   z-index: 850 !important;
 }
+
+/* Move gallery back arrow higher */
+.goal-gallery-back-button {
+  top: calc(env(safe-area-inset-top, 0px) + 10px) !important;
+  left: 16px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  z-index: 950 !important;
+}
+
+/* Move gallery image counter to top-right */
+.goal-gallery-floating-counter {
+  top: calc(env(safe-area-inset-top, 0px) + 18px) !important;
+  right: 18px !important;
+  left: auto !important;
+  z-index: 940 !important;
+  direction: ltr !important;
+}
