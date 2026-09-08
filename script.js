@@ -13,7 +13,7 @@ let currentGoalId = null;
 let rankingSortMode = "current";
 let rankingRenderId = 0;
 let calendarDate = new Date();
-f
+
 let currentGalleryImages = [];
 let currentGalleryIndex = 0;
 let currentGalleryImageUrl = "";
