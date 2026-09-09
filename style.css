@@ -4522,3 +4522,23 @@ body.interactive-page-swipe .bottom-tab-bar {
 .progress-ring-center strong {
   font-size: 1.08rem !important;
 }
+
+/* Force home progress ring position */
+.home-header {
+  position: relative !important;
+}
+
+.home-progress-ring {
+  position: absolute !important;
+  top: 50% !important;
+  right: 86px !important;
+  transform: translateY(-50%) !important;
+  margin: 0 !important;
+  width: 86px !important;
+  height: 86px !important;
+}
+
+.progress-ring-svg {
+  width: 86px !important;
+  height: 86px !important;
+}
