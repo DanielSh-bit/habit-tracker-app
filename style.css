@@ -4273,3 +4273,83 @@ body.interactive-page-swipe .bottom-tab-bar {
   padding: 0 !important;
   margin: 0 !important;
 }
+
+/* Fix: do not let ✓ layout affect normal counter + / - screen */
+.modern-goal-card.goal-detail-counter:not(.goal-detail-counter-completed) {
+  position: static !important;
+  height: auto !important;
+  min-height: min(620px, calc(100dvh - 150px)) !important;
+  max-height: none !important;
+  padding-bottom: 0 !important;
+  overflow: visible !important;
+}
+
+.modern-goal-card.goal-detail-counter:not(.goal-detail-counter-completed) .simple-goal-header {
+  margin-bottom: 0 !important;
+}
+
+.modern-goal-card.goal-detail-counter:not(.goal-detail-counter-completed) .counter-action-area {
+  position: static !important;
+  margin-top: auto !important;
+}
+
+/* Apply the low ✓ layout only to yes/no and completed counter */
+.modern-goal-card.goal-detail-yesno,
+.modern-goal-card.goal-detail-counter-completed {
+  position: relative !important;
+  height: calc(100dvh - 170px) !important;
+  min-height: calc(100dvh - 170px) !important;
+  max-height: calc(100dvh - 170px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.modern-goal-card.goal-detail-yesno .yesno-action-area,
+.modern-goal-card.goal-detail-counter-completed .yesno-action-area {
+  position: absolute !important;
+  left: 44px !important;
+  right: 44px !important;
+  bottom: 54px !important;
+  width: auto !important;
+  height: 74px !important;
+  min-height: 74px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+}
+
+.modern-goal-card.goal-detail-yesno .yesno-bottom-bar,
+.modern-goal-card.goal-detail-yesno .yesno-bottom-strip,
+.modern-goal-card.goal-detail-counter-completed .yesno-bottom-bar,
+.modern-goal-card.goal-detail-counter-completed .yesno-bottom-strip {
+  width: 100% !important;
+  height: 74px !important;
+  min-height: 74px !important;
+  border-radius: 26px !important;
+  background: rgba(15, 23, 42, 0.16) !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+}
+
+.modern-goal-card.goal-detail-yesno .yesno-bottom-check,
+.modern-goal-card.goal-detail-yesno .yesno-toggle-button,
+.modern-goal-card.goal-detail-counter-completed .yesno-bottom-check,
+.modern-goal-card.goal-detail-counter-completed .yesno-toggle-button {
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #16a34a !important;
+  font-size: 4.25rem !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
