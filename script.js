@@ -3127,13 +3127,15 @@ function getDailyProgressPercent() {
   const goalWeight = 100 / todayGoals.length;
 
   const totalProgress = todayGoals.reduce(function(sum, goal) {
-    const value = Number(goal.records[todayKey] || 0);
+    const value = getTodayValue(goal);
 
     if (goal.type === "yesno") {
       return sum + (value >= 1 ? goalWeight : 0);
     }
 
-    const counterProgress = clampNumber(value / Number(goal.target || 1), 0, 1);
+    const target = Number(goal.target || 1);
+    const counterProgress = clampNumber(value / target, 0, 1);
+
     return sum + counterProgress * goalWeight;
   }, 0);
 
@@ -3544,6 +3546,7 @@ function setTodayValue(goalId, newValue) {
   saveGoals(goals);
   syncPlayer();
   updateAppBadge();
+  updateHomeProgressRing();
 }
 
 const originalSetTodayValue = setTodayValue;
