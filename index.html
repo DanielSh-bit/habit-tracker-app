@@ -32,6 +32,17 @@
           <h1>LevelUp</h1>
           <p>Home Screen</p>
         </div>
+
+        <div class="home-progress-ring" id="homeProgressRing" aria-label="Daily progress">
+          <svg class="progress-ring-svg" viewBox="0 0 120 120">
+            <circle class="progress-ring-track" cx="60" cy="60" r="44"></circle>
+            <circle class="progress-ring-fill" id="progressRingFill" cx="60" cy="60" r="44"></circle>
+          </svg>
+      
+          <div class="progress-ring-center">
+            <strong id="progressPercentValue">0%</strong>
+          </div>
+        </div>
       </header>
 
       <section class="goals-grid" id="goalsGrid"></section>
