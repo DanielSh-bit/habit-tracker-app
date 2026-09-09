@@ -4205,3 +4205,71 @@ body.interactive-page-swipe .bottom-tab-bar {
   padding: 0 !important;
   margin: 0 !important;
 }
+
+/* HARD FIX: force ✓ to low Y position */
+.modern-goal-card {
+  position: relative !important;
+  height: calc(100dvh - 170px) !important;
+  min-height: calc(100dvh - 170px) !important;
+  max-height: calc(100dvh - 170px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+/* Put the yes/no area near the real bottom of the card */
+.modern-goal-card .yesno-action-area {
+  position: absolute !important;
+  left: 44px !important;
+  right: 44px !important;
+  bottom: 54px !important;
+  width: auto !important;
+  height: 74px !important;
+  min-height: 74px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+}
+
+/* Gray horizontal wrapper */
+.modern-goal-card .yesno-bottom-bar,
+.modern-goal-card .yesno-bottom-strip {
+  width: 100% !important;
+  height: 74px !important;
+  min-height: 74px !important;
+  border-radius: 26px !important;
+  background: rgba(15, 23, 42, 0.16) !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+}
+
+/* If the button is directly inside yesno-action-area */
+.modern-goal-card .yesno-action-area > button {
+  width: 100% !important;
+  height: 74px !important;
+  border-radius: 26px !important;
+  background: rgba(15, 23, 42, 0.16) !important;
+}
+
+/* The ✓ itself */
+.modern-goal-card .yesno-bottom-check,
+.modern-goal-card .yesno-toggle-button,
+.modern-goal-card .yesno-bottom-strip .yesno-main-button.yesno-toggle-button,
+.modern-goal-card .yesno-bottom-bar .yesno-bottom-check {
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #16a34a !important;
+  font-size: 4.25rem !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
