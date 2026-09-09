@@ -3922,3 +3922,74 @@ body.interactive-page-swipe .bottom-tab-bar {
   z-index: 940 !important;
   direction: ltr !important;
 }
+
+/* Bottom action dock inside goal screen */
+.goal-bottom-action-dock {
+  margin-top: auto !important;
+  width: 100% !important;
+  min-height: 118px !important;
+  border-radius: 34px !important;
+  background: rgba(255, 255, 255, 0.46) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 16px 34px rgba(15, 23, 42, 0.14) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 28px !important;
+  padding: 16px 18px !important;
+  box-sizing: border-box !important;
+}
+
+.yesno-action-area.goal-bottom-action-dock {
+  padding-bottom: 16px !important;
+}
+
+.yesno-toggle-button {
+  width: 88px !important;
+  height: 88px !important;
+  border-radius: 28px !important;
+  font-size: 3.8rem !important;
+  line-height: 1 !important;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.42), transparent 36%),
+    linear-gradient(135deg, #22c55e, #16a34a) !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 16px 32px rgba(22, 163, 74, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+}
+
+.yesno-toggle-button.is-completed {
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.48), transparent 36%),
+    linear-gradient(135deg, #facc15, #f97316) !important;
+  color: #111827 !important;
+  box-shadow:
+    0 16px 32px rgba(249, 115, 22, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.48) !important;
+}
+
+.counter-action-dock .big-add-button {
+  width: 92px !important;
+  height: 92px !important;
+  border-radius: 30px !important;
+  font-size: 4.2rem !important;
+}
+
+.counter-action-dock .small-minus-button {
+  width: 74px !important;
+  height: 74px !important;
+  border-radius: 26px !important;
+  font-size: 3.1rem !important;
+}
+
+.modern-goal-card {
+  min-height: min(650px, calc(100dvh - 132px)) !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.yesno-disabled-button {
+  opacity: 0.42 !important;
+}
