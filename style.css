@@ -4422,3 +4422,8 @@ body.interactive-page-swipe .bottom-tab-bar {
   position: static !important;
   margin-top: auto !important;
 }
+
+/* Raise + / − slightly above bottom of the goal card */
+.modern-goal-card.goal-detail-counter:not(.goal-detail-counter-completed) .counter-action-area {
+  margin-bottom: 14px !important;
+}
