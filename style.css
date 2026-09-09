@@ -4404,3 +4404,21 @@ body.interactive-page-swipe .bottom-tab-bar {
   align-items: center !important;
   justify-content: center !important;
 }
+
+/* Make normal counter goal card same height as ✓ goal card */
+.modern-goal-card.goal-detail-counter:not(.goal-detail-counter-completed) {
+  height: calc(100dvh - 132px) !important;
+  min-height: calc(100dvh - 132px) !important;
+  max-height: calc(100dvh - 132px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
+  overflow: hidden !important;
+  padding-bottom: 0 !important;
+}
+
+/* Keep + / − behavior and design unchanged */
+.modern-goal-card.goal-detail-counter:not(.goal-detail-counter-completed) .counter-action-area {
+  position: static !important;
+  margin-top: auto !important;
+}
