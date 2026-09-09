@@ -4427,3 +4427,76 @@ body.interactive-page-swipe .bottom-tab-bar {
 .modern-goal-card.goal-detail-counter:not(.goal-detail-counter-completed) .counter-action-area {
   margin-bottom: 14px !important;
 }
+
+/* Home daily progress ring */
+.home-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+}
+
+.home-header .brand {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.home-progress-ring {
+  width: 72px;
+  height: 72px;
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-ring-svg {
+  width: 72px;
+  height: 72px;
+  transform: rotate(-90deg);
+  overflow: visible;
+}
+
+.progress-ring-track,
+.progress-ring-fill {
+  fill: none;
+  stroke-width: 13;
+  cx: 60;
+  cy: 60;
+  r: 44;
+}
+
+.progress-ring-track {
+  stroke: rgba(15, 23, 42, 0.16);
+}
+
+.progress-ring-fill {
+  stroke: #22f3ff;
+  stroke-linecap: round;
+  stroke-dasharray: 276.46;
+  stroke-dashoffset: 276.46;
+  filter:
+    drop-shadow(0 0 7px rgba(34, 243, 255, 0.85))
+    drop-shadow(0 0 16px rgba(168, 85, 247, 0.55));
+  transition: stroke-dashoffset 0.28s ease;
+}
+
+.progress-ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-ring-center strong {
+  font-size: 1rem;
+  font-weight: 1000;
+  color: #111827;
+  letter-spacing: -0.04em;
+}
+
+.home-header .menu-button {
+  flex: 0 0 auto !important;
+}
