@@ -3241,8 +3241,10 @@ function openGoal(goalId, addToHistory = true) {
   if (!requiredToday) {
     if (goal.type === "yesno") {
       actionHtml = `
-        <section class="yesno-bottom-strip yesno-action-area">
-          <button class="yesno-main-button yesno-toggle-button yesno-disabled-button" disabled>✓</button>
+        <section class="yesno-action-area">
+          <div class="yesno-bottom-bar">
+            <button class="yesno-bottom-check yesno-disabled-button" disabled>✓</button>
+          </div>
         </section>
       `;
     } else {
@@ -3255,14 +3257,18 @@ function openGoal(goalId, addToHistory = true) {
     }
   } else if (goal.type === "yesno") {
     actionHtml = `
-      <section class="yesno-bottom-strip yesno-action-area">
-        <button class="yesno-main-button yesno-toggle-button ${value >= 1 ? "is-completed" : ""}" id="toggleYesNoButton">✓</button>
+      <section class="yesno-action-area">
+        <div class="yesno-bottom-bar">
+          <button class="yesno-bottom-check" id="toggleYesNoButton">✓</button>
+        </div>
       </section>
     `;
   } else if (value >= goal.target) {
     actionHtml = `
-      <section class="yesno-bottom-strip yesno-action-area">
-        <button class="yesno-main-button yesno-toggle-button is-completed" id="counterCompleteUndoButton">✓</button>
+      <section class="yesno-action-area">
+        <div class="yesno-bottom-bar">
+          <button class="yesno-bottom-check" id="counterCompleteUndoButton">✓</button>
+        </div>
       </section>
     `;
   } else {
