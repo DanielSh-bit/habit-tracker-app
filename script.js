@@ -3281,7 +3281,7 @@ function openGoal(goalId, addToHistory = true) {
   }
 
   $("goalDetails").innerHTML = `
-  <div class="detail-card modern-goal-card ${requiredToday ? "" : "detail-not-required-today"}">
+  <div class="detail-card modern-goal-card goal-detail-${goal.type} ${goal.type === "counter" && value >= goal.target ? "goal-detail-counter-completed" : ""} ${requiredToday ? "" : "detail-not-required-today"}">
     <header class="simple-goal-header">
       <div class="goal-heading-text">
         <h1>${escapeHtml(goal.title)}</h1>
