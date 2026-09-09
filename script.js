@@ -3110,6 +3110,53 @@ async function handleEditGoalImageInput(event) {
   }
 }
 
+function getDailyProgressPercent() {
+  const todayKey = getTodayKey();
+
+  const todayGoals = goals.filter(function(goal) {
+    return (
+      compareDateKeys(goal.createdAt || todayKey, todayKey) <= 0 &&
+      isGoalRequiredToday(goal)
+    );
+  });
+
+  if (todayGoals.length === 0) {
+    return 0;
+  }
+
+  const goalWeight = 100 / todayGoals.length;
+
+  const totalProgress = todayGoals.reduce(function(sum, goal) {
+    const value = Number(goal.records[todayKey] || 0);
+
+    if (goal.type === "yesno") {
+      return sum + (value >= 1 ? goalWeight : 0);
+    }
+
+    const counterProgress = clampNumber(value / Number(goal.target || 1), 0, 1);
+    return sum + counterProgress * goalWeight;
+  }, 0);
+
+  return Math.round(clampNumber(totalProgress, 0, 100));
+}
+
+function updateHomeProgressRing() {
+  const ring = $("progressRingFill");
+  const percentText = $("progressPercentValue");
+
+  if (!ring || !percentText) return;
+
+  const percent = getDailyProgressPercent();
+  const radius = 44;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - percent / 100);
+
+  ring.style.strokeDasharray = String(circumference);
+  ring.style.strokeDashoffset = String(offset);
+
+  percentText.textContent = `${percent}%`;
+}
+
 function renderHome() {
   const goalsGrid = $("goalsGrid");
   if (!goalsGrid) return;
@@ -3211,6 +3258,7 @@ function renderHome() {
 
     goalsGrid.appendChild(card);
   });
+  updateHomeProgressRing();
 }
 
 function openGoal(goalId, addToHistory = true) {
