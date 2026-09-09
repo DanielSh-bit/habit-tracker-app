@@ -4353,3 +4353,54 @@ body.interactive-page-swipe .bottom-tab-bar {
   padding: 0 !important;
   margin: 0 !important;
 }
+
+/* Final yes/no ✓ bar tuning */
+.modern-goal-card.goal-detail-yesno,
+.modern-goal-card.goal-detail-counter-completed {
+  height: calc(100dvh - 132px) !important;
+  min-height: calc(100dvh - 132px) !important;
+  max-height: calc(100dvh - 132px) !important;
+  padding-bottom: 0 !important;
+}
+
+/* wider + lower action area */
+.modern-goal-card.goal-detail-yesno .yesno-action-area,
+.modern-goal-card.goal-detail-counter-completed .yesno-action-area {
+  left: 20px !important;
+  right: 20px !important;
+  bottom: 20px !important;
+  height: 76px !important;
+  min-height: 76px !important;
+}
+
+/* black full-width rectangle */
+.modern-goal-card.goal-detail-yesno .yesno-bottom-bar,
+.modern-goal-card.goal-detail-yesno .yesno-bottom-strip,
+.modern-goal-card.goal-detail-counter-completed .yesno-bottom-bar,
+.modern-goal-card.goal-detail-counter-completed .yesno-bottom-strip {
+  width: 100% !important;
+  height: 76px !important;
+  min-height: 76px !important;
+  border-radius: 26px !important;
+  background: rgba(0, 0, 0, 0.82) !important;
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+/* make the actual button cover the whole black rectangle */
+.modern-goal-card.goal-detail-yesno .yesno-bottom-check,
+.modern-goal-card.goal-detail-yesno .yesno-toggle-button,
+.modern-goal-card.goal-detail-counter-completed .yesno-bottom-check,
+.modern-goal-card.goal-detail-counter-completed .yesno-toggle-button {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 26px !important;
+  background: transparent !important;
+  color: #22c55e !important;
+  font-size: 4.15rem !important;
+  line-height: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
