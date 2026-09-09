@@ -3241,35 +3241,33 @@ function openGoal(goalId, addToHistory = true) {
   if (!requiredToday) {
     if (goal.type === "yesno") {
       actionHtml = `
-        <section class="yesno-action-area">
-          <button class="yesno-main-button yesno-disabled-button" disabled>✕</button>
+        <section class="goal-bottom-action-dock yesno-action-area">
+          <button class="yesno-main-button yesno-toggle-button yesno-disabled-button" disabled>✓</button>
         </section>
       `;
     } else {
       actionHtml = `
-        <section class="counter-action-area">
+        <section class="goal-bottom-action-dock counter-action-area counter-action-dock">
           <button class="big-add-button disabled-goal-button" disabled>+</button>
           <button class="small-minus-button disabled-goal-button" disabled>−</button>
         </section>
       `;
     }
   } else if (goal.type === "yesno") {
-    if (value >= 1) {
-      actionHtml = `
-        <section class="yesno-action-area">
-          <button class="yesno-main-button yesno-cancel-button" id="cancelYesNoButton">✕</button>
-        </section>
-      `;
-    } else {
-      actionHtml = `
-        <section class="yesno-action-area">
-          <button class="yesno-main-button yesno-complete-button" id="markYesNoButton">✓</button>
-        </section>
-      `;
-    }
-  } else {
     actionHtml = `
-      <section class="counter-action-area">
+      <section class="goal-bottom-action-dock yesno-action-area">
+        <button class="yesno-main-button yesno-toggle-button ${value >= 1 ? "is-completed" : ""}" id="toggleYesNoButton">✓</button>
+      </section>
+    `;
+  } else if (value >= goal.target) {
+    actionHtml = `
+      <section class="goal-bottom-action-dock yesno-action-area">
+        <button class="yesno-main-button yesno-toggle-button is-completed" id="counterCompleteUndoButton">✓</button>
+      </section>
+    `;
+  }else {
+    actionHtml = `
+      <section class="goal-bottom-action-dock counter-action-area counter-action-dock">
         <button class="big-add-button" id="increaseButton">+</button>
         <button class="small-minus-button" id="decreaseButton">−</button>
       </section>
@@ -3305,17 +3303,17 @@ function openGoal(goalId, addToHistory = true) {
   if (!requiredToday) return;
 
   if (goal.type === "yesno") {
-    on("markYesNoButton", "click", function() {
-      setTodayValue(goal.id, 1);
-      openGoal(goal.id, false);
-    });
-
-    on("cancelYesNoButton", "click", function() {
-      setTodayValue(goal.id, 0);
+    on("toggleYesNoButton", "click", function() {
+      setTodayValue(goal.id, value >= 1 ? 0 : 1);
       openGoal(goal.id, false);
     });
   } else {
-        on("increaseButton", "click", function() {
+    on("counterCompleteUndoButton", "click", function() {
+      setTodayValue(goal.id, Math.max(0, value - 1));
+      openGoal(goal.id, false);
+    });
+    
+      on("increaseButton", "click", function() {
       const increaseButton = $("increaseButton");
       const newValue = Math.min(goal.target, value + 1);
 
