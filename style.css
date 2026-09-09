@@ -4500,3 +4500,25 @@ body.interactive-page-swipe .bottom-tab-bar {
 .home-header .menu-button {
   flex: 0 0 auto !important;
 }
+
+/* Bigger and more centered daily progress ring */
+.home-progress-ring {
+  width: 86px !important;
+  height: 86px !important;
+  margin-right: 28px !important;
+  margin-left: 6px !important;
+}
+
+.progress-ring-svg {
+  width: 86px !important;
+  height: 86px !important;
+}
+
+.progress-ring-track,
+.progress-ring-fill {
+  stroke-width: 14 !important;
+}
+
+.progress-ring-center strong {
+  font-size: 1.08rem !important;
+}
