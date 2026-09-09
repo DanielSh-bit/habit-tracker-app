@@ -3241,13 +3241,13 @@ function openGoal(goalId, addToHistory = true) {
   if (!requiredToday) {
     if (goal.type === "yesno") {
       actionHtml = `
-        <section class="goal-bottom-action-dock yesno-action-area">
+        <section class="yesno-bottom-strip yesno-action-area">
           <button class="yesno-main-button yesno-toggle-button yesno-disabled-button" disabled>✓</button>
         </section>
       `;
     } else {
       actionHtml = `
-        <section class="goal-bottom-action-dock counter-action-area counter-action-dock">
+        <section class="counter-action-area">
           <button class="big-add-button disabled-goal-button" disabled>+</button>
           <button class="small-minus-button disabled-goal-button" disabled>−</button>
         </section>
@@ -3255,19 +3255,19 @@ function openGoal(goalId, addToHistory = true) {
     }
   } else if (goal.type === "yesno") {
     actionHtml = `
-      <section class="goal-bottom-action-dock yesno-action-area">
+      <section class="yesno-bottom-strip yesno-action-area">
         <button class="yesno-main-button yesno-toggle-button ${value >= 1 ? "is-completed" : ""}" id="toggleYesNoButton">✓</button>
       </section>
     `;
   } else if (value >= goal.target) {
     actionHtml = `
-      <section class="goal-bottom-action-dock yesno-action-area">
+      <section class="yesno-bottom-strip yesno-action-area">
         <button class="yesno-main-button yesno-toggle-button is-completed" id="counterCompleteUndoButton">✓</button>
       </section>
     `;
-  }else {
+  } else {
     actionHtml = `
-      <section class="goal-bottom-action-dock counter-action-area counter-action-dock">
+      <section class="counter-action-area">
         <button class="big-add-button" id="increaseButton">+</button>
         <button class="small-minus-button" id="decreaseButton">−</button>
       </section>
