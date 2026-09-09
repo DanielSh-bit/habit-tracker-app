@@ -3149,12 +3149,22 @@ function updateHomeProgressRing() {
   if (!ring || !percentText) return;
 
   const percent = getDailyProgressPercent();
+
+  const hue = 225 - percent * 0.35;
+  const lightness = 38 + percent * 0.42;
+  const ringColor = `hsl(${hue}, 100%, ${lightness}%)`;
+
   const radius = 44;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - percent / 100);
 
   ring.style.strokeDasharray = String(circumference);
   ring.style.strokeDashoffset = String(offset);
+  ring.style.stroke = ringColor;
+  ring.style.filter = `
+    drop-shadow(0 0 8px ${ringColor})
+    drop-shadow(0 0 18px ${ringColor})
+  `;
 
   percentText.textContent = `${percent}%`;
 }
