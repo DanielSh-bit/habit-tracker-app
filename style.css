@@ -4085,3 +4085,64 @@ body.interactive-page-swipe .bottom-tab-bar {
 .yesno-disabled-button {
   opacity: 0.38;
 }
+
+/* Final fix: move ✓ much lower + smaller gray strip */
+.modern-goal-card {
+  min-height: min(720px, calc(100dvh - 116px)) !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* pushes the action area to the bottom of the card */
+.modern-goal-card .simple-goal-header {
+  margin-bottom: auto !important;
+}
+
+/* the bottom area itself */
+.modern-goal-card .yesno-action-area {
+  margin-top: auto !important;
+  width: 100% !important;
+  min-height: 76px !important;
+  height: 76px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+}
+
+/* rectangular wrapper around the ✓ */
+.yesno-bottom-bar,
+.yesno-bottom-strip {
+  width: 100% !important;
+  height: 76px !important;
+  min-height: 76px !important;
+  border-radius: 26px !important;
+  background: rgba(15, 23, 42, 0.13) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    0 10px 22px rgba(15, 23, 42, 0.08) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* the ✓ itself */
+.yesno-bottom-check,
+.yesno-toggle-button,
+.yesno-bottom-strip .yesno-main-button.yesno-toggle-button {
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #16a34a !important;
+  font-size: 4.35rem !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
