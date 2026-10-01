@@ -4439,7 +4439,12 @@ document.addEventListener("DOMContentLoaded", function() {
     $("goalGalleryStage").addEventListener("touchcancel", handleGoalGalleryTouchCancel, { passive: true });
   }
   
-  on("openMenuButton", "click", openMenu);
+  on("openMenuButton", "click", function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    openMenu();
+  });
+  
   on("menuOverlay", "click", closeMenuFromOverlay);
   
   on("goalGalleryBackButton", "click", goBack);
