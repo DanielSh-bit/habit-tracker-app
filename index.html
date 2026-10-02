@@ -56,6 +56,9 @@
     <aside class="side-menu" id="sideMenu">
       <nav class="side-menu-options">
         <button id="openRankingFromMenu">דירוג</button>
+        <button type="button" id="openDailyCalendarFromMenu">
+          לוח שנה
+        </button>
         <button id="openAddFromMenu">הוספת אתגר</button>
         <button id="openRenameFromMenu">שינוי שם</button>
         <button id="openAdminFromMenu">ניהול</button>
@@ -298,6 +301,24 @@
       </section>
     </section>
 
+    <section class="screen" id="dailyCalendarScreen">
+      <div class="goal-info-screen">
+        <header class="goal-info-header">
+          <h1>לוח שנה</h1>
+        </header>
+    
+        <section class="goal-info-card">
+          <div class="calendar-header">
+            <button type="button" id="dailyPrevMonthButton">‹</button>
+            <h2 id="dailyCalendarMonthTitle"></h2>
+            <button type="button" id="dailyNextMonthButton">›</button>
+          </div>
+    
+          <div class="calendar-grid" id="dailyCalendarGrid"></div>
+        </section>
+      </div>
+    </section>
+    
     <section class="screen ranking-screen" id="rankingScreen">
       <button class="back-button" data-target="homeScreen">←</button>
 
