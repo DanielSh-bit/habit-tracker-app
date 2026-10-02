@@ -4594,3 +4594,28 @@ body.interactive-page-swipe .bottom-tab-bar {
   content: none !important;
   display: none !important;
 }
+
+/* Final position for the single home menu button */
+#homeScreen #openMenuButton {
+  position: fixed !important;
+  top: calc(env(safe-area-inset-top, 0px) + 22px) !important;
+  right: 22px !important;
+  z-index: 2000 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 56px !important;
+  height: 56px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #000000 !important;
+  font-size: 2.7rem !important;
+  line-height: 1 !important;
+  pointer-events: auto !important;
+}
