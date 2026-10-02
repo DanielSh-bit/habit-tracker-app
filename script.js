@@ -13,6 +13,7 @@ let currentGoalId = null;
 let rankingSortMode = "current";
 let rankingRenderId = 0;
 let calendarDate = new Date();
+let dailyCalendarDate = new Date();
 
 let currentGalleryImages = [];
 let currentGalleryIndex = 0;
@@ -2264,6 +2265,12 @@ function showScreen(screenId, addToHistory = true) {
     if (goal) applyBackground(getTodayProgress(goal));
   }
 
+  if (screenId === "dailyCalendarScreen") {
+    currentGoalId = null;
+    applyGeneralBackground();
+    renderDailyCalendar();
+  }
+  
   if (screenId === "goalGalleryScreen") {
     const goal = getCurrentGoal();
 
@@ -3167,6 +3174,82 @@ function updateHomeProgressRing() {
   `;
 
   percentText.textContent = `${percent}%`;
+}
+
+function renderDailyCalendar() {
+  const calendarGrid = $("dailyCalendarGrid");
+  if (!calendarGrid) return;
+
+  const currentAllowedMonth = getCurrentMonthStart();
+  const todayKey = getTodayKey();
+
+  dailyCalendarDate.setDate(1);
+  dailyCalendarDate.setHours(0, 0, 0, 0);
+
+  if (isAfterMonth(dailyCalendarDate, currentAllowedMonth)) {
+    dailyCalendarDate = new Date(currentAllowedMonth);
+  }
+
+  const monthName = dailyCalendarDate.toLocaleDateString("he-IL", { month: "long" });
+  const yearName = dailyCalendarDate.toLocaleDateString("he-IL", { year: "numeric" });
+
+  if ($("dailyCalendarMonthTitle")) {
+    $("dailyCalendarMonthTitle").textContent = `${monthName}  ${yearName}`;
+  }
+
+  if ($("dailyNextMonthButton")) {
+    $("dailyNextMonthButton").disabled = isSameMonth(dailyCalendarDate, currentAllowedMonth);
+  }
+
+  calendarGrid.innerHTML = "";
+
+  const weekDays = ["א", "ב", "ג", "ד", "ה", "ו", "ש"];
+
+  weekDays.forEach(function(day) {
+    const dayName = document.createElement("div");
+    dayName.className = "calendar-day-name";
+    dayName.textContent = day;
+    calendarGrid.appendChild(dayName);
+  });
+
+  const year = dailyCalendarDate.getFullYear();
+  const month = dailyCalendarDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const startOffset = firstDay.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  for (let i = 0; i < startOffset; i++) {
+    const emptyCell = document.createElement("div");
+    emptyCell.className = "calendar-cell empty";
+    calendarGrid.appendChild(emptyCell);
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const dateKey = formatDateKey(date);
+    const future = isFutureDate(date);
+    const success = isFullSuccessOnDate(dateKey);
+
+    const cell = document.createElement("div");
+    cell.className = "calendar-cell";
+    cell.innerHTML = `<span>${day}</span>`;
+
+    if (future) {
+      cell.classList.add("future");
+    } else if (success) {
+      cell.classList.add("success");
+      cell.innerHTML += `<strong>✓</strong>`;
+    } else {
+      cell.classList.add("fail");
+      cell.innerHTML += `<strong>✕</strong>`;
+    }
+
+    if (dateKey === todayKey) {
+      cell.classList.add("today");
+    }
+
+    calendarGrid.appendChild(cell);
+  }
 }
 
 function renderHome() {
@@ -4418,6 +4501,20 @@ document.addEventListener("DOMContentLoaded", function() {
     showScreen("homeScreen");
   });
 
+  on("openDailyCalendarFromMenu", "click", function() {
+    openScreenFromMenu("dailyCalendarScreen");
+  });
+
+  on("dailyPrevMonthButton", "click", function() {
+    dailyCalendarDate.setMonth(dailyCalendarDate.getMonth() - 1);
+    renderDailyCalendar();
+  });
+  
+  on("dailyNextMonthButton", "click", function() {
+    dailyCalendarDate.setMonth(dailyCalendarDate.getMonth() + 1);
+    renderDailyCalendar();
+  });
+  
   on("bottomScoresTab", "click", function() {
     showScreen("rankingScreen");
   });
