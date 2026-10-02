@@ -303,6 +303,9 @@
 
     <section class="screen" id="dailyCalendarScreen">
       <div class="goal-info-screen">
+        <button type="button" class="daily-calendar-back-button" id="dailyCalendarBackButton" aria-label="חזרה לבית">
+          ←
+        </button>
         <header class="goal-info-header">
           <h1>לוח שנה</h1>
         </header>
@@ -433,15 +436,20 @@
     </section>
   </main>
 
-  <nav class="bottom-tab-bar" id="bottomTabBar">
+  <nav class="bottom-tab-bar bottom-tab-bar-3" id="bottomTabBar">
     <button type="button" class="bottom-tab-button" id="bottomGoalsTab">
       <span class="bottom-tab-icon">🎯</span>
       <span>goal</span>
     </button>
-
+  
     <button type="button" class="bottom-tab-button" id="bottomScoresTab">
       <span class="bottom-tab-icon">🏆</span>
       <span>Scores</span>
+    </button>
+  
+    <button type="button" class="bottom-tab-button" id="bottomCalendarTab">
+      <span class="bottom-tab-icon">📅</span>
+      <span>Calendar</span>
     </button>
   </nav>
   
