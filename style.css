@@ -4619,3 +4619,15 @@ body.interactive-page-swipe .bottom-tab-bar {
   line-height: 1 !important;
   pointer-events: auto !important;
 }
+
+/* Final menu icon size and position adjustment */
+#homeScreen #openMenuButton {
+  top: calc(env(safe-area-inset-top, 0px) + 34px) !important;
+  right: 24px !important;
+
+  width: 44px !important;
+  height: 44px !important;
+
+  font-size: 2.05rem !important;
+  line-height: 1 !important;
+}
