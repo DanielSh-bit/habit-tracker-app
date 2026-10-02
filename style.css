@@ -4598,7 +4598,7 @@ body.interactive-page-swipe .bottom-tab-bar {
 /* Final position for the single home menu button */
 #homeScreen #openMenuButton {
   position: fixed !important;
-  top: calc(env(safe-area-inset-top, 0px) + 22px) !important;
+  top: calc(env(safe-area-inset-top, 0px) + 36px) !important;
   right: 22px !important;
   z-index: 2000 !important;
 
