@@ -4631,3 +4631,15 @@ body.interactive-page-swipe .bottom-tab-bar {
   font-size: 2.05rem !important;
   line-height: 1 !important;
 }
+
+/* Interactive swipe support for daily calendar screen */
+#dailyCalendarScreen.swipe-screen-layer {
+  display: block !important;
+  overflow-y: auto !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+#dailyCalendarScreen.swipe-screen-layer::-webkit-scrollbar {
+  display: none !important;
+}
