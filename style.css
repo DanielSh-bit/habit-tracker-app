@@ -4565,3 +4565,24 @@ body.interactive-page-swipe .bottom-tab-bar {
 .home-progress-ring * {
   pointer-events: none !important;
 }
+
+/* Fix duplicate fake hamburger icon */
+.home-header > .menu-button:not(#openMenuButton),
+.home-header > button:not(#openMenuButton).menu-button,
+.home-header .hamburger-button,
+.home-header .menu-icon {
+  display: none !important;
+}
+
+/* Keep only the real functional menu button */
+#openMenuButton {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: absolute !important;
+  top: 50% !important;
+  right: 0 !important;
+  transform: translateY(-50%) !important;
+  z-index: 2000 !important;
+  pointer-events: auto !important;
+}
