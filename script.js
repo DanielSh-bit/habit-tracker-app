@@ -2570,6 +2570,11 @@ function goBack() {
     return;
   }
 
+  if (isDailyDayDetailOpen()) {
+    closeDailyDayDetail();
+    return;
+  }
+  
   if (isDayDetailOpen()) {
     closeDayDetail();
     return;
@@ -3221,6 +3226,106 @@ function updateHomeProgressRing() {
   percentText.textContent = `${percent}%`;
 }
 
+function getDailyProgressPercentForDate(dateKey) {
+  const dayGoals = goals.filter(function(goal) {
+    return (
+      compareDateKeys(goal.createdAt || dateKey, dateKey) <= 0 &&
+      isGoalRequiredOnDate(goal, dateKey)
+    );
+  });
+
+  if (dayGoals.length === 0) {
+    return 0;
+  }
+
+  const goalWeight = 100 / dayGoals.length;
+
+  const totalProgress = dayGoals.reduce(function(sum, goal) {
+    const value = Number((goal.records || {})[dateKey] || 0);
+
+    if (goal.type === "yesno") {
+      return sum + (value >= 1 ? goalWeight : 0);
+    }
+
+    const target = Number(goal.target || 1);
+    const counterProgress = clampNumber(value / target, 0, 1);
+
+    return sum + counterProgress * goalWeight;
+  }, 0);
+
+  return Math.round(clampNumber(totalProgress, 0, 100));
+}
+
+function getCompletedStreakEndingOnDate(dateKey) {
+  if (!isFullSuccessOnDate(dateKey)) {
+    return 0;
+  }
+
+  let streak = 0;
+  let checkedDate = parseDateKey(dateKey);
+
+  while (true) {
+    const checkedKey = formatDateKey(checkedDate);
+
+    if (!isFullSuccessOnDate(checkedKey)) {
+      break;
+    }
+
+    streak++;
+    checkedDate = addDays(checkedDate, -1);
+  }
+
+  return streak;
+}
+
+function isDailyDayDetailOpen() {
+  return $("dailyDayOverlay") && $("dailyDayOverlay").classList.contains("open");
+}
+
+function closeDailyDayDetail() {
+  if ($("dailyDayOverlay")) {
+    $("dailyDayOverlay").classList.remove("open");
+  }
+}
+
+function openDailyDayDetail(dateKey) {
+  const modal = $("dailyDayModal");
+  const overlay = $("dailyDayOverlay");
+
+  if (!modal || !overlay) return;
+
+  const date = parseDateKey(dateKey);
+  const dayText = date.toLocaleDateString("he-IL", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+
+  const success = isFullSuccessOnDate(dateKey);
+
+  if (success) {
+    const streak = getCompletedStreakEndingOnDate(dateKey);
+
+    modal.innerHTML = `
+      <h2>${dayText}</h2>
+      <p>היום הושלם בהצלחה</p>
+      <strong>${streak}</strong>
+      <span>רצף ימים באותו יום</span>
+    `;
+  } else {
+    const percent = getDailyProgressPercentForDate(dateKey);
+
+    modal.innerHTML = `
+      <h2>${dayText}</h2>
+      <p>היום לא הושלם</p>
+      <strong>${percent}%</strong>
+      <span>התקדמות יומית</span>
+    `;
+  }
+
+  overlay.classList.add("open");
+}
+
 function renderDailyCalendar() {
   const calendarGrid = $("dailyCalendarGrid");
   if (!calendarGrid) return;
@@ -3275,12 +3380,14 @@ function renderDailyCalendar() {
     const future = isFutureDate(date);
     const success = isFullSuccessOnDate(dateKey);
 
-    const cell = document.createElement("div");
-    cell.className = "calendar-cell";
+    const cell = document.createElement("button");
+    cell.type = "button";
+    cell.className = "calendar-cell daily-calendar-day-cell";
     cell.innerHTML = `<span>${day}</span>`;
 
     if (future) {
       cell.classList.add("future");
+      cell.disabled = true;
     } else if (success) {
       cell.classList.add("success");
       cell.innerHTML += `<strong>✓</strong>`;
@@ -3291,6 +3398,12 @@ function renderDailyCalendar() {
 
     if (dateKey === todayKey) {
       cell.classList.add("today");
+    }
+
+    if (!future) {
+      cell.addEventListener("click", function() {
+        openDailyDayDetail(dateKey);
+      });
     }
 
     calendarGrid.appendChild(cell);
@@ -4558,6 +4671,12 @@ document.addEventListener("DOMContentLoaded", function() {
   on("dailyNextMonthButton", "click", function() {
     dailyCalendarDate.setMonth(dailyCalendarDate.getMonth() + 1);
     renderDailyCalendar();
+  });
+
+  on("dailyDayOverlay", "click", function(event) {
+    if (event.target.id === "dailyDayOverlay") {
+      closeDailyDayDetail();
+    }
   });
   
   on("bottomScoresTab", "click", function() {
