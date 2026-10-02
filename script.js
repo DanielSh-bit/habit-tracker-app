@@ -2209,14 +2209,20 @@ function updateBottomTabs() {
   const bar = $("bottomTabBar");
   const goalsTab = $("bottomGoalsTab");
   const scoresTab = $("bottomScoresTab");
+  const calendarTab = $("bottomCalendarTab");
 
-  if (!bar || !goalsTab || !scoresTab) return;
+  if (!bar || !goalsTab || !scoresTab || !calendarTab) return;
 
-  const shouldShow = currentScreenId === "homeScreen" || currentScreenId === "rankingScreen";
+  const shouldShow =
+    currentScreenId === "homeScreen" ||
+    currentScreenId === "rankingScreen" ||
+    currentScreenId === "dailyCalendarScreen";
 
   bar.classList.toggle("visible", shouldShow);
+
   goalsTab.classList.toggle("active", currentScreenId === "homeScreen");
   scoresTab.classList.toggle("active", currentScreenId === "rankingScreen");
+  calendarTab.classList.toggle("active", currentScreenId === "dailyCalendarScreen");
 }
 
 function showScreen(screenId, addToHistory = true) {
@@ -2436,10 +2442,10 @@ function beginInteractiveSwipe(direction) {
     quickSwipeTargetScreen = "rankingScreen";
   } else if (currentScreenId === "rankingScreen" && direction === 1) {
     quickSwipeTargetScreen = "homeScreen";
-  } else if (currentScreenId === "homeScreen" && direction === 1) {
+  } else if (currentScreenId === "rankingScreen" && direction === -1) {
     quickSwipeTargetScreen = "dailyCalendarScreen";
-  } else if (currentScreenId === "dailyCalendarScreen" && direction === -1) {
-    quickSwipeTargetScreen = "homeScreen";
+  } else if (currentScreenId === "dailyCalendarScreen" && direction === 1) {
+    quickSwipeTargetScreen = "rankingScreen";
   } else {
     resetInteractiveSwipeState();
     return;
@@ -2493,10 +2499,10 @@ function handleQuickSwipeMove(event) {
       beginInteractiveSwipe(-1);
     } else if (currentScreenId === "rankingScreen" && deltaX > 0) {
       beginInteractiveSwipe(1);
-    } else if (currentScreenId === "homeScreen" && deltaX > 0) {
-      beginInteractiveSwipe(1);
-    } else if (currentScreenId === "dailyCalendarScreen" && deltaX < 0) {
+    } else if (currentScreenId === "rankingScreen" && deltaX < 0) {
       beginInteractiveSwipe(-1);
+    } else if (currentScreenId === "dailyCalendarScreen" && deltaX > 0) {
+      beginInteractiveSwipe(1);
     } else {
       resetInteractiveSwipeState();
       return;
@@ -2594,6 +2600,11 @@ function goBack() {
     return;
   }
 
+  if (currentScreenId === "dailyCalendarScreen") {
+    showScreen("homeScreen");
+    return;
+  }
+  
   if (currentScreenId === "homeScreen") return;
 
   history.back();
@@ -4553,6 +4564,14 @@ document.addEventListener("DOMContentLoaded", function() {
     showScreen("rankingScreen");
   });
 
+  on("dailyCalendarBackButton", "click", function() {
+    showScreen("homeScreen");
+  });
+  
+  on("bottomCalendarTab", "click", function() {
+    showScreen("dailyCalendarScreen");
+  });
+  
   updateBottomTabs();
 
   on("galleryPrevButton", "click", function() {
