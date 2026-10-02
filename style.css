@@ -4674,3 +4674,172 @@ body.interactive-page-swipe .bottom-tab-bar {
   font-weight: 1000;
   line-height: 1;
 }
+
+/* Daily calendar screen redesign */
+.daily-calendar-screen {
+  min-height: 100dvh;
+  padding: calc(env(safe-area-inset-top, 0px) + 54px) 16px 108px;
+  box-sizing: border-box;
+  direction: rtl;
+}
+
+.daily-calendar-title {
+  margin: 0 0 12px;
+  text-align: right;
+}
+
+.daily-calendar-title h1 {
+  margin: 0;
+  font-size: 2.35rem;
+  font-weight: 1000;
+  color: #111827;
+}
+
+.daily-calendar-back-button {
+  position: fixed !important;
+  top: calc(env(safe-area-inset-top, 0px) + 20px) !important;
+  left: 18px !important;
+  z-index: 950 !important;
+  width: 48px !important;
+  height: 48px !important;
+  border: none !important;
+  background: transparent !important;
+  color: #000000 !important;
+  font-size: 2.25rem !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+}
+
+.daily-calendar-month-card {
+  height: 72px;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 16px 34px rgba(15, 23, 42, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+  display: grid;
+  grid-template-columns: 56px 1fr 56px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  margin-bottom: 18px;
+  direction: ltr;
+}
+
+.daily-calendar-month-card h2 {
+  margin: 0;
+  text-align: center;
+  color: #111827;
+  font-size: 1.45rem;
+  font-weight: 1000;
+  direction: rtl;
+}
+
+.daily-calendar-month-card button {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #ffffff;
+  font-size: 2.2rem;
+  font-weight: 1000;
+  line-height: 1;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.16);
+}
+
+.daily-calendar-month-card button:disabled {
+  background: rgba(15, 23, 42, 0.16);
+  color: rgba(15, 23, 42, 0.36);
+  box-shadow: none;
+}
+
+.daily-calendar-card {
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow:
+    0 18px 36px rgba(15, 23, 42, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  padding: 20px 12px 22px;
+  box-sizing: border-box;
+}
+
+#dailyCalendarGrid {
+  gap: 10px;
+}
+
+#dailyCalendarGrid .calendar-cell {
+  border: none;
+  font-family: inherit;
+}
+
+#dailyCalendarGrid .daily-calendar-day-cell {
+  cursor: pointer;
+}
+
+#dailyCalendarGrid .daily-calendar-day-cell:disabled {
+  cursor: default;
+}
+
+/* Daily day detail modal */
+.daily-day-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  box-sizing: border-box;
+}
+
+.daily-day-overlay.open {
+  display: flex;
+}
+
+.daily-day-modal {
+  width: min(330px, 100%);
+  min-height: 230px;
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  padding: 28px 24px;
+  box-sizing: border-box;
+  text-align: center;
+  direction: rtl;
+  color: #111827;
+}
+
+.daily-day-modal h2 {
+  margin: 0 0 14px;
+  font-size: 1.45rem;
+  font-weight: 1000;
+}
+
+.daily-day-modal p {
+  margin: 0 0 18px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.62);
+}
+
+.daily-day-modal strong {
+  display: block;
+  font-size: 4rem;
+  font-weight: 1000;
+  line-height: 1;
+  color: #111827;
+}
+
+.daily-day-modal span {
+  display: block;
+  margin-top: 10px;
+  font-size: 1rem;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.58);
+}
