@@ -302,23 +302,30 @@
     </section>
 
     <section class="screen" id="dailyCalendarScreen">
-      <div class="goal-info-screen">
+      <div class="daily-calendar-screen">
         <button type="button" class="daily-calendar-back-button" id="dailyCalendarBackButton" aria-label="חזרה לבית">
           ←
         </button>
-        <header class="goal-info-header">
+    
+        <header class="daily-calendar-title">
           <h1>לוח שנה</h1>
         </header>
     
-        <section class="goal-info-card">
-          <div class="calendar-header">
-            <button type="button" id="dailyPrevMonthButton">‹</button>
-            <h2 id="dailyCalendarMonthTitle"></h2>
-            <button type="button" id="dailyNextMonthButton">›</button>
-          </div>
+        <section class="daily-calendar-month-card">
+          <button type="button" id="dailyPrevMonthButton">‹</button>
     
+          <h2 id="dailyCalendarMonthTitle"></h2>
+    
+          <button type="button" id="dailyNextMonthButton">›</button>
+        </section>
+    
+        <section class="daily-calendar-card">
           <div class="calendar-grid" id="dailyCalendarGrid"></div>
         </section>
+      </div>
+    
+      <div class="daily-day-overlay" id="dailyDayOverlay">
+        <article class="daily-day-modal" id="dailyDayModal"></article>
       </div>
     </section>
     
