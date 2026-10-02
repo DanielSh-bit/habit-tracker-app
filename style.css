@@ -4643,3 +4643,34 @@ body.interactive-page-swipe .bottom-tab-bar {
 #dailyCalendarScreen.swipe-screen-layer::-webkit-scrollbar {
   display: none !important;
 }
+
+/* Bottom tab bar with 3 tabs */
+.bottom-tab-bar-3 {
+  grid-template-columns: 1fr 1fr 1fr !important;
+}
+
+.bottom-tab-bar-3 .bottom-tab-button {
+  min-width: 0 !important;
+}
+
+.bottom-tab-bar-3 .bottom-tab-icon {
+  font-size: 22px !important;
+}
+
+.bottom-tab-bar-3 .bottom-tab-button span:last-child {
+  font-size: 12px !important;
+}
+
+/* Daily calendar back button */
+.daily-calendar-back-button {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 24px);
+  left: 20px;
+  z-index: 900;
+  border: none;
+  background: transparent;
+  color: #000000;
+  font-size: 2.4rem;
+  font-weight: 1000;
+  line-height: 1;
+}
