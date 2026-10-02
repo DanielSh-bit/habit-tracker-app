@@ -2300,7 +2300,11 @@ function isQuickRankingSwipeAllowed(event) {
   if (isDeleteConfirmOpen()) return false;
   if (isDayDetailOpen()) return false;
 
-  if (currentScreenId !== "homeScreen" && currentScreenId !== "rankingScreen") {
+  if (
+    currentScreenId !== "homeScreen" &&
+    currentScreenId !== "rankingScreen" &&
+    currentScreenId !== "dailyCalendarScreen"
+  ) {
     return false;
   }
 
@@ -2322,47 +2326,60 @@ function isQuickRankingSwipeAllowed(event) {
 function getInteractiveSwipeScreens() {
   return {
     homeScreen: $("homeScreen"),
-    rankingScreen: $("rankingScreen")
+    rankingScreen: $("rankingScreen"),
+    dailyCalendarScreen: $("dailyCalendarScreen")
   };
 }
 
-function prepareInteractiveSwipeScreens() {
-  const screens = getInteractiveSwipeScreens();
-  if (!screens.homeScreen || !screens.rankingScreen) return false;
+function renderScreenForSwipe(screenId) {
+  if (screenId === "homeScreen") {
+    renderHome();
+  }
 
-  document.body.classList.add("interactive-page-swipe");
-
-  screens.homeScreen.classList.add("active", "swipe-screen-layer");
-  screens.rankingScreen.classList.add("active", "swipe-screen-layer");
-
-  screens.homeScreen.classList.remove("swipe-animate");
-  screens.rankingScreen.classList.remove("swipe-animate");
-
-  if (quickSwipeTargetScreen === "rankingScreen") {
+  if (screenId === "rankingScreen") {
     renderRanking();
   }
 
-  if (quickSwipeTargetScreen === "homeScreen") {
-    renderHome();
+  if (screenId === "dailyCalendarScreen") {
+    renderDailyCalendar();
   }
+}
+
+function prepareInteractiveSwipeScreens() {
+  const fromScreen = $(quickSwipeFromScreen);
+  const targetScreen = $(quickSwipeTargetScreen);
+
+  if (!fromScreen || !targetScreen) return false;
+
+  document.body.classList.add("interactive-page-swipe");
+
+  fromScreen.classList.add("active", "swipe-screen-layer");
+  targetScreen.classList.add("active", "swipe-screen-layer");
+
+  fromScreen.classList.remove("swipe-animate");
+  targetScreen.classList.remove("swipe-animate");
+
+  renderScreenForSwipe(quickSwipeTargetScreen);
 
   return true;
 }
 
 function setInteractiveSwipeProgress(progress) {
-  const screens = getInteractiveSwipeScreens();
-  if (!screens.homeScreen || !screens.rankingScreen) return;
+  const fromScreen = $(quickSwipeFromScreen);
+  const targetScreen = $(quickSwipeTargetScreen);
+
+  if (!fromScreen || !targetScreen) return;
 
   quickSwipeProgress = clampNumber(progress, 0, 1);
 
   if (quickSwipeDirection === -1) {
-    screens.homeScreen.style.transform = `translateX(${-quickSwipeProgress * 100}%)`;
-    screens.rankingScreen.style.transform = `translateX(${(1 - quickSwipeProgress) * 100}%)`;
+    fromScreen.style.transform = `translateX(${-quickSwipeProgress * 100}%)`;
+    targetScreen.style.transform = `translateX(${(1 - quickSwipeProgress) * 100}%)`;
   }
 
   if (quickSwipeDirection === 1) {
-    screens.rankingScreen.style.transform = `translateX(${quickSwipeProgress * 100}%)`;
-    screens.homeScreen.style.transform = `translateX(${(-1 + quickSwipeProgress) * 100}%)`;
+    fromScreen.style.transform = `translateX(${quickSwipeProgress * 100}%)`;
+    targetScreen.style.transform = `translateX(${(-1 + quickSwipeProgress) * 100}%)`;
   }
 }
 
@@ -2398,11 +2415,11 @@ function cleanupInteractiveSwipe(finalScreenId, addToHistory) {
 }
 
 function animateInteractiveSwipeTo(progress, finalScreenId, addToHistory) {
-  const screens = getInteractiveSwipeScreens();
+  const fromScreen = $(quickSwipeFromScreen);
+  const targetScreen = $(quickSwipeTargetScreen);
 
-  Object.values(screens).forEach(function(screen) {
-    if (screen) screen.classList.add("swipe-animate");
-  });
+  if (fromScreen) fromScreen.classList.add("swipe-animate");
+  if (targetScreen) targetScreen.classList.add("swipe-animate");
 
   setInteractiveSwipeProgress(progress);
 
@@ -2414,7 +2431,20 @@ function animateInteractiveSwipeTo(progress, finalScreenId, addToHistory) {
 function beginInteractiveSwipe(direction) {
   quickSwipeDirection = direction;
   quickSwipeFromScreen = currentScreenId;
-  quickSwipeTargetScreen = direction === -1 ? "rankingScreen" : "homeScreen";
+
+  if (currentScreenId === "homeScreen" && direction === -1) {
+    quickSwipeTargetScreen = "rankingScreen";
+  } else if (currentScreenId === "rankingScreen" && direction === 1) {
+    quickSwipeTargetScreen = "homeScreen";
+  } else if (currentScreenId === "homeScreen" && direction === 1) {
+    quickSwipeTargetScreen = "dailyCalendarScreen";
+  } else if (currentScreenId === "dailyCalendarScreen" && direction === -1) {
+    quickSwipeTargetScreen = "homeScreen";
+  } else {
+    resetInteractiveSwipeState();
+    return;
+  }
+
   quickSwipeDragging = prepareInteractiveSwipeScreens();
 
   if (!quickSwipeDragging) {
@@ -2463,6 +2493,10 @@ function handleQuickSwipeMove(event) {
       beginInteractiveSwipe(-1);
     } else if (currentScreenId === "rankingScreen" && deltaX > 0) {
       beginInteractiveSwipe(1);
+    } else if (currentScreenId === "homeScreen" && deltaX > 0) {
+      beginInteractiveSwipe(1);
+    } else if (currentScreenId === "dailyCalendarScreen" && deltaX < 0) {
+      beginInteractiveSwipe(-1);
     } else {
       resetInteractiveSwipeState();
       return;
