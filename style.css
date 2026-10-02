@@ -4586,3 +4586,11 @@ body.interactive-page-swipe .bottom-tab-bar {
   z-index: 2000 !important;
   pointer-events: auto !important;
 }
+
+#openMenuButton::before,
+#openMenuButton::after,
+.menu-button::before,
+.menu-button::after {
+  content: none !important;
+  display: none !important;
+}
