@@ -56,6 +56,32 @@ const COUNTER_EMOJI_POOL = [
   "🎮", "🎲", "🎸", "🎧", "🎬", "📚", "🧠", "💡", "🔋", "🧲",
   "🧨", "🔮", "🪄", "🪙", "💰", "🎁", "🔔", "📣", "🧡", "💜"
 ];
+const AVATAR_LEVEL_EMOJIS = [
+  "🪱", "🦟", "🪰", "🪳", "🐛",
+  "🐜", "🦗", "🐌", "🪲", "🐞",
+  "🦋", "🐝", "🕷️", "🦎", "🐭",
+  "🪼", "🍤", "🐡", "🐠", "🐟",
+  "🦀", "🦞", "🐙", "🐸", "🐢",
+  "🐹", "🐁", "🐿️", "🦔", "🐤",
+  "🐦", "🐦‍⬛", "🐧", "🐤", "🪿",
+  "🦆", "🐔", "🐓", "🕊️", "🐇",
+  "🦜", "🦚", "🦢", "🦩", "🐈",
+  "🐩", "🐶", "🐖", "🐑", "🐏",
+  "🦙", "🦃", "🦤", "🦊", "🦝",
+  "🦥", "🦫", "🦨", "🦡", "🐵",
+  "🐨", "🐼", "🦌", "🫎", "🦘",
+  "🫏", "🐴", "🐎", "🦉", "🦇",
+  "🐂", "🐄", "🐃", "🦬", "🐫",
+  "🦒", "🐗", "🐺", "🦂", "🐍",
+  "🐊", "🦅", "🐬", "🦭", "🦈",
+  "🐻", "🐻‍❄️", "🦧", "🦍", "🐆",
+  "🐅", "🦁", "🐋", "🦏", "🦛",
+  "🐘", "🦣", "🦖", "🦕", "🐉"
+];
+
+const SELECTED_AVATAR_LEVEL_KEY = "levelup_selected_avatar_level";
+const MAX_AVATAR_LEVEL = 100;
+const MAX_LEVEL_STREAK_DAYS = 365;
 let isAdminUnlocked = false;
 let lastChallengeActionElement = null;
 let lastChallengeActionTime = 0;
@@ -3408,6 +3434,100 @@ function renderDailyCalendar() {
 
     calendarGrid.appendChild(cell);
   }
+}
+
+function buildLevelDayRequirements() {
+  const requirements = [0];
+
+  for (let level = 1; level <= MAX_AVATAR_LEVEL; level++) {
+    let requiredDays = 0;
+
+    if (level <= 5) {
+      requiredDays = level - 1;
+    } else if (level <= 10) {
+      requiredDays = 4 + (level - 5) * 2;
+    } else {
+      const progress = (level - 10) / 90;
+      const curvedProgress = Math.pow(progress, 1.35);
+      requiredDays = Math.round(14 + (MAX_LEVEL_STREAK_DAYS - 14) * curvedProgress);
+    }
+
+    if (level === MAX_AVATAR_LEVEL) {
+      requiredDays = MAX_LEVEL_STREAK_DAYS;
+    }
+
+    const previousRequiredDays = requirements[level - 1] || 0;
+    requiredDays = Math.max(requiredDays, previousRequiredDays + 1);
+
+    if (level === 1) {
+      requiredDays = 0;
+    }
+
+    requirements[level] = requiredDays;
+  }
+
+  requirements[MAX_AVATAR_LEVEL] = MAX_LEVEL_STREAK_DAYS;
+
+  return requirements;
+}
+
+const LEVEL_DAY_REQUIREMENTS = buildLevelDayRequirements();
+
+function getLevelForBestStreak(bestStreak) {
+  const streak = Math.max(0, Number(bestStreak) || 0);
+
+  let level = 1;
+
+  for (let index = 1; index <= MAX_AVATAR_LEVEL; index++) {
+    if (streak >= LEVEL_DAY_REQUIREMENTS[index]) {
+      level = index;
+    } else {
+      break;
+    }
+  }
+
+  return level;
+}
+
+function getUserLevel() {
+  return getLevelForBestStreak(getUserBestScore());
+}
+
+function getAvatarEmojiByLevel(level) {
+  const cleanLevel = clampNumber(level, 1, MAX_AVATAR_LEVEL);
+  return AVATAR_LEVEL_EMOJIS[cleanLevel - 1] || AVATAR_LEVEL_EMOJIS[0];
+}
+
+function getSelectedAvatarLevel() {
+  const userLevel = getUserLevel();
+  const savedLevel = Number(localStorage.getItem(SELECTED_AVATAR_LEVEL_KEY) || userLevel);
+
+  if (!Number.isInteger(savedLevel)) {
+    return userLevel;
+  }
+
+  return clampNumber(savedLevel, 1, userLevel);
+}
+
+function saveSelectedAvatarLevel(level) {
+  const userLevel = getUserLevel();
+  const cleanLevel = clampNumber(level, 1, userLevel);
+
+  localStorage.setItem(SELECTED_AVATAR_LEVEL_KEY, String(cleanLevel));
+}
+
+function getUserAvatarEmoji() {
+  return getAvatarEmojiByLevel(getSelectedAvatarLevel());
+}
+
+function getNextLevelRequiredDays() {
+  const currentLevel = getUserLevel();
+
+  if (currentLevel >= MAX_AVATAR_LEVEL) {
+    return MAX_LEVEL_STREAK_DAYS;
+  }
+
+  return LEVEL_DAY_REQUIREMENTS[currentLevel + 1];
 }
 
 function renderHome() {
