@@ -2282,6 +2282,12 @@ function showScreen(screenId, addToHistory = true) {
     renderRanking();
   }
 
+  if (screenId === "profileScreen") {
+    currentGoalId = null;
+    applyGeneralBackground();
+    renderProfile();
+  }
+
   if (screenId === "addScreen" || screenId === "nameScreen" || screenId === "renameScreen" || screenId === "adminScreen") {
     currentGoalId = null;
     applyGeneralBackground();
