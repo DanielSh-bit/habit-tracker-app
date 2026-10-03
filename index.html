@@ -59,6 +59,9 @@
         <button type="button" id="openDailyCalendarFromMenu">
           לוח שנה
         </button>
+        <button type="button" id="openProfileFromMenu">
+          פרופיל
+        </button>
         <button id="openAddFromMenu">הוספת אתגר</button>
         <button id="openRenameFromMenu">שינוי שם</button>
         <button id="openAdminFromMenu">ניהול</button>
@@ -441,12 +444,66 @@
         </div>
       </div>
     </section>
+
+    <section class="screen" id="profileScreen">
+      <div class="profile-screen">
+        <button type="button" class="profile-back-button" id="profileBackButton" aria-label="חזרה לבית">
+          ←
+        </button>
+    
+        <div class="profile-money-pill" id="profileMoneyPill">
+          💰 <span id="profileCoinsValue">0</span>
+        </div>
+    
+        <header class="profile-header">
+          <h1>Profile</h1>
+        </header>
+    
+        <section class="profile-avatar-card">
+          <div class="profile-avatar-circle" id="profileAvatarCircle">
+            🪱
+          </div>
+    
+          <div class="profile-level-text">
+            Level <strong id="profileLevelValue">1</strong>
+          </div>
+    
+          <div class="profile-level-progress">
+            <div class="profile-level-progress-fill" id="profileLevelProgressFill"></div>
+          </div>
+    
+          <p class="profile-next-level-text" id="profileNextLevelText"></p>
+        </section>
+    
+        <section class="profile-name-preview-card">
+          <div class="profile-name-preview" id="profileNamePreview">
+            משתמש
+          </div>
+        </section>
+    
+        <section class="profile-actions">
+          <button type="button" id="openAvatarCollectionButton">
+            Avatars
+          </button>
+    
+          <button type="button" id="openNameStylesButton">
+            Name Styles
+          </button>
+        </section>
+      </div>
+    </section>
+    
   </main>
 
-  <nav class="bottom-tab-bar bottom-tab-bar-3" id="bottomTabBar">
+  <nav class="bottom-tab-bar bottom-tab-bar-4" id="bottomTabBar">
     <button type="button" class="bottom-tab-button" id="bottomGoalsTab">
       <span class="bottom-tab-icon">🎯</span>
       <span>goal</span>
+    </button>
+  
+    <button type="button" class="bottom-tab-button" id="bottomProfileTab">
+      <span class="bottom-tab-icon">👤</span>
+      <span>Profile</span>
     </button>
   
     <button type="button" class="bottom-tab-button" id="bottomScoresTab">
