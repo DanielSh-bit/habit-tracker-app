@@ -2234,19 +2234,22 @@ function openGoalScreenFromOptions(screenName) {
 function updateBottomTabs() {
   const bar = $("bottomTabBar");
   const goalsTab = $("bottomGoalsTab");
+  const profileTab = $("bottomProfileTab");
   const scoresTab = $("bottomScoresTab");
   const calendarTab = $("bottomCalendarTab");
 
-  if (!bar || !goalsTab || !scoresTab || !calendarTab) return;
+  if (!bar || !goalsTab || !profileTab || !scoresTab || !calendarTab) return;
 
   const shouldShow =
     currentScreenId === "homeScreen" ||
+    currentScreenId === "profileScreen" ||
     currentScreenId === "rankingScreen" ||
     currentScreenId === "dailyCalendarScreen";
 
   bar.classList.toggle("visible", shouldShow);
 
   goalsTab.classList.toggle("active", currentScreenId === "homeScreen");
+  profileTab.classList.toggle("active", currentScreenId === "profileScreen");
   scoresTab.classList.toggle("active", currentScreenId === "rankingScreen");
   calendarTab.classList.toggle("active", currentScreenId === "dailyCalendarScreen");
 }
@@ -3530,6 +3533,57 @@ function getNextLevelRequiredDays() {
   return LEVEL_DAY_REQUIREMENTS[currentLevel + 1];
 }
 
+function renderProfile() {
+  const avatarCircle = $("profileAvatarCircle");
+  const levelValue = $("profileLevelValue");
+  const namePreview = $("profileNamePreview");
+  const nextLevelText = $("profileNextLevelText");
+  const progressFill = $("profileLevelProgressFill");
+  const coinsValue = $("profileCoinsValue");
+
+  if (!avatarCircle || !levelValue || !namePreview) return;
+
+  const level = getUserLevel();
+  const bestScore = getUserBestScore();
+  const nextRequiredDays = getNextLevelRequiredDays();
+  const currentRequiredDays = LEVEL_DAY_REQUIREMENTS[level] || 0;
+
+  avatarCircle.textContent = getUserAvatarEmoji();
+  levelValue.textContent = String(level);
+  namePreview.textContent = getPlayerName() || "משתמש";
+
+  if (coinsValue) {
+    coinsValue.textContent = "0";
+  }
+
+  if (level >= MAX_AVATAR_LEVEL) {
+    if (nextLevelText) {
+      nextLevelText.textContent = "הגעת לרמה המקסימלית";
+    }
+
+    if (progressFill) {
+      progressFill.style.width = "100%";
+    }
+
+    return;
+  }
+
+  const levelRange = Math.max(1, nextRequiredDays - currentRequiredDays);
+  const levelProgress = clampNumber(
+    ((bestScore - currentRequiredDays) / levelRange) * 100,
+    0,
+    100
+  );
+
+  if (progressFill) {
+    progressFill.style.width = `${levelProgress}%`;
+  }
+
+  if (nextLevelText) {
+    nextLevelText.textContent = `עוד ${Math.max(0, nextRequiredDays - bestScore)} ימי שיא לרמה ${level + 1}`;
+  }
+}
+
 function renderHome() {
   const goalsGrid = $("goalsGrid");
   if (!goalsGrid) return;
@@ -4779,10 +4833,26 @@ document.addEventListener("DOMContentLoaded", function() {
     showScreen("homeScreen");
   });
 
+  on("bottomProfileTab", "click", function() {
+    showScreen("profileScreen");
+  });
+  
   on("openDailyCalendarFromMenu", "click", function() {
     openScreenFromMenu("dailyCalendarScreen");
   });
 
+  on("openProfileFromMenu", "click", function() {
+    openScreenFromMenu("profileScreen");
+  });
+
+  on("openAvatarCollectionButton", "click", function() {
+    alert("בשלב הבא נפתח כאן את כל האווטארים");
+  });
+  
+  on("openNameStylesButton", "click", function() {
+    alert("בהמשך יהיו כאן עיצובי שמות");
+  });
+    
   on("dailyPrevMonthButton", "click", function() {
     dailyCalendarDate.setMonth(dailyCalendarDate.getMonth() - 1);
     renderDailyCalendar();
