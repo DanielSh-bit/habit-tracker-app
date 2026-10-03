@@ -3590,6 +3590,59 @@ function renderProfile() {
   }
 }
 
+function renderAvatarCollection() {
+  const grid = $("avatarCollectionGrid");
+  if (!grid) return;
+
+  const userLevel = getUserLevel();
+  const selectedLevel = getSelectedAvatarLevel();
+
+  grid.innerHTML = "";
+
+  AVATAR_LEVEL_EMOJIS.forEach(function(emoji, index) {
+    const level = index + 1;
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.className = "avatar-level-item";
+
+    if (level <= userLevel) {
+      button.innerHTML = `
+        <strong>${emoji}</strong>
+        <span>${level}</span>
+      `;
+
+      button.addEventListener("click", function() {
+        saveSelectedAvatarLevel(level);
+        renderProfile();
+        renderAvatarCollection();
+      });
+    } else {
+      button.classList.add("locked");
+      button.disabled = true;
+
+      button.innerHTML = `
+        <strong>?</strong>
+        <span>${level}</span>
+      `;
+    }
+
+    if (level === selectedLevel) {
+      button.classList.add("selected");
+    }
+
+    grid.appendChild(button);
+  });
+}
+
+function openAvatarCollection() {
+  const panel = $("avatarCollectionPanel");
+  if (!panel) return;
+
+  panel.classList.remove("hidden");
+  renderAvatarCollection();
+}
+
 function renderHome() {
   const goalsGrid = $("goalsGrid");
   if (!goalsGrid) return;
@@ -4852,7 +4905,7 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   on("openAvatarCollectionButton", "click", function() {
-    alert("בשלב הבא נפתח כאן את כל האווטארים");
+    openAvatarCollection();
   });
   
   on("openNameStylesButton", "click", function() {
