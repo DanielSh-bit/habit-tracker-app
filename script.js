@@ -5133,6 +5133,12 @@ document.addEventListener("DOMContentLoaded", function() {
     openGoalScreenFromOptions("info");
   });
 
+  on("testAddCoinsButton", "click", function() {
+    addUserCoins(10);
+    syncPlayer();
+    renderProfile();
+  });
+    
   on("openRankingFromMenu", "click", function() {
     openScreenFromMenu("rankingScreen");
   });
