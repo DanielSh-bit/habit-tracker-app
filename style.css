@@ -5219,3 +5219,35 @@ body.interactive-page-swipe .bottom-tab-bar {
     0 0 12px rgba(250, 204, 21, 0.65),
     0 0 24px rgba(168, 85, 247, 0.55);
 }
+
+/* Ranking avatar + styled name */
+.ranking-name-with-avatar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+}
+
+.ranking-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255,255,255,0.72), transparent 34%),
+    linear-gradient(135deg, rgba(15,23,42,0.92), rgba(51,65,85,0.84));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.65rem;
+  flex: 0 0 auto;
+  box-shadow:
+    0 10px 22px rgba(15, 23, 42, 0.22),
+    inset 0 1px 0 rgba(255,255,255,0.22);
+}
+
+.ranking-name-with-avatar .styled-player-name {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
