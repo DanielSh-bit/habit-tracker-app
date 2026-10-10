@@ -2490,9 +2490,13 @@ function beginInteractiveSwipe(direction) {
   quickSwipeFromScreen = currentScreenId;
 
   if (currentScreenId === "homeScreen" && direction === -1) {
+    quickSwipeTargetScreen = "profileScreen";
+  } else if (currentScreenId === "profileScreen" && direction === 1) {
+    quickSwipeTargetScreen = "homeScreen";
+  } else if (currentScreenId === "profileScreen" && direction === -1) {
     quickSwipeTargetScreen = "rankingScreen";
   } else if (currentScreenId === "rankingScreen" && direction === 1) {
-    quickSwipeTargetScreen = "homeScreen";
+    quickSwipeTargetScreen = "profileScreen";
   } else if (currentScreenId === "rankingScreen" && direction === -1) {
     quickSwipeTargetScreen = "dailyCalendarScreen";
   } else if (currentScreenId === "dailyCalendarScreen" && direction === 1) {
@@ -2548,6 +2552,10 @@ function handleQuickSwipeMove(event) {
 
     if (currentScreenId === "homeScreen" && deltaX < 0) {
       beginInteractiveSwipe(-1);
+    } else if (currentScreenId === "profileScreen" && deltaX > 0) {
+      beginInteractiveSwipe(1);
+    } else if (currentScreenId === "profileScreen" && deltaX < 0) {
+      beginInteractiveSwipe(-1);
     } else if (currentScreenId === "rankingScreen" && deltaX > 0) {
       beginInteractiveSwipe(1);
     } else if (currentScreenId === "rankingScreen" && deltaX < 0) {
@@ -2555,7 +2563,7 @@ function handleQuickSwipeMove(event) {
     } else if (currentScreenId === "dailyCalendarScreen" && deltaX > 0) {
       beginInteractiveSwipe(1);
     } else {
-      resetInteractiveSwipeState();
+      quickSwipeTracking = false;
       return;
     }
   }
