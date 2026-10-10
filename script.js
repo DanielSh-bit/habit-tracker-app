@@ -81,6 +81,7 @@ const AVATAR_LEVEL_EMOJIS = [
 
 const SELECTED_AVATAR_LEVEL_KEY = "levelup_selected_avatar_level";
 const SELECTED_NAME_STYLE_KEY = "levelup_selected_name_style";
+const USER_COINS_KEY = "levelup_user_coins";
 
 const NAME_STYLES = [
   { id: "default", label: "Default", className: "name-style-default" },
@@ -3601,7 +3602,7 @@ function renderProfile() {
   applyNameStyle(namePreview, getSelectedNameStyleId());
   
   if (coinsValue) {
-    coinsValue.textContent = "0";
+    coinsValue.textContent = String(getUserCoins());
   }
 
   if (level >= MAX_AVATAR_LEVEL) {
@@ -3630,6 +3631,20 @@ function renderProfile() {
   if (nextLevelText) {
     nextLevelText.textContent = `עוד ${Math.max(0, nextRequiredDays - bestScore)} ימי שיא לרמה ${level + 1}`;
   }
+}
+
+function getUserCoins() {
+  return Math.max(0, Number(localStorage.getItem(USER_COINS_KEY) || 0));
+}
+
+function saveUserCoins(coins) {
+  const cleanCoins = Math.max(0, Math.floor(Number(coins) || 0));
+  localStorage.setItem(USER_COINS_KEY, String(cleanCoins));
+}
+
+function addUserCoins(amount) {
+  const currentCoins = getUserCoins();
+  saveUserCoins(currentCoins + amount);
 }
 
 function getSelectedNameStyleId() {
@@ -4189,7 +4204,7 @@ async function syncPlayer() {
     best_score: getUserBestScore(),
     selected_avatar_level: getSelectedAvatarLevel(),
     name_style_id: getSelectedNameStyleId(),
-    coins: 0,
+    coins: getUserCoins(),
     updated_at: new Date().toISOString()
   };
 
