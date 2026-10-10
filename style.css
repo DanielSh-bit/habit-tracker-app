@@ -3388,6 +3388,12 @@ body.interactive-page-swipe .app {
   -ms-overflow-style: none !important;
 }
 
+#profileScreen.swipe-screen-layer {
+  display: block !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+}
+
 #rankingScreen.swipe-screen-layer::-webkit-scrollbar {
   display: none !important;
 }
