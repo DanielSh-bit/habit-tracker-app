@@ -5257,3 +5257,9 @@ body.interactive-page-swipe .bottom-tab-bar {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+#profileScreen.swipe-screen-layer {
+  display: block !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+}
