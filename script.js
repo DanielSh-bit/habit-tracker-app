@@ -4480,6 +4480,24 @@ async function deleteAdminPlayerFromList(deviceId, playerName) {
   }
 }
 
+function getRankingNameHtml(playerName) {
+  const cleanName = escapeHtml(playerName || "משתמש");
+  const currentPlayerName = getPlayerName() || "משתמש";
+  const isCurrentPlayer = String(playerName || "") === currentPlayerName;
+
+  const avatar = isCurrentPlayer ? getUserAvatarEmoji() : "👤";
+  const nameStyleClass = isCurrentPlayer
+    ? getNameStyleById(getSelectedNameStyleId()).className
+    : "name-style-default";
+
+  return `
+    <div class="ranking-name ranking-name-with-avatar">
+      <span class="ranking-avatar">${avatar}</span>
+      <span class="styled-player-name ${nameStyleClass}">${cleanName}</span>
+    </div>
+  `;
+}
+
 async function renderRanking() {
   if (!$("rankingList")) return;
 
@@ -4515,7 +4533,7 @@ async function renderRanking() {
       : Number(player.best_score);
 
     row.innerHTML = `
-      <div class="ranking-name">${escapeHtml(player.name)}</div>
+      ${getRankingNameHtml(player.name)}
 
       <div class="ranking-scores">
         <div class="score-box active-score single-score">
