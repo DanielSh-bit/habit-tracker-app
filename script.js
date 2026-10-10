@@ -80,6 +80,22 @@ const AVATAR_LEVEL_EMOJIS = [
 ];
 
 const SELECTED_AVATAR_LEVEL_KEY = "levelup_selected_avatar_level";
+const SELECTED_NAME_STYLE_KEY = "levelup_selected_name_style";
+
+const NAME_STYLES = [
+  { id: "default", label: "Default", className: "name-style-default" },
+  { id: "gold", label: "Gold", className: "name-style-gold" },
+  { id: "neon-blue", label: "Neon Blue", className: "name-style-neon-blue" },
+  { id: "fire", label: "Fire", className: "name-style-fire" },
+  { id: "ice", label: "Ice", className: "name-style-ice" },
+  { id: "purple-glow", label: "Purple Glow", className: "name-style-purple-glow" },
+  { id: "rainbow", label: "Rainbow", className: "name-style-rainbow" },
+  { id: "black-badge", label: "Black Badge", className: "name-style-black-badge" },
+  { id: "royal-badge", label: "Royal Badge", className: "name-style-royal-badge" },
+  { id: "shadow", label: "Shadow", className: "name-style-shadow" },
+  { id: "outline", label: "Outline", className: "name-style-outline" },
+  { id: "legendary", label: "Legendary", className: "name-style-legendary" }
+];
 const MAX_AVATAR_LEVEL = 100;
 const MAX_LEVEL_STREAK_DAYS = 365;
 let isAdminUnlocked = false;
