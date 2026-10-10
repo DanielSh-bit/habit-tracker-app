@@ -112,6 +112,44 @@ let quickSwipeFromScreen = "";
 let quickSwipeTargetScreen = "";
 let quickSwipeDirection = 0;
 let quickSwipeProgress = 0;
+
+const MAIN_SCREEN_ORDER = [
+  "homeScreen",
+  "profileScreen",
+  "rankingScreen",
+  "dailyCalendarScreen"
+];
+
+function isMainSwipeScreen(screenId) {
+  return MAIN_SCREEN_ORDER.indexOf(screenId) !== -1;
+}
+
+function getSwipeTargetScreen(screenId, direction) {
+  const currentIndex = MAIN_SCREEN_ORDER.indexOf(screenId);
+
+  if (currentIndex === -1) {
+    return "";
+  }
+
+  const nextIndex = direction === -1
+    ? currentIndex + 1
+    : currentIndex - 1;
+
+  if (nextIndex < 0 || nextIndex >= MAIN_SCREEN_ORDER.length) {
+    return "";
+  }
+
+  return MAIN_SCREEN_ORDER[nextIndex];
+}
+
+function cleanSwipeVisualState() {
+  document.querySelectorAll(".screen").forEach(function(screen) {
+    screen.classList.remove("swipe-screen-layer");
+    screen.classList.remove("swipe-animate");
+    screen.style.transform = "";
+  });
+}
+
 let preloadedDayCompleteDragonVideo = null;
 let dayCompleteDragonVideoReady = false;
 
@@ -2271,6 +2309,7 @@ function updateBottomTabs() {
 }
 
 function showScreen(screenId, addToHistory = true) {
+  cleanSwipeVisualState();
   closeMenu();
   closeGoalOptionsMenu();
   closeDeleteConfirm();
@@ -2357,12 +2396,8 @@ function isQuickRankingSwipeAllowed(event) {
   if (isDeleteConfirmOpen()) return false;
   if (isDayDetailOpen()) return false;
 
-  if (
-    currentScreenId !== "homeScreen" &&
-    currentScreenId !== "rankingScreen" &&
-    currentScreenId !== "dailyCalendarScreen"
-  ) {
-    return false;
+  if (!isMainSwipeScreen(currentScreenId)) {
+    return;
   }
 
   const target = event.target;
@@ -2489,19 +2524,9 @@ function beginInteractiveSwipe(direction) {
   quickSwipeDirection = direction;
   quickSwipeFromScreen = currentScreenId;
 
-  if (currentScreenId === "homeScreen" && direction === -1) {
-    quickSwipeTargetScreen = "profileScreen";
-  } else if (currentScreenId === "profileScreen" && direction === 1) {
-    quickSwipeTargetScreen = "homeScreen";
-  } else if (currentScreenId === "profileScreen" && direction === -1) {
-    quickSwipeTargetScreen = "rankingScreen";
-  } else if (currentScreenId === "rankingScreen" && direction === 1) {
-    quickSwipeTargetScreen = "profileScreen";
-  } else if (currentScreenId === "rankingScreen" && direction === -1) {
-    quickSwipeTargetScreen = "dailyCalendarScreen";
-  } else if (currentScreenId === "dailyCalendarScreen" && direction === 1) {
-    quickSwipeTargetScreen = "rankingScreen";
-  } else {
+  quickSwipeTargetScreen = getSwipeTargetScreen(currentScreenId, direction);
+  
+  if (!quickSwipeTargetScreen) {
     resetInteractiveSwipeState();
     return;
   }
@@ -2550,22 +2575,14 @@ function handleQuickSwipeMove(event) {
       return;
     }
 
-    if (currentScreenId === "homeScreen" && deltaX < 0) {
+    if (deltaX < 0) {
       beginInteractiveSwipe(-1);
-    } else if (currentScreenId === "profileScreen" && deltaX > 0) {
-      beginInteractiveSwipe(1);
-    } else if (currentScreenId === "profileScreen" && deltaX < 0) {
-      beginInteractiveSwipe(-1);
-    } else if (currentScreenId === "rankingScreen" && deltaX > 0) {
-      beginInteractiveSwipe(1);
-    } else if (currentScreenId === "rankingScreen" && deltaX < 0) {
-      beginInteractiveSwipe(-1);
-    } else if (currentScreenId === "dailyCalendarScreen" && deltaX > 0) {
+    } else if (deltaX > 0) {
       beginInteractiveSwipe(1);
     } else {
       quickSwipeTracking = false;
       return;
-    }
+    } 
   }
 
   if (!quickSwipeDragging) return;
