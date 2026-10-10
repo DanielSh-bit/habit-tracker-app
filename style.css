@@ -5263,3 +5263,13 @@ body.interactive-page-swipe .bottom-tab-bar {
   overflow-y: auto !important;
   overscroll-behavior: contain !important;
 }
+
+.profile-actions {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+#testAddCoinsButton {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, #facc15, #f59e0b) !important;
+  color: #111827 !important;
+}
