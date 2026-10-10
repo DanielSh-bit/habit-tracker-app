@@ -5086,3 +5086,136 @@ body.interactive-page-swipe .bottom-tab-bar {
 .avatar-level-item.locked strong {
   font-size: 1.65rem;
 }
+
+/* Name styles test lab */
+.name-styles-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.name-style-item {
+  min-height: 72px;
+  border: none;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow:
+    0 10px 22px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 16px;
+  direction: rtl;
+}
+
+.name-style-item.selected {
+  outline: 4px solid rgba(34, 243, 255, 0.92);
+  box-shadow:
+    0 0 0 6px rgba(34, 243, 255, 0.16),
+    0 14px 28px rgba(15, 23, 42, 0.18);
+}
+
+.name-style-preview {
+  font-size: 1.45rem;
+  font-weight: 1000;
+}
+
+.name-style-item small {
+  font-size: 0.78rem;
+  font-weight: 1000;
+  color: rgba(15, 23, 42, 0.52);
+}
+
+/* Actual name styles */
+.styled-player-name {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.name-style-default {
+  color: #111827;
+  background: transparent;
+  text-shadow: none;
+}
+
+.name-style-gold {
+  color: #f5b301;
+  text-shadow: 0 0 14px rgba(245, 179, 1, 0.55);
+}
+
+.name-style-neon-blue {
+  color: #22f3ff;
+  text-shadow:
+    0 0 8px rgba(34, 243, 255, 0.95),
+    0 0 18px rgba(34, 243, 255, 0.75);
+}
+
+.name-style-fire {
+  background: linear-gradient(90deg, #ff3d00, #ffb300, #fff176);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 14px rgba(255, 87, 34, 0.5);
+}
+
+.name-style-ice {
+  background: linear-gradient(90deg, #e0f7ff, #38bdf8, #2563eb);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+}
+
+.name-style-purple-glow {
+  color: #c084fc;
+  text-shadow:
+    0 0 8px rgba(192, 132, 252, 0.95),
+    0 0 20px rgba(168, 85, 247, 0.75);
+}
+
+.name-style-rainbow {
+  background: linear-gradient(90deg, #ef4444, #f59e0b, #22c55e, #06b6d4, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.name-style-black-badge {
+  background: rgba(15, 23, 42, 0.94);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.22);
+}
+
+.name-style-royal-badge {
+  background: linear-gradient(135deg, #3b0764, #7c2d12, #facc15);
+  color: #fff7cc;
+  box-shadow:
+    0 10px 24px rgba(124, 45, 18, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.name-style-shadow {
+  color: #111827;
+  text-shadow:
+    2px 2px 0 rgba(15, 23, 42, 0.18),
+    0 10px 18px rgba(15, 23, 42, 0.25);
+}
+
+.name-style-outline {
+  color: #ffffff;
+  -webkit-text-stroke: 1.2px #111827;
+  text-shadow: 0 8px 16px rgba(15, 23, 42, 0.24);
+}
+
+.name-style-legendary {
+  background: linear-gradient(90deg, #facc15, #fb7185, #a855f7, #22f3ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow:
+    0 0 12px rgba(250, 204, 21, 0.65),
+    0 0 24px rgba(168, 85, 247, 0.55);
+}
