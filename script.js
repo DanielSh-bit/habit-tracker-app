@@ -3660,6 +3660,7 @@ function renderAvatarCollection() {
 
       button.addEventListener("click", function() {
         saveSelectedAvatarLevel(level);
+        syncPlayer();
         renderProfile();
         renderAvatarCollection();
       });
@@ -3716,6 +3717,7 @@ function renderNameStylesCollection() {
 
     button.addEventListener("click", function() {
       saveSelectedNameStyleId(style.id);
+      syncPlayer();
       renderProfile();
       renderNameStylesCollection();
     });
@@ -4160,6 +4162,9 @@ async function syncPlayer() {
     name: name,
     current_score: getUserCurrentScore(),
     best_score: getUserBestScore(),
+    selected_avatar_level: getSelectedAvatarLevel(),
+    name_style_id: getSelectedNameStyleId(),
+    coins: 0,
     updated_at: new Date().toISOString()
   };
 
@@ -4480,15 +4485,14 @@ async function deleteAdminPlayerFromList(deviceId, playerName) {
   }
 }
 
-function getRankingNameHtml(playerName) {
-  const cleanName = escapeHtml(playerName || "משתמש");
-  const currentPlayerName = getPlayerName() || "משתמש";
-  const isCurrentPlayer = String(playerName || "") === currentPlayerName;
+function getRankingNameHtml(player) {
+  const cleanName = escapeHtml(player.name || "משתמש");
 
-  const avatar = isCurrentPlayer ? getUserAvatarEmoji() : "👤";
-  const nameStyleClass = isCurrentPlayer
-    ? getNameStyleById(getSelectedNameStyleId()).className
-    : "name-style-default";
+  const avatarLevel = Number(player.selected_avatar_level || 1);
+  const avatar = getAvatarEmojiByLevel(avatarLevel);
+
+  const styleId = player.name_style_id || "default";
+  const nameStyleClass = getNameStyleById(styleId).className;
 
   return `
     <div class="ranking-name ranking-name-with-avatar">
@@ -4533,7 +4537,7 @@ async function renderRanking() {
       : Number(player.best_score);
 
     row.innerHTML = `
-      ${getRankingNameHtml(player.name)}
+      ${getRankingNameHtml(player)}
 
       <div class="ranking-scores">
         <div class="score-box active-score single-score">
