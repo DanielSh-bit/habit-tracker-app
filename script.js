@@ -3573,7 +3573,8 @@ function renderProfile() {
   avatarCircle.textContent = getUserAvatarEmoji();
   levelValue.textContent = String(level);
   namePreview.textContent = getPlayerName() || "משתמש";
-
+  applyNameStyle(namePreview, getSelectedNameStyleId());
+  
   if (coinsValue) {
     coinsValue.textContent = "0";
   }
@@ -3604,6 +3605,35 @@ function renderProfile() {
   if (nextLevelText) {
     nextLevelText.textContent = `עוד ${Math.max(0, nextRequiredDays - bestScore)} ימי שיא לרמה ${level + 1}`;
   }
+}
+
+function getSelectedNameStyleId() {
+  return localStorage.getItem(SELECTED_NAME_STYLE_KEY) || "default";
+}
+
+function saveSelectedNameStyleId(styleId) {
+  localStorage.setItem(SELECTED_NAME_STYLE_KEY, styleId);
+}
+
+function getNameStyleById(styleId) {
+  return NAME_STYLES.find(function(style) {
+    return style.id === styleId;
+  }) || NAME_STYLES[0];
+}
+
+function clearNameStyleClasses(element) {
+  NAME_STYLES.forEach(function(style) {
+    element.classList.remove(style.className);
+  });
+}
+
+function applyNameStyle(element, styleId) {
+  const style = getNameStyleById(styleId);
+
+  clearNameStyleClasses(element);
+
+  element.classList.add("styled-player-name");
+  element.classList.add(style.className);
 }
 
 function renderAvatarCollection() {
@@ -3657,6 +3687,49 @@ function openAvatarCollection() {
 
   panel.classList.remove("hidden");
   renderAvatarCollection();
+}
+
+function renderNameStylesCollection() {
+  const grid = $("nameStylesGrid");
+  if (!grid) return;
+
+  const selectedStyleId = getSelectedNameStyleId();
+
+  grid.innerHTML = "";
+
+  NAME_STYLES.forEach(function(style) {
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.className = "name-style-item";
+
+    if (style.id === selectedStyleId) {
+      button.classList.add("selected");
+    }
+
+    button.innerHTML = `
+      <span class="name-style-preview ${style.className}">
+        ${escapeHtml(getPlayerName() || "משתמש")}
+      </span>
+      <small>${style.label}</small>
+    `;
+
+    button.addEventListener("click", function() {
+      saveSelectedNameStyleId(style.id);
+      renderProfile();
+      renderNameStylesCollection();
+    });
+
+    grid.appendChild(button);
+  });
+}
+
+function openNameStylesCollection() {
+  const panel = $("nameStylesPanel");
+  if (!panel) return;
+
+  panel.classList.remove("hidden");
+  renderNameStylesCollection();
 }
 
 function renderHome() {
@@ -4925,7 +4998,7 @@ document.addEventListener("DOMContentLoaded", function() {
   });
   
   on("openNameStylesButton", "click", function() {
-    alert("בהמשך יהיו כאן עיצובי שמות");
+    openNameStylesCollection();
   });
     
   on("dailyPrevMonthButton", "click", function() {
