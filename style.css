@@ -5273,3 +5273,119 @@ body.interactive-page-swipe .bottom-tab-bar {
   background: linear-gradient(135deg, #facc15, #f59e0b) !important;
   color: #111827 !important;
 }
+
+/* Home dividers */
+.home-divider-card {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 72px;
+  border-radius: 24px;
+  margin-bottom: 4px;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 52px;
+  font-size: 1.25rem;
+  font-weight: 1000;
+  box-shadow:
+    0 14px 28px rgba(15, 23, 42, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.divider-title {
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.divider-edit-button {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.16);
+  color: inherit;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Divider editor popup */
+.divider-editor-popup {
+  position: fixed;
+  z-index: 2200;
+  width: min(340px, calc(100vw - 24px));
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  padding: 18px 18px 58px;
+  box-sizing: border-box;
+  direction: rtl;
+}
+
+.divider-editor-label {
+  display: block;
+  margin: 10px 0 8px;
+  font-size: 0.9rem;
+  font-weight: 1000;
+  color: #111827;
+}
+
+.divider-name-input {
+  width: 100%;
+  height: 46px;
+  border: none;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.08);
+  padding: 0 14px;
+  box-sizing: border-box;
+  font-size: 1rem;
+  font-weight: 900;
+  color: #111827;
+  outline: none;
+}
+
+.divider-colors-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.divider-color-dot {
+  height: 38px;
+  border-radius: 14px;
+  border: 2px solid rgba(15, 23, 42, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.divider-color-dot.selected {
+  outline: 4px solid rgba(34, 243, 255, 0.82);
+  outline-offset: 2px;
+}
+
+.divider-delete-button {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 16px;
+  background: rgba(239, 68, 68, 0.14);
+  color: #dc2626;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
