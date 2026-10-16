@@ -83,6 +83,19 @@ const SELECTED_AVATAR_LEVEL_KEY = "levelup_selected_avatar_level";
 const SELECTED_NAME_STYLE_KEY = "levelup_selected_name_style";
 const USER_COINS_KEY = "levelup_user_coins";
 
+const HOME_DIVIDERS_KEY = "levelup_home_dividers";
+
+const DIVIDER_BACKGROUND_COLORS = [
+  "#111827", "#000000", "#7f1d1d", "#7c2d12",
+  "#1e3a8a", "#064e3b", "#581c87", "#be123c",
+  "#f59e0b", "#ffffff"
+];
+
+const DIVIDER_TEXT_COLORS = [
+  "#ffffff", "#111827", "#facc15", "#22f3ff",
+  "#f0abfc", "#bbf7d0", "#fecaca", "#000000"
+];
+
 const NAME_STYLES = [
   { id: "default", label: "Default", className: "name-style-default" },
   { id: "gold", label: "Gold", className: "name-style-gold" },
@@ -3647,6 +3660,84 @@ function addUserCoins(amount) {
   saveUserCoins(currentCoins + amount);
 }
 
+function getHomeDividers() {
+  try {
+    return JSON.parse(localStorage.getItem(HOME_DIVIDERS_KEY) || "[]");
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveHomeDividers(dividers) {
+  localStorage.setItem(HOME_DIVIDERS_KEY, JSON.stringify(dividers));
+}
+
+function createDividerId() {
+  return "divider_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+}
+
+function getNextDividerName() {
+  const dividers = getHomeDividers();
+  const names = dividers.map(function(divider) {
+    return divider.name;
+  });
+
+  let number = 1;
+
+  while (names.includes("חוצץ " + number)) {
+    number++;
+  }
+
+  return "חוצץ " + number;
+}
+
+function addHomeDivider() {
+  const dividers = getHomeDividers();
+
+  dividers.unshift({
+    id: createDividerId(),
+    name: getNextDividerName(),
+    backgroundColor: "#111827",
+    textColor: "#ffffff"
+  });
+
+  saveHomeDividers(dividers);
+  closeDividerEditor();
+
+  if (currentScreenId === "homeScreen") {
+    renderHome();
+  } else {
+    showScreen("homeScreen");
+  }
+}
+
+function updateHomeDivider(dividerId, changes) {
+  const dividers = getHomeDividers();
+
+  const updatedDividers = dividers.map(function(divider) {
+    if (divider.id !== dividerId) {
+      return divider;
+    }
+
+    return {
+      ...divider,
+      ...changes
+    };
+  });
+
+  saveHomeDividers(updatedDividers);
+}
+
+function deleteHomeDivider(dividerId) {
+  const dividers = getHomeDividers().filter(function(divider) {
+    return divider.id !== dividerId;
+  });
+
+  saveHomeDividers(dividers);
+  closeDividerEditor();
+  renderHome();
+}
+
 function getSelectedNameStyleId() {
   return localStorage.getItem(SELECTED_NAME_STYLE_KEY) || "default";
 }
@@ -3774,11 +3865,214 @@ function openNameStylesCollection() {
   renderNameStylesCollection();
 }
 
+function renderHomeDividers() {
+  const goalsGrid = $("goalsGrid");
+  if (!goalsGrid) return;
+
+  const dividers = getHomeDividers();
+
+  dividers.forEach(function(divider) {
+    const dividerCard = document.createElement("article");
+
+    dividerCard.className = "home-divider-card";
+    dividerCard.dataset.dividerId = divider.id;
+    dividerCard.style.backgroundColor = divider.backgroundColor || "#111827";
+    dividerCard.style.color = divider.textColor || "#ffffff";
+
+    dividerCard.innerHTML = `
+      <button type="button" class="divider-edit-button" aria-label="עריכת חוצץ">✏️</button>
+      <span class="divider-title">${escapeHtml(divider.name || "חוצץ")}</span>
+    `;
+
+    const editButton = dividerCard.querySelector(".divider-edit-button");
+
+    editButton.addEventListener("click", function(event) {
+      event.stopPropagation();
+      openDividerEditor(divider.id, dividerCard);
+    });
+
+    goalsGrid.appendChild(dividerCard);
+  });
+}
+function closeDividerEditor() {
+  const oldEditor = $("dividerEditorPopup");
+
+  if (oldEditor) {
+    oldEditor.remove();
+  }
+
+  document.removeEventListener("click", handleDividerEditorOutsideClick);
+}
+
+function handleDividerEditorOutsideClick(event) {
+  const editor = $("dividerEditorPopup");
+
+  if (!editor) return;
+
+  if (editor.contains(event.target)) {
+    return;
+  }
+
+  if (event.target.closest(".divider-edit-button")) {
+    return;
+  }
+
+  closeDividerEditor();
+}
+
+function updateDividerPreview(dividerId, changes) {
+  const dividerCard = document.querySelector(`[data-divider-id="${dividerId}"]`);
+
+  if (!dividerCard) return;
+
+  if (changes.name !== undefined) {
+    const title = dividerCard.querySelector(".divider-title");
+
+    if (title) {
+      title.textContent = changes.name || "חוצץ";
+    }
+  }
+
+  if (changes.backgroundColor !== undefined) {
+    dividerCard.style.backgroundColor = changes.backgroundColor;
+  }
+
+  if (changes.textColor !== undefined) {
+    dividerCard.style.color = changes.textColor;
+  }
+}
+
+function createColorButtons(colors, activeColor, onChooseColor) {
+  return colors.map(function(color) {
+    const selectedClass = color === activeColor ? " selected" : "";
+
+    return `
+      <button
+        type="button"
+        class="divider-color-dot${selectedClass}"
+        data-color="${color}"
+        style="background:${color};"
+      ></button>
+    `;
+  }).join("");
+}
+
+function openDividerEditor(dividerId, anchorElement) {
+  closeDividerEditor();
+
+  const divider = getHomeDividers().find(function(item) {
+    return item.id === dividerId;
+  });
+
+  if (!divider) return;
+
+  const editor = document.createElement("div");
+
+  editor.id = "dividerEditorPopup";
+  editor.className = "divider-editor-popup";
+
+  editor.innerHTML = `
+    <label class="divider-editor-label">שם</label>
+    <input class="divider-name-input" id="dividerNameInput" type="text" maxlength="24">
+
+    <label class="divider-editor-label">צבע רקע</label>
+    <div class="divider-colors-row" id="dividerBackgroundColors">
+      ${createColorButtons(DIVIDER_BACKGROUND_COLORS, divider.backgroundColor, function() {})}
+    </div>
+
+    <label class="divider-editor-label">צבע כתב</label>
+    <div class="divider-colors-row" id="dividerTextColors">
+      ${createColorButtons(DIVIDER_TEXT_COLORS, divider.textColor, function() {})}
+    </div>
+
+    <button type="button" class="divider-delete-button" id="deleteDividerButton" aria-label="מחיקת חוצץ">
+      🗑️
+    </button>
+  `;
+
+  document.body.appendChild(editor);
+
+  const nameInput = $("dividerNameInput");
+  nameInput.value = divider.name || "";
+
+  nameInput.addEventListener("input", function() {
+    updateHomeDivider(dividerId, {
+      name: nameInput.value
+    });
+
+    updateDividerPreview(dividerId, {
+      name: nameInput.value
+    });
+  });
+
+  $("dividerBackgroundColors").querySelectorAll(".divider-color-dot").forEach(function(button) {
+    button.addEventListener("click", function() {
+      const color = button.dataset.color;
+
+      updateHomeDivider(dividerId, {
+        backgroundColor: color
+      });
+
+      updateDividerPreview(dividerId, {
+        backgroundColor: color
+      });
+
+      openDividerEditor(dividerId, anchorElement);
+    });
+  });
+
+  $("dividerTextColors").querySelectorAll(".divider-color-dot").forEach(function(button) {
+    button.addEventListener("click", function() {
+      const color = button.dataset.color;
+
+      updateHomeDivider(dividerId, {
+        textColor: color
+      });
+
+      updateDividerPreview(dividerId, {
+        textColor: color
+      });
+
+      openDividerEditor(dividerId, anchorElement);
+    });
+  });
+
+  $("deleteDividerButton").addEventListener("click", function() {
+    deleteHomeDivider(dividerId);
+  });
+
+  const rect = anchorElement.getBoundingClientRect();
+  const editorWidth = editor.offsetWidth;
+  const editorHeight = editor.offsetHeight;
+  const spaceBelow = window.innerHeight - rect.bottom;
+
+  let top = rect.bottom + 8;
+
+  if (spaceBelow < editorHeight + 16) {
+    top = rect.top - editorHeight - 8;
+  }
+
+  top = Math.max(12, top);
+
+  const left = Math.max(
+    12,
+    Math.min(rect.left, window.innerWidth - editorWidth - 12)
+  );
+
+  editor.style.top = top + "px";
+  editor.style.left = left + "px";
+
+  setTimeout(function() {
+    document.addEventListener("click", handleDividerEditorOutsideClick);
+  }, 0);
+}
+
 function renderHome() {
   const goalsGrid = $("goalsGrid");
   if (!goalsGrid) return;
 
   goalsGrid.innerHTML = "";
+  renderHomeDividers();
   goalsGrid.classList.remove("reorder-mode");
 
   goals.forEach(function(goal) {
@@ -5078,7 +5372,11 @@ document.addEventListener("DOMContentLoaded", function() {
       closeDailyDayDetail();
     }
   });
-  
+
+  on("addDividerFromMenu", "click", function() {
+    addHomeDivider();
+  });
+    
   on("bottomScoresTab", "click", function() {
     showScreen("rankingScreen");
   });
