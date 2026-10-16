@@ -84,6 +84,7 @@ const SELECTED_NAME_STYLE_KEY = "levelup_selected_name_style";
 const USER_COINS_KEY = "levelup_user_coins";
 
 const HOME_DIVIDERS_KEY = "levelup_home_dividers";
+const HOME_ORDER_KEY = "levelup_home_order";
 
 const DIVIDER_BACKGROUND_COLORS = [
   "#111827", "#000000", "#7f1d1d", "#7c2d12",
@@ -1671,9 +1672,11 @@ function renderGoalInfoStreaks(goal) {
   `;
 }
 
-function getGoalCardElement(goalId) {
-  return Array.from(document.querySelectorAll("#goalsGrid .goal-card")).find(function(card) {
-    return card.dataset.goalId === goalId;
+function getHomeCardElement(itemKey) {
+  return Array.from(
+    document.querySelectorAll("#goalsGrid .goal-card, #goalsGrid .home-divider-card")
+  ).find(function(card) {
+    return card.dataset.homeItemKey === itemKey;
   });
 }
 
@@ -1681,9 +1684,12 @@ function reorderHomeDomToMatchGoals() {
   const goalsGrid = $("goalsGrid");
   if (!goalsGrid) return;
 
-  goals.forEach(function(goal) {
-    const card = getGoalCardElement(goal.id);
-    if (card) goalsGrid.appendChild(card);
+  getHomeOrder().forEach(function(item) {
+    const card = getHomeCardElement(getHomeItemKey(item.type, item.id));
+
+    if (card) {
+      goalsGrid.appendChild(card);
+    }
   });
 }
 
@@ -1715,7 +1721,7 @@ function updateDragGhostPosition() {
 function createDragGhost(goalId) {
   if (!dragState) return;
 
-  const sourceCard = getGoalCardElement(goalId);
+  const sourceCard = getHomeCardElement(goalId);
   if (!sourceCard) return;
 
   const rect = sourceCard.getBoundingClientRect();
@@ -1761,56 +1767,59 @@ function scrollDraggedCardIntoView(direction) {
 function moveDraggedGoalByStep(direction) {
   if (!isReorderMode || !draggedGoalId || direction === 0) return false;
 
-  const currentIndex = goals.findIndex(function(goal) {
-    return goal.id === draggedGoalId;
+  const order = getHomeOrder();
+
+  const currentIndex = order.findIndex(function(item) {
+    return getHomeItemKey(item.type, item.id) === draggedGoalId;
   });
 
   if (currentIndex === -1) return false;
 
-  const nextIndex = clampNumber(currentIndex + direction, 0, goals.length - 1);
+  const nextIndex = clampNumber(currentIndex + direction, 0, order.length - 1);
 
   if (nextIndex === currentIndex) return false;
 
-  const newGoals = [...goals];
-  const draggedGoal = newGoals.splice(currentIndex, 1)[0];
+  const movedItem = order.splice(currentIndex, 1)[0];
+  order.splice(nextIndex, 0, movedItem);
 
-  newGoals.splice(nextIndex, 0, draggedGoal);
-
-  goals = newGoals;
-  saveGoals(goals);
-
+  saveHomeOrder(order);
   reorderHomeDomToMatchGoals();
   scrollDraggedCardIntoView(direction);
   updateDragGhostPosition();
 
   return true;
 }
-
 function moveDraggedGoalAtY(clientY) {
   if (!isReorderMode || !draggedGoalId) return;
 
   const safeY = getSafeDragY(clientY);
+  const order = getHomeOrder();
 
-  const draggedGoal = goals.find(function(goal) {
-    return goal.id === draggedGoalId;
+  const currentIndex = order.findIndex(function(item) {
+    return getHomeItemKey(item.type, item.id) === draggedGoalId;
   });
 
-  if (!draggedGoal) return;
+  if (currentIndex === -1) return;
 
-  const remainingGoals = goals.filter(function(goal) {
-    return goal.id !== draggedGoalId;
+  const draggedItem = order[currentIndex];
+
+  const remainingItems = order.filter(function(item) {
+    return getHomeItemKey(item.type, item.id) !== draggedGoalId;
   });
 
-  const cards = Array.from(document.querySelectorAll("#goalsGrid .goal-card")).filter(function(card) {
-    return card.dataset.goalId !== draggedGoalId;
+  const cards = Array.from(
+    document.querySelectorAll("#goalsGrid .goal-card, #goalsGrid .home-divider-card")
+  ).filter(function(card) {
+    return card.dataset.homeItemKey !== draggedGoalId;
   });
 
-  let insertIndex = remainingGoals.length;
+  let insertIndex = remainingItems.length;
 
   for (const card of cards) {
-    const targetGoalId = card.dataset.goalId;
-    const targetIndex = remainingGoals.findIndex(function(goal) {
-      return goal.id === targetGoalId;
+    const targetKey = card.dataset.homeItemKey;
+
+    const targetIndex = remainingItems.findIndex(function(item) {
+      return getHomeItemKey(item.type, item.id) === targetKey;
     });
 
     if (targetIndex === -1) continue;
@@ -1824,17 +1833,18 @@ function moveDraggedGoalAtY(clientY) {
     }
   }
 
-  const newGoals = [...remainingGoals];
-  newGoals.splice(insertIndex, 0, draggedGoal);
+  const newOrder = [...remainingItems];
+  newOrder.splice(insertIndex, 0, draggedItem);
 
-  const sameOrder = newGoals.every(function(goal, index) {
-    return goals[index] && goals[index].id === goal.id;
+  const sameOrder = newOrder.every(function(item, index) {
+    return order[index] &&
+      getHomeItemKey(order[index].type, order[index].id) ===
+      getHomeItemKey(item.type, item.id);
   });
 
   if (sameOrder) return;
 
-  goals = newGoals;
-  saveGoals(goals);
+  saveHomeOrder(newOrder);
   reorderHomeDomToMatchGoals();
   updateDragGhostPosition();
 }
@@ -1930,12 +1940,13 @@ function removeForceReleaseListeners() {
 function beginSingleGoalDrag(goalId) {
   if (!dragState || dragState.goalId !== goalId) return;
 
-  const sourceCard = getGoalCardElement(goalId);
+  const sourceCard = getHomeCardElement(goalId);
   if (!sourceCard) return;
 
   isReorderMode = true;
   draggedGoalId = goalId;
   dragState.isDragging = true;
+  closeDividerEditor();
 
   suppressClickUntil = Date.now() + 1000;
 
@@ -2088,7 +2099,7 @@ function handlePointerCancel() {
 
 function setupCardReorderHandlers(card, goal) {
   card.addEventListener("touchstart", function(event) {
-    if (event.target.closest(".home-goal-action")) return;
+    if (event.target.closest(".home-goal-action, .divider-edit-button")) return;
     if (event.touches.length !== 1) return;
 
     const touch = event.touches[0];
@@ -2125,7 +2136,7 @@ function setupCardReorderHandlers(card, goal) {
   }, { passive: true });
 
   card.addEventListener("pointerdown", function(event) {
-    if (event.target.closest(".home-goal-action")) return;
+    if (event.target.closest(".home-goal-action, .divider-edit-button")) return;
     if (event.pointerType === "touch") return;
     if (event.button && event.button !== 0) return;
 
@@ -3672,6 +3683,68 @@ function saveHomeDividers(dividers) {
   localStorage.setItem(HOME_DIVIDERS_KEY, JSON.stringify(dividers));
 }
 
+function getHomeItemKey(type, id) {
+  return type + ":" + id;
+}
+
+function saveHomeOrder(order) {
+  localStorage.setItem(HOME_ORDER_KEY, JSON.stringify(order));
+}
+
+function getHomeOrder() {
+  const dividers = getHomeDividers().map(function(divider) {
+    return { type: "divider", id: divider.id };
+  });
+
+  const goalItems = goals.map(function(goal) {
+    return { type: "goal", id: goal.id };
+  });
+
+  const availableItems = [...dividers, ...goalItems];
+
+  const availableKeys = new Set(availableItems.map(function(item) {
+    return getHomeItemKey(item.type, item.id);
+  }));
+
+  let savedOrder = [];
+
+  try {
+    const stored = JSON.parse(localStorage.getItem(HOME_ORDER_KEY) || "[]");
+    if (Array.isArray(stored)) savedOrder = stored;
+  } catch (error) {}
+
+  const usedKeys = new Set();
+
+  const validSavedOrder = savedOrder.filter(function(item) {
+    if (!item || !item.type || typeof item.id !== "string") return false;
+
+    const key = getHomeItemKey(item.type, item.id);
+
+    if (!availableKeys.has(key) || usedKeys.has(key)) return false;
+
+    usedKeys.add(key);
+    return true;
+  }).map(function(item) {
+    return { type: item.type, id: item.id };
+  });
+
+  const newDividers = dividers.filter(function(item) {
+    return !usedKeys.has(getHomeItemKey(item.type, item.id));
+  });
+
+  const newGoals = goalItems.filter(function(item) {
+    return !usedKeys.has(getHomeItemKey(item.type, item.id));
+  });
+
+  const order = [...newDividers, ...validSavedOrder, ...newGoals];
+
+  if (JSON.stringify(order) !== JSON.stringify(savedOrder)) {
+    saveHomeOrder(order);
+  }
+
+  return order;
+}
+
 function createDividerId() {
   return "divider_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
 }
@@ -3876,6 +3949,7 @@ function renderHomeDividers() {
 
     dividerCard.className = "home-divider-card";
     dividerCard.dataset.dividerId = divider.id;
+    dividerCard.dataset.homeItemKey = getHomeItemKey("divider", divider.id);
     dividerCard.style.backgroundColor = divider.backgroundColor || "#111827";
     dividerCard.style.color = divider.textColor || "#ffffff";
 
@@ -3891,6 +3965,10 @@ function renderHomeDividers() {
       openDividerEditor(divider.id, dividerCard);
     });
 
+    setupCardReorderHandlers(dividerCard, {
+      id: getHomeItemKey("divider", divider.id)
+    });
+    
     goalsGrid.appendChild(dividerCard);
   });
 }
@@ -4082,12 +4160,13 @@ function renderHome() {
     const card = document.createElement("article");
     card.className = "goal-card";
     card.dataset.goalId = goal.id;
+    card.dataset.homeItemKey = getHomeItemKey("goal", goal.id);
     
     if (!requiredToday) {
       card.classList.add("home-goal-not-required");
     }
     
-    if (isReorderMode && draggedGoalId === goal.id) {
+    if (isReorderMode && draggedGoalId === getHomeItemKey("goal", goal.id)) {
       card.classList.add("reorder-card");
       card.classList.add("dragging-card");
     }
@@ -4165,10 +4244,14 @@ function renderHome() {
       openGoal(goal.id);
     });
 
-    setupCardReorderHandlers(card, goal);
+    setupCardReorderHandlers(card, {
+      id: getHomeItemKey("goal", goal.id)
+    });
 
     goalsGrid.appendChild(card);
   });
+
+  reorderHomeDomToMatchGoals();
   updateHomeProgressRing();
 }
 
