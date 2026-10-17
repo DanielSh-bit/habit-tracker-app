@@ -3987,13 +3987,6 @@ function closeDividerEditor() {
   if (backdrop) backdrop.remove();
 }
 
-  if (event.target.closest(".divider-edit-button")) {
-    return;
-  }
-
-  closeDividerEditor();
-}
-
 function updateDividerPreview(dividerId, changes) {
   const dividerCard = document.querySelector(`[data-divider-id="${dividerId}"]`);
 
