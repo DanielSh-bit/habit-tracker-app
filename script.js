@@ -4112,14 +4112,11 @@ function openDividerEditor(dividerId, anchorElement) {
   if (!divider) return;
 
   const backgroundColor = /^#[0-9a-f]{6}$/i.test(divider.backgroundColor || "")
-    ? divider.backgroundColor
-    : "#111827";
+    ? divider.backgroundColor : "#111827";
 
   const textColor = /^#[0-9a-f]{6}$/i.test(divider.textColor || "")
-    ? divider.textColor
-    : "#ffffff";
+    ? divider.textColor : "#ffffff";
 
-  // שכבה שמונעת לחיצות וגלילה ברקע
   const backdrop = document.createElement("div");
   backdrop.id = "dividerEditorBackdrop";
   backdrop.className = "divider-editor-backdrop";
@@ -4141,59 +4138,55 @@ function openDividerEditor(dividerId, anchorElement) {
   editor.className = "divider-editor-popup";
 
   editor.innerHTML = `
-    <label class="divider-editor-label">שם</label>
+    <div class="divider-editor-content">
+      <label class="divider-editor-label" for="dividerNameInput">שם</label>
 
-    <input
-      class="divider-name-input"
-      id="dividerNameInput"
-      type="text"
-      maxlength="24"
-    >
+      <input
+        class="divider-name-input"
+        id="dividerNameInput"
+        type="text"
+        maxlength="24"
+      >
 
-    <div class="divider-color-heading">
-      <label class="divider-editor-label">צבע רקע</label>
+      <div class="divider-color-heading">
+        <label class="divider-editor-label" for="dividerBackgroundPicker">
+          צבע רקע
+        </label>
 
-      <label class="divider-custom-color">
-        פלטה
         <input
+          class="divider-palette-input"
           type="color"
           id="dividerBackgroundPicker"
           value="${backgroundColor}"
           aria-label="בחירת צבע רקע"
         >
-      </label>
-    </div>
+      </div>
 
-    <div class="divider-colors-row" id="dividerBackgroundColors">
-      ${createColorButtons(DIVIDER_BACKGROUND_COLORS, backgroundColor)}
-    </div>
+      <div class="divider-color-heading">
+        <label class="divider-editor-label" for="dividerTextPicker">
+          צבע כתב
+        </label>
 
-    <div class="divider-color-heading">
-      <label class="divider-editor-label">צבע כתב</label>
-
-      <label class="divider-custom-color">
-        פלטה
         <input
+          class="divider-palette-input"
           type="color"
           id="dividerTextPicker"
           value="${textColor}"
           aria-label="בחירת צבע כתב"
         >
-      </label>
+      </div>
     </div>
 
-    <div class="divider-colors-row" id="dividerTextColors">
-      ${createColorButtons(DIVIDER_TEXT_COLORS, textColor)}
+    <div class="divider-editor-footer">
+      <button
+        type="button"
+        class="divider-delete-button"
+        id="deleteDividerButton"
+        aria-label="מחיקת חוצץ"
+      >
+        🗑️
+      </button>
     </div>
-
-    <button
-      type="button"
-      class="divider-delete-button"
-      id="deleteDividerButton"
-      aria-label="מחיקת חוצץ"
-    >
-      🗑️
-    </button>
   `;
 
   document.body.appendChild(editor);
@@ -4211,54 +4204,57 @@ function openDividerEditor(dividerId, anchorElement) {
     });
   });
 
-  function setupColorControls(groupId, pickerId, propertyName) {
-    const group = $(groupId);
-    const picker = $(pickerId);
+  [
+    ["dividerBackgroundPicker", "backgroundColor"],
+    ["dividerTextPicker", "textColor"]
+  ].forEach(function(setting) {
+    const picker = $(setting[0]);
+    const property = setting[1];
 
-    function chooseColor(color) {
+    picker.addEventListener("input", function() {
       updateHomeDivider(dividerId, {
-        [propertyName]: color
+        [property]: picker.value
       });
 
       updateDividerPreview(dividerId, {
-        [propertyName]: color
-      });
-
-      picker.value = color;
-
-      group.querySelectorAll(".divider-color-dot").forEach(function(button) {
-        button.classList.toggle(
-          "selected",
-          button.dataset.color.toLowerCase() === color.toLowerCase()
-        );
-      });
-    }
-
-    group.querySelectorAll(".divider-color-dot").forEach(function(button) {
-      button.addEventListener("click", function() {
-        chooseColor(button.dataset.color);
+        [property]: picker.value
       });
     });
-
-    picker.addEventListener("input", function() {
-      chooseColor(picker.value);
-    });
-  }
-
-  setupColorControls(
-    "dividerBackgroundColors",
-    "dividerBackgroundPicker",
-    "backgroundColor"
-  );
-
-  setupColorControls(
-    "dividerTextColors",
-    "dividerTextPicker",
-    "textColor"
-  );
+  });
 
   $("deleteDividerButton").addEventListener("click", function() {
-    deleteHomeDivider(dividerId);
+    if ($("dividerDeleteConfirmOverlay")) return;
+
+    const confirmation = document.createElement("div");
+    confirmation.id = "dividerDeleteConfirmOverlay";
+    confirmation.className = "divider-delete-confirm-overlay";
+
+    confirmation.innerHTML = `
+      <div
+        class="divider-delete-confirm-box"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="dividerDeleteQuestion"
+      >
+        <p id="dividerDeleteQuestion">למחוק את החוצץ?</p>
+
+        <div class="divider-delete-confirm-actions">
+          <button type="button" id="dividerDeleteCancel">לא</button>
+          <button type="button" id="dividerDeleteApprove">כן</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(confirmation);
+
+    $("dividerDeleteCancel").addEventListener("click", function() {
+      confirmation.remove();
+    });
+
+    $("dividerDeleteApprove").addEventListener("click", function() {
+      confirmation.remove();
+      deleteHomeDivider(dividerId);
+    });
   });
 
   positionDividerEditor(editor, anchorElement);
