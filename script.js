@@ -4266,22 +4266,140 @@ function openDividerEditor(dividerId, anchorElement) {
     });
   });
 
-  [
-    ["dividerBackgroundPicker", "backgroundColor"],
-    ["dividerTextPicker", "textColor"]
-  ].forEach(function(setting) {
-    const picker = $(setting[0]);
-    const property = setting[1];
-
-    picker.addEventListener("input", function() {
-      updateHomeDivider(dividerId, {
-        [property]: picker.value
-      });
-
-      updateDividerPreview(dividerId, {
-        [property]: picker.value
+  const colorPanel = $("dividerCustomColorPanel");
+  const colorField = $("dividerColorField");
+  const colorMarker = $("dividerColorMarker");
+  const hueSlider = $("dividerHueSlider");
+  
+  const currentColors = {
+    backgroundColor: backgroundColor,
+    textColor: textColor
+  };
+  
+  let activeColorProperty = "";
+  let currentHsv = { h: 0, s: 100, v: 100 };
+  let draggingColorField = false;
+  
+  function renderCustomPicker() {
+    colorField.style.backgroundColor =
+      `hsl(${currentHsv.h}, 100%, 50%)`;
+  
+    colorMarker.style.left = currentHsv.s + "%";
+    colorMarker.style.top = (100 - currentHsv.v) + "%";
+  
+    hueSlider.value = String(Math.round(currentHsv.h));
+  }
+  
+  function applyCustomPickerColor() {
+    if (!activeColorProperty) return;
+  
+    const color = dividerHsvToHex(
+      currentHsv.h,
+      currentHsv.s,
+      currentHsv.v
+    );
+  
+    currentColors[activeColorProperty] = color;
+  
+    const swatch = activeColorProperty === "backgroundColor"
+      ? $("dividerBackgroundSwatch")
+      : $("dividerTextSwatch");
+  
+    swatch.style.backgroundColor = color;
+  
+    updateHomeDivider(dividerId, {
+      [activeColorProperty]: color
+    });
+  
+    updateDividerPreview(dividerId, {
+      [activeColorProperty]: color
+    });
+  }
+  
+  function toggleCustomPicker(property, rowId) {
+    if (activeColorProperty === property && !colorPanel.hidden) {
+      colorPanel.hidden = true;
+      activeColorProperty = "";
+      positionDividerEditor(editor, anchorElement);
+      return;
+    }
+  
+    activeColorProperty = property;
+    currentHsv = dividerHexToHsv(currentColors[property]);
+  
+    colorPanel.hidden = false;
+  
+    $(rowId).insertAdjacentElement("afterend", colorPanel);
+  
+    renderCustomPicker();
+    positionDividerEditor(editor, anchorElement);
+  
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        if (!colorPanel.isConnected || colorPanel.hidden) return;
+  
+        const content = editor.querySelector(".divider-editor-content");
+        const panelRect = colorPanel.getBoundingClientRect();
+        const contentRect = content.getBoundingClientRect();
+  
+        if (panelRect.bottom > contentRect.bottom) {
+          content.scrollTop += panelRect.bottom - contentRect.bottom + 8;
+        }
       });
     });
+  }
+  
+  $("dividerBackgroundSwatch").addEventListener("click", function() {
+    toggleCustomPicker("backgroundColor", "dividerBackgroundColorRow");
+  });
+  
+  $("dividerTextSwatch").addEventListener("click", function() {
+    toggleCustomPicker("textColor", "dividerTextColorRow");
+  });
+  
+  function chooseColorFromField(event) {
+    const rect = colorField.getBoundingClientRect();
+  
+    currentHsv.s = clampNumber(
+      ((event.clientX - rect.left) / rect.width) * 100,
+      0,
+      100
+    );
+  
+    currentHsv.v = clampNumber(
+      100 - ((event.clientY - rect.top) / rect.height) * 100,
+      0,
+      100
+    );
+  
+    renderCustomPicker();
+    applyCustomPickerColor();
+  }
+  
+  colorField.addEventListener("pointerdown", function(event) {
+    event.preventDefault();
+    draggingColorField = true;
+    colorField.setPointerCapture(event.pointerId);
+    chooseColorFromField(event);
+  });
+  
+  colorField.addEventListener("pointermove", function(event) {
+    if (!draggingColorField) return;
+    chooseColorFromField(event);
+  });
+  
+  colorField.addEventListener("pointerup", function() {
+    draggingColorField = false;
+  });
+  
+  colorField.addEventListener("pointercancel", function() {
+    draggingColorField = false;
+  });
+  
+  hueSlider.addEventListener("input", function() {
+    currentHsv.h = Number(hueSlider.value);
+    renderCustomPicker();
+    applyCustomPickerColor();
   });
 
   $("deleteDividerButton").addEventListener("click", function() {
