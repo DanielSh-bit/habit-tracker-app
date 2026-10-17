@@ -5389,3 +5389,92 @@ body.interactive-page-swipe .bottom-tab-bar {
   align-items: center;
   justify-content: center;
 }
+
+/* Divider double tap */
+.home-divider-card {
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+/* Blocks interaction with the background */
+.divider-editor-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 29990;
+  background: transparent;
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
+/* Dark brown editor */
+.divider-editor-popup {
+  position: fixed;
+  z-index: 29991 !important;
+  background: #241b17 !important;
+  color: #fff8f0 !important;
+  border: 1px solid rgba(210, 169, 133, 0.2);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45) !important;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 18px 62px !important;
+  box-sizing: border-box;
+}
+
+.divider-editor-popup .divider-editor-label {
+  color: #f5e7d8 !important;
+  font-size: 0.95rem;
+}
+
+.divider-editor-popup .divider-name-input {
+  background: #382b24 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.divider-color-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.divider-custom-color {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e0bd9f;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.divider-custom-color input[type="color"] {
+  width: 42px;
+  height: 34px;
+  border: 1px solid #80634f;
+  border-radius: 11px;
+  padding: 2px;
+  background: #382b24;
+  cursor: pointer;
+}
+
+.divider-editor-popup .divider-colors-row {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.divider-editor-popup .divider-color-dot {
+  min-width: 0;
+  height: 36px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+}
+
+.divider-editor-popup .divider-color-dot.selected {
+  outline: 3px solid #e6b98a;
+  outline-offset: 2px;
+}
+
+.divider-editor-popup .divider-delete-button {
+  background: rgba(239, 68, 68, 0.16) !important;
+}
