@@ -5584,3 +5584,113 @@ body.interactive-page-swipe .bottom-tab-bar {
   background: #dc2626;
   color: #ffffff;
 }
+
+/* Custom divider color picker */
+
+.divider-custom-swatch {
+  width: 46px;
+  height: 38px;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  border-radius: 11px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.divider-custom-color-panel {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 0 8px;
+}
+
+.divider-custom-color-panel[hidden] {
+  display: none !important;
+}
+
+.divider-color-field {
+  position: relative;
+  width: 100%;
+  height: 150px;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: crosshair;
+  touch-action: none;
+
+  background-image:
+    linear-gradient(to top, #000000, transparent),
+    linear-gradient(to right, #ffffff, transparent);
+
+  background-color: #ff0000;
+}
+
+.divider-color-marker {
+  position: absolute;
+  width: 17px;
+  height: 17px;
+  border: 2px solid white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 2px 7px rgba(0, 0, 0, 0.3);
+}
+
+.divider-hue-slider {
+  display: block;
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 100%;
+  height: 14px;
+  margin: 18px 0 6px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+
+  background: linear-gradient(
+    to right,
+    #ff0000 0%,
+    #ffff00 16.67%,
+    #00ff00 33.33%,
+    #00ffff 50%,
+    #0000ff 66.67%,
+    #ff00ff 83.33%,
+    #ff0000 100%
+  );
+}
+
+.divider-hue-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 23px;
+  height: 23px;
+  border: 3px solid white;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  cursor: grab;
+}
+
+.divider-hue-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: 3px solid white;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  cursor: grab;
+}
+
+.divider-editor-popup .divider-color-heading {
+  margin-top: 16px;
+  min-height: 42px;
+}
+
+.divider-editor-popup .divider-editor-content {
+  overscroll-behavior: contain;
+}
