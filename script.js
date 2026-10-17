@@ -4103,6 +4103,53 @@ function positionDividerEditor(editor, anchorElement) {
   });
 }
 
+function dividerHexToHsv(hex) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+
+  let h = 0;
+
+  if (delta > 0) {
+    if (max === r) h = 60 * (((g - b) / delta) % 6);
+    else if (max === g) h = 60 * ((b - r) / delta + 2);
+    else h = 60 * ((r - g) / delta + 4);
+  }
+
+  if (h < 0) h += 360;
+
+  return {
+    h: h,
+    s: max === 0 ? 0 : delta / max * 100,
+    v: max * 100
+  };
+}
+
+function dividerHsvToHex(h, s, v) {
+  const c = (v / 100) * (s / 100);
+  const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+  const m = v / 100 - c;
+
+  let rgb;
+
+  if (h < 60) rgb = [c, x, 0];
+  else if (h < 120) rgb = [x, c, 0];
+  else if (h < 180) rgb = [0, c, x];
+  else if (h < 240) rgb = [0, x, c];
+  else if (h < 300) rgb = [x, 0, c];
+  else rgb = [c, 0, x];
+
+  return "#" + rgb.map(function(value) {
+    return Math.round((value + m) * 255)
+      .toString(16)
+      .padStart(2, "0");
+  }).join("");
+}
+
 function openDividerEditor(dividerId, anchorElement) {
   closeDividerEditor();
 
@@ -4140,44 +4187,58 @@ function openDividerEditor(dividerId, anchorElement) {
 
   editor.innerHTML = `
     <div class="divider-editor-content">
-      <label class="divider-editor-label" for="dividerNameInput">שם</label>
-
+      <label class="divider-editor-label" for="dividerNameInput">
+        שם
+      </label>
+  
       <input
         class="divider-name-input"
         id="dividerNameInput"
         type="text"
         maxlength="24"
       >
-
-      <div class="divider-color-heading">
-        <label class="divider-editor-label" for="dividerBackgroundPicker">
-          צבע רקע
-        </label>
-
-        <input
-          class="divider-palette-input"
-          type="color"
-          id="dividerBackgroundPicker"
-          value="${backgroundColor}"
+  
+      <div class="divider-color-heading" id="dividerBackgroundColorRow">
+        <span class="divider-editor-label">צבע רקע</span>
+  
+        <button
+          type="button"
+          class="divider-custom-swatch"
+          id="dividerBackgroundSwatch"
+          style="background:${backgroundColor}"
           aria-label="בחירת צבע רקע"
-        >
+        ></button>
       </div>
-
-      <div class="divider-color-heading">
-        <label class="divider-editor-label" for="dividerTextPicker">
-          צבע כתב
-        </label>
-
-        <input
-          class="divider-palette-input"
-          type="color"
-          id="dividerTextPicker"
-          value="${textColor}"
+  
+      <div class="divider-color-heading" id="dividerTextColorRow">
+        <span class="divider-editor-label">צבע כתב</span>
+  
+        <button
+          type="button"
+          class="divider-custom-swatch"
+          id="dividerTextSwatch"
+          style="background:${textColor}"
           aria-label="בחירת צבע כתב"
+        ></button>
+      </div>
+  
+      <div class="divider-custom-color-panel" id="dividerCustomColorPanel" hidden>
+        <div class="divider-color-field" id="dividerColorField">
+          <span class="divider-color-marker" id="dividerColorMarker"></span>
+        </div>
+  
+        <input
+          type="range"
+          min="0"
+          max="360"
+          value="0"
+          class="divider-hue-slider"
+          id="dividerHueSlider"
+          aria-label="בחירת גוון"
         >
       </div>
     </div>
-
+  
     <div class="divider-editor-footer">
       <button
         type="button"
