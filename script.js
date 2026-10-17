@@ -2420,7 +2420,8 @@ function isQuickRankingSwipeAllowed(event) {
   if (isGoalOptionsOpen()) return false;
   if (isDeleteConfirmOpen()) return false;
   if (isDayDetailOpen()) return false;
-
+  if ($("dividerEditorBackdrop") || $("dividerDeleteConfirmOverlay")) return false;
+  
   if (!isMainSwipeScreen(currentScreenId)) {
     return;
   }
