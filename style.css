@@ -5478,3 +5478,109 @@ body.interactive-page-swipe .bottom-tab-bar {
 .divider-editor-popup .divider-delete-button {
   background: rgba(239, 68, 68, 0.16) !important;
 }
+
+/* Divider editor with fixed footer */
+
+.divider-editor-popup {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.divider-editor-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 18px 12px;
+}
+
+.divider-editor-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-start;
+  padding: 10px 16px 12px;
+  background: #241b17;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.divider-editor-popup .divider-delete-button {
+  position: static !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  margin: 0 !important;
+  background: rgba(239, 68, 68, 0.16) !important;
+}
+
+/* Free color pickers */
+
+.divider-palette-input {
+  width: 48px;
+  height: 38px;
+  border: 1px solid #80634f;
+  border-radius: 11px;
+  padding: 2px;
+  background: #382b24;
+  cursor: pointer;
+}
+
+/* Divider delete confirmation */
+
+.divider-delete-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30010;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.65);
+  touch-action: none;
+}
+
+.divider-delete-confirm-box {
+  width: min(320px, 100%);
+  padding: 24px;
+  box-sizing: border-box;
+  border-radius: 24px;
+  background: #241b17;
+  border: 1px solid rgba(210, 169, 133, 0.3);
+  color: #ffffff;
+  text-align: center;
+  direction: rtl;
+  box-shadow: 0 24px 65px rgba(0, 0, 0, 0.5);
+}
+
+.divider-delete-confirm-box p {
+  font-size: 1.2rem;
+  font-weight: 900;
+  margin: 0 0 24px;
+}
+
+.divider-delete-confirm-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.divider-delete-confirm-actions button {
+  flex: 1;
+  height: 48px;
+  border: none;
+  border-radius: 15px;
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+#dividerDeleteCancel {
+  background: #453831;
+  color: #ffffff;
+}
+
+#dividerDeleteApprove {
+  background: #dc2626;
+  color: #ffffff;
+}
