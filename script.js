@@ -3954,15 +3954,22 @@ function renderHomeDividers() {
     dividerCard.style.color = divider.textColor || "#ffffff";
 
     dividerCard.innerHTML = `
-      <button type="button" class="divider-edit-button" aria-label="עריכת חוצץ">✏️</button>
       <span class="divider-title">${escapeHtml(divider.name || "חוצץ")}</span>
     `;
-
-    const editButton = dividerCard.querySelector(".divider-edit-button");
-
-    editButton.addEventListener("click", function(event) {
-      event.stopPropagation();
-      openDividerEditor(divider.id, dividerCard);
+    
+    let lastDividerTap = 0;
+    
+    dividerCard.addEventListener("click", function() {
+      if (isReorderMode || Date.now() < suppressClickUntil) return;
+    
+      const now = Date.now();
+    
+      if (now - lastDividerTap < 380) {
+        lastDividerTap = 0;
+        openDividerEditor(divider.id, dividerCard);
+      } else {
+        lastDividerTap = now;
+      }
     });
 
     setupCardReorderHandlers(dividerCard, {
@@ -3973,23 +3980,12 @@ function renderHomeDividers() {
   });
 }
 function closeDividerEditor() {
-  const oldEditor = $("dividerEditorPopup");
-
-  if (oldEditor) {
-    oldEditor.remove();
-  }
-
-  document.removeEventListener("click", handleDividerEditorOutsideClick);
-}
-
-function handleDividerEditorOutsideClick(event) {
   const editor = $("dividerEditorPopup");
+  const backdrop = $("dividerEditorBackdrop");
 
-  if (!editor) return;
-
-  if (editor.contains(event.target)) {
-    return;
-  }
+  if (editor) editor.remove();
+  if (backdrop) backdrop.remove();
+}
 
   if (event.target.closest(".divider-edit-button")) {
     return;
@@ -4035,6 +4031,84 @@ function createColorButtons(colors, activeColor, onChooseColor) {
   }).join("");
 }
 
+function positionDividerEditor(editor, anchorElement) {
+  const grid = $("goalsGrid");
+  const nav = $("bottomTabBar");
+
+  const topLimit = 12;
+  const navTop = nav && nav.classList.contains("visible")
+    ? nav.getBoundingClientRect().top
+    : window.innerHeight;
+
+  const bottomLimit = Math.min(window.innerHeight - 12, navTop - 8);
+  const gap = 10;
+
+  const maxHeight = Math.max(160, bottomLimit - topLimit - 60);
+
+  editor.style.maxHeight = maxHeight + "px";
+  editor.style.visibility = "hidden";
+
+  const height = editor.offsetHeight;
+  const rect = anchorElement.getBoundingClientRect();
+
+  const neededBelow = Math.max(0, rect.bottom + gap + height - bottomLimit);
+  const neededAbove = Math.max(0, topLimit + height + gap - rect.top);
+
+  const availableDown = grid
+    ? Math.max(0, grid.scrollHeight - grid.clientHeight - grid.scrollTop)
+    : 0;
+
+  const availableUp = grid ? grid.scrollTop : 0;
+
+  const scrollDown = Math.min(neededBelow, availableDown);
+  const scrollUp = Math.min(neededAbove, availableUp);
+
+  const remainingBelow = neededBelow - scrollDown;
+  const remainingAbove = neededAbove - scrollUp;
+
+  const preferBelow =
+    remainingBelow < remainingAbove ||
+    (remainingBelow === remainingAbove && scrollDown <= scrollUp);
+
+  // גלילה אוטומטית למיקום הקרוב ביותר
+  if (grid) {
+    grid.scrollTop += preferBelow ? scrollDown : -scrollUp;
+  }
+
+  requestAnimationFrame(function() {
+    if (!editor.isConnected || !anchorElement.isConnected) return;
+
+    const updatedRect = anchorElement.getBoundingClientRect();
+
+    const spaceBelow = Math.max(0, bottomLimit - updatedRect.bottom - gap);
+    const spaceAbove = Math.max(0, updatedRect.top - topLimit - gap);
+
+    const showBelow = preferBelow
+      ? spaceBelow >= 140 || spaceBelow >= spaceAbove
+      : spaceAbove < 140 && spaceBelow > spaceAbove;
+
+    const availableSpace = showBelow ? spaceBelow : spaceAbove;
+
+    editor.style.maxHeight =
+      Math.max(70, Math.min(maxHeight, availableSpace)) + "px";
+
+    const actualHeight = editor.offsetHeight;
+
+    const top = showBelow
+      ? updatedRect.bottom + gap
+      : updatedRect.top - actualHeight - gap;
+
+    const left = Math.max(
+      12,
+      Math.min(updatedRect.left, window.innerWidth - editor.offsetWidth - 12)
+    );
+
+    editor.style.top = top + "px";
+    editor.style.left = left + "px";
+    editor.style.visibility = "visible";
+  });
+}
+
 function openDividerEditor(dividerId, anchorElement) {
   closeDividerEditor();
 
@@ -4044,26 +4118,87 @@ function openDividerEditor(dividerId, anchorElement) {
 
   if (!divider) return;
 
-  const editor = document.createElement("div");
+  const backgroundColor = /^#[0-9a-f]{6}$/i.test(divider.backgroundColor || "")
+    ? divider.backgroundColor
+    : "#111827";
 
+  const textColor = /^#[0-9a-f]{6}$/i.test(divider.textColor || "")
+    ? divider.textColor
+    : "#ffffff";
+
+  // שכבה שמונעת לחיצות וגלילה ברקע
+  const backdrop = document.createElement("div");
+  backdrop.id = "dividerEditorBackdrop";
+  backdrop.className = "divider-editor-backdrop";
+
+  backdrop.addEventListener("click", closeDividerEditor);
+
+  backdrop.addEventListener("touchmove", function(event) {
+    event.preventDefault();
+  }, { passive: false });
+
+  backdrop.addEventListener("wheel", function(event) {
+    event.preventDefault();
+  }, { passive: false });
+
+  document.body.appendChild(backdrop);
+
+  const editor = document.createElement("div");
   editor.id = "dividerEditorPopup";
   editor.className = "divider-editor-popup";
 
   editor.innerHTML = `
     <label class="divider-editor-label">שם</label>
-    <input class="divider-name-input" id="dividerNameInput" type="text" maxlength="24">
 
-    <label class="divider-editor-label">צבע רקע</label>
+    <input
+      class="divider-name-input"
+      id="dividerNameInput"
+      type="text"
+      maxlength="24"
+    >
+
+    <div class="divider-color-heading">
+      <label class="divider-editor-label">צבע רקע</label>
+
+      <label class="divider-custom-color">
+        פלטה
+        <input
+          type="color"
+          id="dividerBackgroundPicker"
+          value="${backgroundColor}"
+          aria-label="בחירת צבע רקע"
+        >
+      </label>
+    </div>
+
     <div class="divider-colors-row" id="dividerBackgroundColors">
-      ${createColorButtons(DIVIDER_BACKGROUND_COLORS, divider.backgroundColor, function() {})}
+      ${createColorButtons(DIVIDER_BACKGROUND_COLORS, backgroundColor)}
     </div>
 
-    <label class="divider-editor-label">צבע כתב</label>
+    <div class="divider-color-heading">
+      <label class="divider-editor-label">צבע כתב</label>
+
+      <label class="divider-custom-color">
+        פלטה
+        <input
+          type="color"
+          id="dividerTextPicker"
+          value="${textColor}"
+          aria-label="בחירת צבע כתב"
+        >
+      </label>
+    </div>
+
     <div class="divider-colors-row" id="dividerTextColors">
-      ${createColorButtons(DIVIDER_TEXT_COLORS, divider.textColor, function() {})}
+      ${createColorButtons(DIVIDER_TEXT_COLORS, textColor)}
     </div>
 
-    <button type="button" class="divider-delete-button" id="deleteDividerButton" aria-label="מחיקת חוצץ">
+    <button
+      type="button"
+      class="divider-delete-button"
+      id="deleteDividerButton"
+      aria-label="מחיקת חוצץ"
+    >
       🗑️
     </button>
   `;
@@ -4083,66 +4218,57 @@ function openDividerEditor(dividerId, anchorElement) {
     });
   });
 
-  $("dividerBackgroundColors").querySelectorAll(".divider-color-dot").forEach(function(button) {
-    button.addEventListener("click", function() {
-      const color = button.dataset.color;
+  function setupColorControls(groupId, pickerId, propertyName) {
+    const group = $(groupId);
+    const picker = $(pickerId);
 
+    function chooseColor(color) {
       updateHomeDivider(dividerId, {
-        backgroundColor: color
+        [propertyName]: color
       });
 
       updateDividerPreview(dividerId, {
-        backgroundColor: color
+        [propertyName]: color
       });
 
-      openDividerEditor(dividerId, anchorElement);
+      picker.value = color;
+
+      group.querySelectorAll(".divider-color-dot").forEach(function(button) {
+        button.classList.toggle(
+          "selected",
+          button.dataset.color.toLowerCase() === color.toLowerCase()
+        );
+      });
+    }
+
+    group.querySelectorAll(".divider-color-dot").forEach(function(button) {
+      button.addEventListener("click", function() {
+        chooseColor(button.dataset.color);
+      });
     });
-  });
 
-  $("dividerTextColors").querySelectorAll(".divider-color-dot").forEach(function(button) {
-    button.addEventListener("click", function() {
-      const color = button.dataset.color;
-
-      updateHomeDivider(dividerId, {
-        textColor: color
-      });
-
-      updateDividerPreview(dividerId, {
-        textColor: color
-      });
-
-      openDividerEditor(dividerId, anchorElement);
+    picker.addEventListener("input", function() {
+      chooseColor(picker.value);
     });
-  });
+  }
+
+  setupColorControls(
+    "dividerBackgroundColors",
+    "dividerBackgroundPicker",
+    "backgroundColor"
+  );
+
+  setupColorControls(
+    "dividerTextColors",
+    "dividerTextPicker",
+    "textColor"
+  );
 
   $("deleteDividerButton").addEventListener("click", function() {
     deleteHomeDivider(dividerId);
   });
 
-  const rect = anchorElement.getBoundingClientRect();
-  const editorWidth = editor.offsetWidth;
-  const editorHeight = editor.offsetHeight;
-  const spaceBelow = window.innerHeight - rect.bottom;
-
-  let top = rect.bottom + 8;
-
-  if (spaceBelow < editorHeight + 16) {
-    top = rect.top - editorHeight - 8;
-  }
-
-  top = Math.max(12, top);
-
-  const left = Math.max(
-    12,
-    Math.min(rect.left, window.innerWidth - editorWidth - 12)
-  );
-
-  editor.style.top = top + "px";
-  editor.style.left = left + "px";
-
-  setTimeout(function() {
-    document.addEventListener("click", handleDividerEditorOutsideClick);
-  }, 0);
+  positionDividerEditor(editor, anchorElement);
 }
 
 function renderHome() {
