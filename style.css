@@ -5694,3 +5694,90 @@ body.interactive-page-swipe .bottom-tab-bar {
 .divider-editor-popup .divider-editor-content {
   overscroll-behavior: contain;
 }
+
+/* Clickable profile cards */
+
+.profile-avatar-card,
+.profile-name-preview-card {
+  display: block;
+  width: 100%;
+  border: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.profile-avatar-card:active,
+.profile-name-preview-card:active {
+  transform: scale(0.99);
+}
+
+/* Floating selection window */
+
+.profile-collection-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  box-sizing: border-box;
+  background: rgba(10, 15, 25, 0.66);
+  backdrop-filter: blur(5px);
+}
+
+.profile-collection-overlay[hidden],
+.profile-collection-overlay .profile-collection-panel[hidden] {
+  display: none !important;
+}
+
+.profile-collection-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 460px);
+  max-height: 84dvh;
+  overflow: hidden;
+  border-radius: 28px;
+  background: #eef1f5;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
+  direction: rtl;
+}
+
+.profile-collection-toolbar {
+  flex: 0 0 auto;
+  padding: 8px 12px 0;
+  display: flex;
+  justify-content: flex-start;
+}
+
+#profileCollectionClose {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.1);
+  color: #111827;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.profile-collection-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 14px 18px;
+}
+
+.profile-collection-dialog .profile-collection-panel {
+  margin: 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+}
