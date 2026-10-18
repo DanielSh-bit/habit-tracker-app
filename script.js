@@ -2339,6 +2339,7 @@ function showScreen(screenId, addToHistory = true) {
   closeGoalOptionsMenu();
   closeDeleteConfirm();
   closeDayDetail();
+  closeProfileCollection();
 
   if (!$(screenId)) return;
 
@@ -2421,6 +2422,7 @@ function isQuickRankingSwipeAllowed(event) {
   if (isDeleteConfirmOpen()) return false;
   if (isDayDetailOpen()) return false;
   if ($("dividerEditorBackdrop") || $("dividerDeleteConfirmOverlay")) return false;
+  if ($("profileCollectionOverlay") && !$("profileCollectionOverlay").hidden) return false;
   
   if (!isMainSwipeScreen(currentScreenId)) {
     return;
@@ -2667,6 +2669,10 @@ function initializeQuickRankingSwipe() {
 }
 
 function goBack() {
+  if ($("profileCollectionOverlay") && !$("profileCollectionOverlay").hidden) {
+    closeProfileCollection();
+    return;
+  }
   if (isReorderMode) {
     endSingleGoalDrag();
     return;
@@ -3617,15 +3623,14 @@ function renderProfile() {
   if (!avatarCircle || !levelValue || !namePreview) return;
 
   const level = getUserLevel();
-  const bestScore = getUserBestScore();
+  const currentStreak = getUserCurrentScore();
   const nextRequiredDays = getNextLevelRequiredDays();
-  const currentRequiredDays = LEVEL_DAY_REQUIREMENTS[level] || 0;
 
   avatarCircle.textContent = getUserAvatarEmoji();
   levelValue.textContent = String(level);
   namePreview.textContent = getPlayerName() || "משתמש";
   applyNameStyle(namePreview, getSelectedNameStyleId());
-  
+
   if (coinsValue) {
     coinsValue.textContent = String(getUserCoins());
   }
@@ -3642,19 +3647,19 @@ function renderProfile() {
     return;
   }
 
-  const levelRange = Math.max(1, nextRequiredDays - currentRequiredDays);
-  const levelProgress = clampNumber(
-    ((bestScore - currentRequiredDays) / levelRange) * 100,
-    0,
-    100
-  );
+  const displayedStreak = Math.min(currentStreak, nextRequiredDays);
+
+  const percent = nextRequiredDays > 0
+    ? Math.min(100, (displayedStreak / nextRequiredDays) * 100)
+    : 100;
 
   if (progressFill) {
-    progressFill.style.width = `${levelProgress}%`;
+    progressFill.style.width = `${percent}%`;
   }
 
   if (nextLevelText) {
-    nextLevelText.textContent = `עוד ${Math.max(0, nextRequiredDays - bestScore)} ימי שיא לרמה ${level + 1}`;
+    nextLevelText.textContent =
+      `לרמה הבאה: ${displayedStreak} מתוך ${nextRequiredDays}`;
   }
 }
 
@@ -3887,11 +3892,83 @@ function renderAvatarCollection() {
   });
 }
 
-function openAvatarCollection() {
-  const panel = $("avatarCollectionPanel");
-  if (!panel) return;
+function closeProfileCollection() {
+  const overlay = $("profileCollectionOverlay");
 
-  panel.classList.remove("hidden");
+  if (overlay) {
+    overlay.hidden = true;
+  }
+}
+
+function showProfileCollection(panelId) {
+  let overlay = $("profileCollectionOverlay");
+
+  if (!overlay) {
+    const avatarPanel = $("avatarCollectionPanel");
+    const namePanel = $("nameStylesPanel");
+
+    if (!avatarPanel || !namePanel) return;
+
+    overlay = document.createElement("div");
+    overlay.id = "profileCollectionOverlay";
+    overlay.className = "profile-collection-overlay";
+    overlay.hidden = true;
+
+    overlay.innerHTML = `
+      <div class="profile-collection-dialog"
+           role="dialog"
+           aria-modal="true"
+           id="profileCollectionDialog">
+
+        <div class="profile-collection-toolbar">
+          <button type="button"
+                  id="profileCollectionClose"
+                  aria-label="סגירה">×</button>
+        </div>
+
+        <div class="profile-collection-content"
+             id="profileCollectionContent"></div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const content = $("profileCollectionContent");
+
+    [avatarPanel, namePanel].forEach(function(panel) {
+      panel.classList.remove("hidden");
+      content.appendChild(panel);
+    });
+
+    overlay.addEventListener("click", function(event) {
+      if (event.target === overlay) {
+        closeProfileCollection();
+      }
+    });
+
+    $("profileCollectionClose").addEventListener(
+      "click",
+      closeProfileCollection
+    );
+  }
+
+  overlay.querySelectorAll(".profile-collection-panel").forEach(function(panel) {
+    panel.hidden = panel.id !== panelId;
+  });
+
+  const dialog = $("profileCollectionDialog");
+
+  dialog.setAttribute(
+    "aria-label",
+    panelId === "avatarCollectionPanel" ? "בחירת דמות" : "עיצוב שם"
+  );
+
+  $("profileCollectionContent").scrollTop = 0;
+  overlay.hidden = false;
+}
+
+function openAvatarCollection() {
+  showProfileCollection("avatarCollectionPanel");
   renderAvatarCollection();
 }
 
@@ -3932,10 +4009,7 @@ function renderNameStylesCollection() {
 }
 
 function openNameStylesCollection() {
-  const panel = $("nameStylesPanel");
-  if (!panel) return;
-
-  panel.classList.remove("hidden");
+  showProfileCollection("nameStylesPanel");
   renderNameStylesCollection();
 }
 
@@ -5807,12 +5881,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
   on("openGoalInfoFromMenu", "click", function() {
     openGoalScreenFromOptions("info");
-  });
-
-  on("testAddCoinsButton", "click", function() {
-    addUserCoins(10);
-    syncPlayer();
-    renderProfile();
   });
     
   on("openRankingFromMenu", "click", function() {
