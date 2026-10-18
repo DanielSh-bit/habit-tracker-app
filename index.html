@@ -463,7 +463,7 @@
           <h1>Profile</h1>
         </header>
     
-        <section class="profile-avatar-card">
+        <button type="button" class="profile-avatar-card" id="openAvatarCollectionButton" aria-label="בחירת דמות">
           <div class="profile-avatar-circle" id="profileAvatarCircle">
             🪱
           </div>
@@ -477,27 +477,13 @@
           </div>
     
           <p class="profile-next-level-text" id="profileNextLevelText"></p>
-        </section>
+            </button>
     
-        <section class="profile-name-preview-card">
+        <button type="button" class="profile-name-preview-card" id="openNameStylesButton" aria-label="בחירת עיצוב שם">
           <div class="profile-name-preview" id="profileNamePreview">
             משתמש
           </div>
-        </section>
-    
-        <section class="profile-actions">
-          <button type="button" id="openAvatarCollectionButton">
-            Avatars
-          </button>
-        
-          <button type="button" id="openNameStylesButton">
-            Name Styles
-          </button>
-
-          <button type="button" id="testAddCoinsButton">
-            +10 Coins
-          </button>
-        </section>
+        </button>
         
         <section class="profile-collection-panel hidden" id="avatarCollectionPanel">
           <header class="profile-collection-header">
