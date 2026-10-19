@@ -4972,7 +4972,7 @@ async function syncPlayer() {
 
 async function fetchPlayers() {
   try {
-    const response = await fetch(`${SUPABASE_URL}/levelup_players?select=name,current_score,best_score,updated_at`, {
+    const response = await fetch(`${SUPABASE_URL}/levelup_players?select=name,current_score,best_score,selected_avatar_level,name_style_id,updated_at`, {
       headers: {
         "apikey": SUPABASE_KEY,
         "Authorization": `Bearer ${SUPABASE_KEY}`
@@ -4989,7 +4989,9 @@ async function fetchPlayers() {
       {
         name: getPlayerName() || "אתה",
         current_score: getUserCurrentScore(),
-        best_score: getUserBestScore()
+        best_score: getUserBestScore(),
+        selected_avatar_level: getSelectedAvatarLevel(),
+        name_style_id: getSelectedNameStyleId()
       }
     ];
   }
@@ -5277,13 +5279,23 @@ function getRankingNameHtml(player) {
   const avatarLevel = Number(player.selected_avatar_level || 1);
   const avatar = getAvatarEmojiByLevel(avatarLevel);
 
+  const playerLevel = getLevelForBestStreak(
+    Number(player.best_score || 0)
+  );
+
   const styleId = player.name_style_id || "default";
   const nameStyleClass = getNameStyleById(styleId).className;
 
   return `
     <div class="ranking-name ranking-name-with-avatar">
-      <span class="ranking-avatar">${avatar}</span>
-      <span class="styled-player-name ${nameStyleClass}">${cleanName}</span>
+      <div class="ranking-avatar-stack">
+        <span class="ranking-avatar">${avatar}</span>
+        <span class="ranking-avatar-level">Lv ${playerLevel}</span>
+      </div>
+
+      <span class="styled-player-name ${nameStyleClass}">
+        ${cleanName}
+      </span>
     </div>
   `;
 }
