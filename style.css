@@ -5800,10 +5800,11 @@ body.interactive-page-swipe .bottom-tab-bar {
 
 .ranking-avatar-level {
   display: block;
-  margin-top: -2px;
-  font-size: 10px;
+  margin-top: 1px;
+  font-size: 13px;
   font-weight: 900;
   line-height: 1;
   color: #111827;
   white-space: nowrap;
+  transform: translateX(-2px);
 }
