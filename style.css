@@ -5781,3 +5781,8 @@ body.interactive-page-swipe .bottom-tab-bar {
   box-shadow: none;
   padding: 0;
 }
+
+/* Hide avatar and name-style panels until opened */
+.profile-collection-panel.hidden {
+  display: none !important;
+}
