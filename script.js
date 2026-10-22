@@ -4653,6 +4653,7 @@ function renderCollectiveChallenges() {
   if (!grid) return;
 
   const group = document.createElement("div");
+  group.id = "collectiveChallengesGroup";
   group.className = "collective-challenges-group";
 
   group.classList.toggle(
@@ -4660,42 +4661,41 @@ function renderCollectiveChallenges() {
     localStorage.getItem(COLLECTIVE_HIDDEN_KEY) === "true"
   );
 
-  const toggle = document.createElement("button");
-  toggle.type = "button";
-  toggle.className = "collective-visibility-toggle";
+  // Clicking the LevelUp title toggles the collective challenges
+  const logoButton = $("collectiveToggleTitle");
 
-  function updateToggle() {
-    const hidden = group.classList.contains("is-hidden");
+  if (logoButton) {
+    function updateLogoState() {
+      const hidden = group.classList.contains("is-hidden");
 
-    toggle.setAttribute(
-      "aria-label",
-      hidden ? "הצג אתגרים משותפים" : "הסתר אתגרים משותפים"
-    );
+      logoButton.setAttribute("aria-expanded", String(!hidden));
+      logoButton.setAttribute(
+        "aria-label",
+        hidden ? "הצג אתגרים משותפים" : "הסתר אתגרים משותפים"
+      );
+    }
 
-    toggle.setAttribute("aria-expanded", String(!hidden));
+    logoButton.onclick = function() {
+      const hidden = group.classList.toggle("is-hidden");
+
+      localStorage.setItem(
+        COLLECTIVE_HIDDEN_KEY,
+        String(hidden)
+      );
+
+      updateLogoState();
+    };
+
+    updateLogoState();
   }
-
-  toggle.addEventListener("click", function(event) {
-    event.stopPropagation();
-
-    group.classList.toggle("is-hidden");
-
-    localStorage.setItem(
-      COLLECTIVE_HIDDEN_KEY,
-      String(group.classList.contains("is-hidden"))
-    );
-
-    updateToggle();
-  });
-
-  updateToggle();
-  group.appendChild(toggle);
 
   COLLECTIVE_CHALLENGES.forEach(function(challenge) {
     const card = document.createElement("button");
 
     card.type = "button";
-    card.className = `collective-challenge-card collective-${challenge.id}`;
+    card.className =
+      `collective-challenge-card collective-${challenge.id}`;
+
     card.dataset.collectiveId = challenge.id;
 
     card.innerHTML = `
@@ -4710,7 +4710,6 @@ function renderCollectiveChallenges() {
 
     card.addEventListener("click", function() {
       if (isReorderMode || Date.now() < suppressClickUntil) return;
-
       openCollectiveChallengeInfo(challenge);
     });
 
@@ -4719,6 +4718,7 @@ function renderCollectiveChallenges() {
 
   grid.prepend(group);
 }
+
 function renderHome() {
   const goalsGrid = $("goalsGrid");
   if (!goalsGrid) return;
