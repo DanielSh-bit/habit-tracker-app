@@ -86,6 +86,30 @@ const USER_COINS_KEY = "levelup_user_coins";
 const HOME_DIVIDERS_KEY = "levelup_home_dividers";
 const HOME_ORDER_KEY = "levelup_home_order";
 
+const COLLECTIVE_CHALLENGES = [
+  {
+    id: "team",
+    title: "Team",
+    subtitle: "רצף משפחתי משותף",
+    icon: "🤝",
+    description: "כל המשפחה שומרת על רצף משותף. אם אחד המשתתפים שובר אותו, האתגר מתאפס."
+  },
+  {
+    id: "survivor",
+    title: "Survivor",
+    subtitle: "האחרון שנשאר",
+    icon: "🏆",
+    description: "כולם מתחילים יחד. המשתתף ששומר על הרצף למשך הזמן הארוך ביותר מנצח."
+  },
+  {
+    id: "risk",
+    title: "Risk",
+    subtitle: "חיזוי הרצף הבא",
+    icon: "🎲",
+    description: "כל משתתף בוחר מראש כמה ימים יצליח להתמיד. גובה הפרס וההפסד ייקבע בהמשך."
+  }
+];
+
 const DIVIDER_BACKGROUND_COLORS = [
   "#111827", "#000000", "#7f1d1d", "#7c2d12",
   "#1e3a8a", "#064e3b", "#581c87", "#be123c",
@@ -2339,6 +2363,7 @@ function showScreen(screenId, addToHistory = true) {
   closeGoalOptionsMenu();
   closeDeleteConfirm();
   closeDayDetail();
+  closeCollectiveChallengeInfo();
   closeProfileCollection();
 
   if (!$(screenId)) return;
@@ -2421,6 +2446,8 @@ function isQuickRankingSwipeAllowed(event) {
   if (isGoalOptionsOpen()) return false;
   if (isDeleteConfirmOpen()) return false;
   if (isDayDetailOpen()) return false;
+  if ($("collectiveChallengeOverlay") &&
+    !$("collectiveChallengeOverlay").hidden) return false;
   if ($("dividerEditorBackdrop") || $("dividerDeleteConfirmOverlay")) return false;
   if ($("profileCollectionOverlay") && !$("profileCollectionOverlay").hidden) return false;
   
@@ -2669,6 +2696,11 @@ function initializeQuickRankingSwipe() {
 }
 
 function goBack() {
+  if ($("collectiveChallengeOverlay") &&
+      !$("collectiveChallengeOverlay").hidden) {
+    closeCollectiveChallengeInfo();
+    return;
+  }
   if ($("profileCollectionOverlay") && !$("profileCollectionOverlay").hidden) {
     closeProfileCollection();
     return;
@@ -4514,6 +4546,97 @@ function openDividerEditor(dividerId, anchorElement) {
   positionDividerEditor(editor, anchorElement);
 }
 
+function closeCollectiveChallengeInfo() {
+  const overlay = $("collectiveChallengeOverlay");
+  if (overlay) overlay.hidden = true;
+}
+
+function openCollectiveChallengeInfo(challenge) {
+  let overlay = $("collectiveChallengeOverlay");
+
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "collectiveChallengeOverlay";
+    overlay.className = "collective-challenge-overlay";
+    overlay.hidden = true;
+
+    overlay.innerHTML = `
+      <section class="collective-challenge-dialog"
+               role="dialog"
+               aria-modal="true"
+               aria-labelledby="collectiveDialogTitle">
+
+        <button type="button"
+                class="collective-dialog-close"
+                aria-label="סגירה">×</button>
+
+        <span class="collective-dialog-icon"
+              id="collectiveDialogIcon"></span>
+
+        <h2 id="collectiveDialogTitle"></h2>
+
+        <p id="collectiveDialogDescription"></p>
+
+        <small>Coming soon · מטבעות בתוך האפליקציה בלבד</small>
+      </section>
+    `;
+
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener("click", function(event) {
+      if (event.target === overlay) {
+        closeCollectiveChallengeInfo();
+      }
+    });
+
+    overlay.querySelector(".collective-dialog-close")
+      .addEventListener("click", closeCollectiveChallengeInfo);
+  }
+
+  $("collectiveDialogIcon").textContent = challenge.icon;
+  $("collectiveDialogTitle").textContent = challenge.title;
+  $("collectiveDialogDescription").textContent = challenge.description;
+
+  overlay.hidden = false;
+}
+
+function renderCollectiveChallenges() {
+  const grid = $("goalsGrid");
+  if (!grid) return;
+
+  const cards = document.createDocumentFragment();
+
+  COLLECTIVE_CHALLENGES.forEach(function(challenge) {
+    const card = document.createElement("button");
+
+    card.type = "button";
+    card.className =
+      `collective-challenge-card collective-${challenge.id}`;
+
+    card.dataset.collectiveId = challenge.id;
+
+    card.innerHTML = `
+      <span class="collective-challenge-copy">
+        <strong>${challenge.title}</strong>
+        <small>${challenge.subtitle}</small>
+      </span>
+
+      <span class="collective-challenge-symbol">
+        ${challenge.icon}
+      </span>
+    `;
+
+    card.addEventListener("click", function() {
+      if (isReorderMode || Date.now() < suppressClickUntil) return;
+      openCollectiveChallengeInfo(challenge);
+    });
+
+    cards.appendChild(card);
+  });
+
+  grid.prepend(cards);
+}
+
 function renderHome() {
   const goalsGrid = $("goalsGrid");
   if (!goalsGrid) return;
@@ -4621,6 +4744,7 @@ function renderHome() {
   });
 
   reorderHomeDomToMatchGoals();
+  renderCollectiveChallenges();
   updateHomeProgressRing();
 }
 
@@ -5848,7 +5972,11 @@ document.addEventListener("DOMContentLoaded", function() {
   on("dailyCalendarBackButton", "click", function() {
     showScreen("homeScreen");
   });
-  
+
+  on("profileBackButton", "click", function() {
+    showScreen("homeScreen");
+  });
+    
   on("bottomCalendarTab", "click", function() {
     showScreen("dailyCalendarScreen");
   });
