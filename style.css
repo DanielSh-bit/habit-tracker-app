@@ -5937,3 +5937,109 @@ body.interactive-page-swipe .bottom-tab-bar {
   color: #cbd5e1;
   font-size: 12px;
 }
+
+/* Collective challenges - new layout */
+
+.collective-challenge-card {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+.collective-challenge-copy {
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* Rich gradient colors */
+
+.collective-team {
+  background: linear-gradient(
+    125deg,
+    #064e3b 0%,
+    #0d9488 40%,
+    #0f766e 67%,
+    #312e81 100%
+  ) !important;
+}
+
+.collective-survivor {
+  background: linear-gradient(
+    125deg,
+    #172554 0%,
+    #2563eb 35%,
+    #4f46e5 68%,
+    #7e22ce 100%
+  ) !important;
+}
+
+/* Collective challenges group */
+
+.collective-challenges-group {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+/* Small icon-only collapse button */
+
+.collective-visibility-toggle {
+  position: absolute;
+  top: 4px;
+  left: 5px;
+  z-index: 5;
+
+  width: 20px;
+  height: 20px;
+  padding: 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+
+  background: rgba(12, 15, 35, 0.5);
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collective-visibility-toggle::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+/* Collapsed collective challenges */
+
+.collective-challenges-group.is-hidden {
+  height: 22px;
+}
+
+.collective-challenges-group.is-hidden .collective-challenge-card {
+  display: none !important;
+}
+
+.collective-challenges-group.is-hidden
+.collective-visibility-toggle::after {
+  transform: rotate(225deg) translate(-1px, -1px);
+}
+
+/* Collapsed divider groups */
+
+#goalsGrid .goal-card.hidden-by-divider {
+  display: none !important;
+}
+
+.home-divider-card.is-collapsed {
+  margin-bottom: 0 !important;
+}
