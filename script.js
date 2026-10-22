@@ -85,6 +85,7 @@ const USER_COINS_KEY = "levelup_user_coins";
 
 const HOME_DIVIDERS_KEY = "levelup_home_dividers";
 const HOME_ORDER_KEY = "levelup_home_order";
+const COLLECTIVE_HIDDEN_KEY = "levelup_collective_hidden";
 
 const COLLECTIVE_CHALLENGES = [
   {
@@ -1715,6 +1716,8 @@ function reorderHomeDomToMatchGoals() {
       goalsGrid.appendChild(card);
     }
   });
+
+  applyHomeDividerVisibility();
 }
 
 function getSafeDragY(y) {
@@ -4064,26 +4067,71 @@ function renderHomeDividers() {
       <span class="divider-title">${escapeHtml(divider.name || "חוצץ")}</span>
     `;
     
-    let lastDividerTap = 0;
+        let singleTapTimer = null;
+
+        dividerCard.addEventListener("click", function() {
+          if (isReorderMode || Date.now() < suppressClickUntil) return;
     
-    dividerCard.addEventListener("click", function() {
-      if (isReorderMode || Date.now() < suppressClickUntil) return;
+          if (singleTapTimer !== null) {
+            clearTimeout(singleTapTimer);
+            singleTapTimer = null;
     
-      const now = Date.now();
+            openDividerEditor(divider.id, dividerCard);
+            return;
+          }
     
-      if (now - lastDividerTap < 380) {
-        lastDividerTap = 0;
-        openDividerEditor(divider.id, dividerCard);
-      } else {
-        lastDividerTap = now;
-      }
-    });
+          singleTapTimer = setTimeout(function() {
+            singleTapTimer = null;
+    
+            if (isReorderMode || Date.now() < suppressClickUntil) return;
+    
+            toggleHomeDividerCollapsed(divider.id);
+          }, 380);
+        });
 
     setupCardReorderHandlers(dividerCard, {
       id: getHomeItemKey("divider", divider.id)
     });
     
     goalsGrid.appendChild(dividerCard);
+  });
+}
+function toggleHomeDividerCollapsed(dividerId) {
+  const divider = getHomeDividers().find(function(item) {
+    return item.id === dividerId;
+  });
+
+  if (!divider) return;
+
+  updateHomeDivider(dividerId, {
+    collapsed: !Boolean(divider.collapsed)
+  });
+
+  applyHomeDividerVisibility();
+}
+
+function applyHomeDividerVisibility() {
+  const grid = $("goalsGrid");
+  if (!grid) return;
+
+  const collapsedDividers = new Map(
+    getHomeDividers().map(function(divider) {
+      return [divider.id, Boolean(divider.collapsed)];
+    })
+  );
+
+  let hideGoals = false;
+
+  Array.from(grid.children).forEach(function(card) {
+    if (card.classList.contains("home-divider-card")) {
+      hideGoals = collapsedDividers.get(card.dataset.dividerId) || false;
+
+      card.classList.toggle("is-collapsed", hideGoals);
+      card.setAttribute("aria-expanded", String(!hideGoals));
+
+    } else if (card.classList.contains("goal-card")) {
+      card.classList.toggle("hidden-by-divider", hideGoals);
+    }
   });
 }
 function closeDividerEditor() {
@@ -4604,21 +4652,55 @@ function renderCollectiveChallenges() {
   const grid = $("goalsGrid");
   if (!grid) return;
 
-  const cards = document.createDocumentFragment();
+  const group = document.createElement("div");
+  group.className = "collective-challenges-group";
+
+  group.classList.toggle(
+    "is-hidden",
+    localStorage.getItem(COLLECTIVE_HIDDEN_KEY) === "true"
+  );
+
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "collective-visibility-toggle";
+
+  function updateToggle() {
+    const hidden = group.classList.contains("is-hidden");
+
+    toggle.setAttribute(
+      "aria-label",
+      hidden ? "הצג אתגרים משותפים" : "הסתר אתגרים משותפים"
+    );
+
+    toggle.setAttribute("aria-expanded", String(!hidden));
+  }
+
+  toggle.addEventListener("click", function(event) {
+    event.stopPropagation();
+
+    group.classList.toggle("is-hidden");
+
+    localStorage.setItem(
+      COLLECTIVE_HIDDEN_KEY,
+      String(group.classList.contains("is-hidden"))
+    );
+
+    updateToggle();
+  });
+
+  updateToggle();
+  group.appendChild(toggle);
 
   COLLECTIVE_CHALLENGES.forEach(function(challenge) {
     const card = document.createElement("button");
 
     card.type = "button";
-    card.className =
-      `collective-challenge-card collective-${challenge.id}`;
-
+    card.className = `collective-challenge-card collective-${challenge.id}`;
     card.dataset.collectiveId = challenge.id;
 
     card.innerHTML = `
       <span class="collective-challenge-copy">
         <strong>${challenge.title}</strong>
-        <small>${challenge.subtitle}</small>
       </span>
 
       <span class="collective-challenge-symbol">
@@ -4628,15 +4710,15 @@ function renderCollectiveChallenges() {
 
     card.addEventListener("click", function() {
       if (isReorderMode || Date.now() < suppressClickUntil) return;
+
       openCollectiveChallengeInfo(challenge);
     });
 
-    cards.appendChild(card);
+    group.appendChild(card);
   });
 
-  grid.prepend(cards);
+  grid.prepend(group);
 }
-
 function renderHome() {
   const goalsGrid = $("goalsGrid");
   if (!goalsGrid) return;
