@@ -3694,7 +3694,7 @@ function renderProfile() {
 
   if (nextLevelText) {
     nextLevelText.textContent =
-      `לרמה הבאה: ${displayedStreak} מתוך ${nextRequiredDays}`;
+      `${displayedStreak} מתוך ${nextRequiredDays}`;
   }
 }
 
