@@ -6068,7 +6068,7 @@ document.addEventListener("DOMContentLoaded", function() {
   on("teamBackButton", "click", function() {
     showScreen("homeScreen");
   });
-    |
+  
   on("bottomCalendarTab", "click", function() {
     showScreen("dailyCalendarScreen");
   });
