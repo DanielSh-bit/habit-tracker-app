@@ -6323,3 +6323,75 @@ body.interactive-page-swipe .bottom-tab-bar {
   font-weight: 700;
   line-height: 1.8;
 }
+
+/* Team - updated layout */
+
+.team-title {
+  margin: 4px 0 24px;
+}
+
+.team-back-button {
+  font-size: 36px;
+  font-weight: 500;
+}
+
+/* Metallic green bubbles */
+
+.team-bubble {
+  background:
+    radial-gradient(
+      ellipse at 15% 0%,
+      rgba(215, 255, 230, 0.3),
+      transparent 45%
+    ),
+    linear-gradient(
+      145deg,
+      #347c5c 0%,
+      #15583d 32%,
+      #0c3528 70%,
+      #061c17 100%
+    );
+
+  border: 1px solid rgba(175, 255, 205, 0.28);
+
+  box-shadow:
+    inset 0 2px 2px rgba(255, 255, 255, 0.2),
+    inset 0 -8px 20px rgba(0, 0, 0, 0.15),
+    0 14px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Text colors */
+
+.team-label,
+.team-record-row,
+.team-info-bubble p {
+  color: #effff3;
+}
+
+/* Explanation */
+
+.team-info-heading {
+  display: block;
+  color: white;
+  font-size: 20px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.team-info-bubble p {
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+/* Larger money labels */
+
+.team-money-earn > span:first-child {
+  font-size: 23px;
+  font-weight: 900;
+}
+
+.team-money-loss > span:first-child {
+  font-size: 20px;
+  font-weight: 900;
+}
