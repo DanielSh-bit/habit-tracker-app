@@ -63,23 +63,32 @@
         <button type="button"
                 id="teamBackButton"
                 class="team-back-button"
-                aria-label="חזרה לבית">←</button>
+                aria-label="חזרה לבית">×</button>
     
         <h1 class="team-title">Team</h1>
     
         <div class="team-bubbles">
     
+          <!-- Explanation -->
+          <div class="team-bubble team-info-bubble">
+            <strong class="team-info-heading">עבודה משותפת:</strong>
+            <p>
+              כולם מצליחים - הרצף גדל ומרוויחים,<br>
+              אחד נכשל - הרצף נשבר והוא נקנס.
+            </p>
+          </div>
+    
           <!-- Streak -->
           <div class="team-bubble team-streak-bubble">
     
-            <p class="team-label">רצף נוכחי</p>
+            <p class="team-label">רצף</p>
     
             <strong id="teamCurrentStreak"
-                    class="team-primary-stat">—</strong>
+                    class="team-primary-stat">0</strong>
     
             <div class="team-record-row">
-              <span>שיא כל הזמנים</span>
-              <strong id="teamBestStreak">—</strong>
+              <span>שיא</span>
+              <strong id="teamBestStreak">0</strong>
             </div>
     
           </div>
@@ -94,9 +103,9 @@
                       id="teamCollectButton"
                       disabled>
     
-                <span>רווח היום</span>
+                <span>רווח</span>
     
-                <strong id="teamRewardAmount">—</strong>
+                <strong id="teamRewardAmount">10</strong>
     
                 <span class="team-collect-caption">Collect</span>
     
@@ -104,23 +113,14 @@
     
               <div class="team-money-stat team-money-loss">
     
-                <span>הפסד אם אני נכשל</span>
+                <span>הפסד</span>
     
-                <strong id="teamPenaltyAmount">—</strong>
+                <strong id="teamPenaltyAmount">20</strong>
     
               </div>
     
             </div>
     
-          </div>
-    
-          <!-- Explanation -->
-          <div class="team-bubble team-info-bubble">
-            <p>
-              כולם מצליחים — הרצף גדל.
-              אחד נכשל — הרצף נשבר.
-              מי שהפיל את הקבוצה מאבד את רווחיו ומשלם קנס.
-            </p>
           </div>
     
         </div>
