@@ -4710,6 +4710,12 @@ function renderCollectiveChallenges() {
 
     card.addEventListener("click", function() {
       if (isReorderMode || Date.now() < suppressClickUntil) return;
+    
+      if (challenge.id === "team") {
+        showScreen("teamScreen");
+        return;
+      }
+    
       openCollectiveChallengeInfo(challenge);
     });
 
@@ -6058,7 +6064,11 @@ document.addEventListener("DOMContentLoaded", function() {
   on("profileBackButton", "click", function() {
     showScreen("homeScreen");
   });
-    
+
+  on("teamBackButton", "click", function() {
+    showScreen("homeScreen");
+  });
+    |
   on("bottomCalendarTab", "click", function() {
     showScreen("dailyCalendarScreen");
   });
