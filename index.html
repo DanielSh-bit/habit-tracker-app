@@ -56,8 +56,10 @@
       <section class="goals-grid" id="goalsGrid"></section>
     </section>
 
+    
+    <!-- TEAM -->
     <section class="screen" id="teamScreen">
-
+    
       <div class="team-layout">
     
         <button type="button"
@@ -69,26 +71,25 @@
     
         <div class="team-bubbles">
     
-          <!-- Explanation -->
-          <div class="team-bubble team-info-bubble">
-            <strong class="team-info-heading">עבודה משותפת:</strong>
-            <p>
-              כולם מצליחים - הרצף גדל ומרוויחים,<br>
-              אחד נכשל - הרצף נשבר והוא נקנס.
-            </p>
-          </div>
-    
-          <!-- Streak -->
+          <!-- Streak and progress -->
           <div class="team-bubble team-streak-bubble">
     
-            <p class="team-label">רצף</p>
+            <div class="team-streak-side">
+              <p class="team-label">רצף</p>
     
-            <strong id="teamCurrentStreak"
-                    class="team-primary-stat">0</strong>
+              <strong id="teamCurrentStreak"
+                      class="team-primary-stat">0</strong>
     
-            <div class="team-record-row">
-              <span>שיא</span>
-              <strong id="teamBestStreak">0</strong>
+              <div class="team-record-row">
+                <span>שיא</span>
+                <strong id="teamBestStreak">0</strong>
+              </div>
+            </div>
+    
+            <div class="team-progress-side">
+              <strong id="teamProgressCount"
+                      class="team-progress-count">0/0</strong>
+              <p>התקדמות</p>
             </div>
     
           </div>
@@ -104,19 +105,14 @@
                       disabled>
     
                 <span>רווח</span>
-    
                 <strong id="teamRewardAmount">10</strong>
-    
                 <span class="team-collect-caption">Collect</span>
     
               </button>
     
               <div class="team-money-stat team-money-loss">
-    
                 <span>הפסד</span>
-    
                 <strong id="teamPenaltyAmount">20</strong>
-    
               </div>
     
             </div>
@@ -125,9 +121,60 @@
     
         </div>
     
+        <!-- Traitors list, outside the bubbles -->
+        <div class="team-traitors">
+          <h2>בוגדים:</h2>
+          <ul id="teamTraitorsList"></ul>
+        </div>
+    
       </div>
     
     </section>
+    
+    
+    <!-- SURVIVOR -->
+    <section class="screen" id="survivorScreen">
+    
+      <div class="team-layout">
+    
+        <button type="button"
+                id="survivorBackButton"
+                class="team-back-button"
+                aria-label="חזרה לבית">×</button>
+    
+        <h1 class="team-title">Survivor</h1>
+    
+        <div class="team-bubbles">
+          <div class="team-bubble mode-placeholder-bubble"></div>
+          <div class="team-bubble mode-placeholder-bubble"></div>
+        </div>
+    
+      </div>
+    
+    </section>
+    
+    
+    <!-- RISK -->
+    <section class="screen" id="riskScreen">
+    
+      <div class="team-layout">
+    
+        <button type="button"
+                id="riskBackButton"
+                class="team-back-button"
+                aria-label="חזרה לבית">×</button>
+    
+        <h1 class="team-title">Risk</h1>
+    
+        <div class="team-bubbles">
+          <div class="team-bubble mode-placeholder-bubble"></div>
+          <div class="team-bubble mode-placeholder-bubble"></div>
+        </div>
+    
+      </div>
+    
+    </section>
+
 
     <div class="menu-overlay" id="menuOverlay"></div>
 
