@@ -6080,7 +6080,9 @@ body.interactive-page-swipe .bottom-tab-bar {
 
 /* Team Screen */
 
-#teamScreen.active {
+#teamScreen.active,
+#survivorScreen.active,
+#riskScreen.active {
   position: fixed;
   inset: 0;
   z-index: 1500;
@@ -6394,4 +6396,141 @@ body.interactive-page-swipe .bottom-tab-bar {
 .team-money-loss > span:first-child {
   font-size: 20px;
   font-weight: 900;
+}
+
+
+/* Team - streak and progress side by side */
+
+#teamScreen .team-streak-bubble {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 16px;
+  direction: rtl;
+  text-align: center;
+}
+
+.team-streak-side,
+.team-progress-side {
+  min-width: 0;
+}
+
+#teamScreen .team-primary-stat {
+  font-size: clamp(48px, 12vw, 78px);
+  margin: 8px 0 14px;
+}
+
+#teamScreen .team-record-row {
+  gap: 10px;
+  padding-top: 10px;
+}
+
+#teamScreen .team-record-row strong {
+  font-size: 25px;
+}
+
+/* Progress */
+
+.team-progress-count {
+  display: block;
+  direction: ltr;
+  white-space: nowrap;
+
+  color: white;
+  font-size: clamp(32px, 9vw, 52px);
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.team-progress-side p {
+  margin: 10px 0 0;
+
+  color: #effff3;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+/* Traitors - plain white text, no bubble */
+
+.team-traitors {
+  margin-top: 24px;
+  padding: 0 8px;
+  direction: rtl;
+  text-align: right;
+  color: white;
+}
+
+.team-traitors h2 {
+  margin: 0 0 12px;
+
+  color: white;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.team-traitors ul {
+  margin: 0;
+  padding-right: 24px;
+
+  color: white;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.9;
+}
+
+/* New Survivor and Risk panels */
+
+.mode-placeholder-bubble {
+  min-height: 155px;
+  box-sizing: border-box;
+}
+
+/* Survivor - metallic blue */
+
+#survivorScreen .team-bubble {
+  background:
+    radial-gradient(
+      ellipse at 15% 0%,
+      rgba(180, 220, 255, 0.32),
+      transparent 48%
+    ),
+    linear-gradient(
+      145deg,
+      #2563eb 0%,
+      #1e40af 35%,
+      #312e81 75%,
+      #17153b 100%
+    );
+
+  border: 1px solid rgba(170, 200, 255, 0.3);
+
+  box-shadow:
+    inset 0 2px 2px rgba(255, 255, 255, 0.18),
+    inset 0 -8px 20px rgba(0, 0, 0, 0.2),
+    0 14px 30px rgba(0, 0, 0, 0.32);
+}
+
+/* Risk - metallic purple and crimson */
+
+#riskScreen .team-bubble {
+  background:
+    radial-gradient(
+      ellipse at 15% 0%,
+      rgba(255, 170, 220, 0.28),
+      transparent 48%
+    ),
+    linear-gradient(
+      145deg,
+      #9f1239 0%,
+      #86165e 38%,
+      #581c87 75%,
+      #2e1065 100%
+    );
+
+  border: 1px solid rgba(255, 170, 215, 0.3);
+
+  box-shadow:
+    inset 0 2px 2px rgba(255, 255, 255, 0.17),
+    inset 0 -8px 20px rgba(0, 0, 0, 0.2),
+    0 14px 30px rgba(0, 0, 0, 0.32);
 }
