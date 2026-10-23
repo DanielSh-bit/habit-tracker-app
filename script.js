@@ -4713,10 +4713,11 @@ function renderCollectiveChallenges() {
     
       if (challenge.id === "team") {
         showScreen("teamScreen");
-        return;
+      } else if (challenge.id === "survivor") {
+        showScreen("survivorScreen");
+      } else if (challenge.id === "risk") {
+        showScreen("riskScreen");
       }
-    
-      openCollectiveChallengeInfo(challenge);
     });
 
     group.appendChild(card);
@@ -6068,7 +6069,15 @@ document.addEventListener("DOMContentLoaded", function() {
   on("teamBackButton", "click", function() {
     showScreen("homeScreen");
   });
+
+  on("survivorBackButton", "click", function() {
+    showScreen("homeScreen");
+  });
   
+  on("riskBackButton", "click", function() {
+    showScreen("homeScreen");
+  });
+    
   on("bottomCalendarTab", "click", function() {
     showScreen("dailyCalendarScreen");
   });
