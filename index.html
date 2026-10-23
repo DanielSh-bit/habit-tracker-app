@@ -58,18 +58,73 @@
 
     <section class="screen" id="teamScreen">
 
-      <header class="team-header">
-        <h1>Team</h1>
+      <div class="team-layout">
     
         <button type="button"
                 id="teamBackButton"
-                aria-label="חזרה לבית">×</button>
-      </header>
+                class="team-back-button"
+                aria-label="חזרה לבית">←</button>
     
-      <div class="team-streak-container">
-        <p>הרצף הנוכחי</p>
-        <strong id="teamCurrentStreak">0</strong>
-        <span>ימים</span>
+        <h1 class="team-title">Team</h1>
+    
+        <div class="team-bubbles">
+    
+          <!-- Streak -->
+          <div class="team-bubble team-streak-bubble">
+    
+            <p class="team-label">רצף נוכחי</p>
+    
+            <strong id="teamCurrentStreak"
+                    class="team-primary-stat">—</strong>
+    
+            <div class="team-record-row">
+              <span>שיא כל הזמנים</span>
+              <strong id="teamBestStreak">—</strong>
+            </div>
+    
+          </div>
+    
+          <!-- Money -->
+          <div class="team-bubble team-money-bubble">
+    
+            <div class="team-money-grid">
+    
+              <button type="button"
+                      class="team-money-stat team-money-earn"
+                      id="teamCollectButton"
+                      disabled>
+    
+                <span>רווח היום</span>
+    
+                <strong id="teamRewardAmount">—</strong>
+    
+                <span class="team-collect-caption">Collect</span>
+    
+              </button>
+    
+              <div class="team-money-stat team-money-loss">
+    
+                <span>הפסד אם אני נכשל</span>
+    
+                <strong id="teamPenaltyAmount">—</strong>
+    
+              </div>
+    
+            </div>
+    
+          </div>
+    
+          <!-- Explanation -->
+          <div class="team-bubble team-info-bubble">
+            <p>
+              כולם מצליחים — הרצף גדל.
+              אחד נכשל — הרצף נשבר.
+              מי שהפיל את הקבוצה מאבד את רווחיו ומשלם קנס.
+            </p>
+          </div>
+    
+        </div>
+    
       </div>
     
     </section>
