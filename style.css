@@ -6083,18 +6083,16 @@ body.interactive-page-swipe .bottom-tab-bar {
 #teamScreen.active {
   position: fixed;
   inset: 0;
-
-  width: 100%;
-  height: 100dvh !important;
-  box-sizing: border-box;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  overflow-y: auto;
   z-index: 1500;
 
+  display: block;
+  width: 100%;
+  height: 100dvh !important;
+
+  box-sizing: border-box;
+  padding: 22px 20px 40px;
+
+  overflow-y: auto;
   color: white !important;
 
   background:
@@ -6124,77 +6122,204 @@ body.interactive-page-swipe .bottom-tab-bar {
     );
 }
 
-/* Team header */
-
-.team-header {
-  position: absolute;
-  top: 32px;
-  left: 22px;
-  right: 22px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  direction: ltr;
+.team-layout {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
-.team-header h1 {
-  margin: 0;
-  color: #ffffff;
+/* Back arrow */
 
-  font-size: 38px;
-  font-weight: 900;
-  letter-spacing: -1px;
-}
+.team-back-button {
+  display: block;
 
-#teamBackButton {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
 
   border: none;
   background: transparent;
   color: white;
 
-  font-size: 34px;
+  font-size: 38px;
+  font-weight: 900;
+  line-height: 1;
+
+  text-align: left;
   cursor: pointer;
 }
 
-/* Current team streak */
+/* Title */
 
-.team-streak-container {
+.team-title {
+  margin: 24px 0 24px;
+
+  color: white;
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: -1px;
+
+  direction: ltr;
+  text-align: left;
+}
+
+/* Blue metallic bubbles */
+
+.team-bubbles {
+  display: grid;
+  gap: 16px;
+}
+
+.team-bubble {
+  border-radius: 30px;
+  padding: 22px 20px;
+
+  background:
+    radial-gradient(
+      circle at 18% 0%,
+      rgba(170, 218, 255, 0.25),
+      transparent 55%
+    ),
+    linear-gradient(
+      145deg,
+      #24466d,
+      #112940 55%,
+      #071827
+    );
+
+  border: 1px solid rgba(170, 210, 255, 0.25);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 14px 30px rgba(0, 0, 0, 0.3);
+
+  color: white;
+}
+
+/* Streak bubble */
+
+.team-streak-bubble {
+  text-align: center;
+}
+
+.team-label {
+  margin: 0;
+
+  color: #d9e9ff;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.team-primary-stat {
+  display: block;
+  margin: 10px 0 18px;
+
+  font-size: 94px;
+  font-weight: 900;
+  line-height: 1;
+
+  color: white;
+}
+
+.team-record-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+
+  color: #d9e9ff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.team-record-row strong {
+  color: white;
+  font-size: 29px;
+  font-weight: 900;
+}
+
+/* Money bubble */
+
+.team-money-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  direction: rtl;
+}
+
+.team-money-stat {
+  min-width: 0;
+  min-height: 135px;
+  box-sizing: border-box;
+  border-radius: 22px;
+  padding: 15px 9px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 
   text-align: center;
-  color: #ffffff;
-}
-
-.team-streak-container p {
-  margin: 0 0 16px;
-
-  color: #d1d5db;
-  font-size: 21px;
-  font-weight: 700;
-}
-
-#teamCurrentStreak {
-  font-size: 112px;
-  font-weight: 900;
-  line-height: 1;
-
+  font-family: inherit;
   color: white;
-
-  text-shadow:
-    0 0 24px rgba(255, 255, 255, 0.15),
-    0 12px 30px rgba(0, 0, 0, 0.6);
 }
 
-.team-streak-container span {
-  margin-top: 14px;
+.team-money-stat span {
+  font-size: 13px;
+  font-weight: 800;
+}
 
-  color: #d1d5db;
-  font-size: 19px;
+.team-money-stat strong {
+  display: block;
+  margin-top: 10px;
+
+  font-size: 32px;
+  font-weight: 900;
+}
+
+/* Earn: locked until success */
+
+.team-money-earn {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(145deg, #657080, #353e4a);
+  cursor: pointer;
+}
+
+.team-money-earn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.team-collect-caption {
+  margin-top: 12px;
+  color: #e2e8f0;
+}
+
+/* Loss */
+
+.team-money-loss {
+  border: 1px solid rgba(255, 120, 120, 0.25);
+  background: linear-gradient(145deg, #542b3c, #291923);
+}
+
+.team-money-loss strong {
+  color: #ffb4bc;
+}
+
+/* Explanation */
+
+.team-info-bubble {
+  text-align: center;
+}
+
+.team-info-bubble p {
+  margin: 0;
+
+  color: #e7f1ff;
+  font-size: 15px;
   font-weight: 700;
+  line-height: 1.8;
 }
