@@ -6066,3 +6066,13 @@ body.interactive-page-swipe .bottom-tab-bar {
 .collective-challenges-group.is-hidden {
   display: none !important;
 }
+
+/* Enable clicking on the LevelUp logo */
+
+.home-header .brand {
+  pointer-events: auto !important;
+}
+
+.home-header .brand #collectiveToggleTitle {
+  pointer-events: auto !important;
+}
