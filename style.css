@@ -6653,3 +6653,38 @@ body.interactive-page-swipe .bottom-tab-bar {
 .survivor-eliminated-list ul {
   color: #aeb4c2;
 }
+
+/* Survivor medals */
+
+.survivor-reward {
+  gap: 10px;
+  border-width: 2px;
+  border-style: solid;
+}
+
+.survivor-gold {
+  border-color: #ffd700;
+  box-shadow:
+    inset 0 0 14px rgba(255, 215, 0, 0.12),
+    0 0 12px rgba(255, 215, 0, 0.25);
+}
+
+.survivor-silver {
+  border-color: #c0c0c0;
+  box-shadow:
+    inset 0 0 14px rgba(220, 230, 240, 0.12),
+    0 0 12px rgba(192, 192, 192, 0.2);
+}
+
+.survivor-bronze {
+  border-color: #cd7f32;
+  box-shadow:
+    inset 0 0 14px rgba(205, 127, 50, 0.12),
+    0 0 12px rgba(205, 127, 50, 0.2);
+}
+
+.survivor-reward span {
+  font-size: 16px;
+  color: #ffffff;
+  font-weight: 900;
+}
