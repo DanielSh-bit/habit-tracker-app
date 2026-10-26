@@ -133,6 +133,7 @@
     
     
     <!-- SURVIVOR -->
+    
     <section class="screen" id="survivorScreen">
     
       <div class="team-layout">
@@ -145,13 +146,69 @@
         <h1 class="team-title">Survivor</h1>
     
         <div class="team-bubbles">
-          <div class="team-bubble mode-placeholder-bubble"></div>
-          <div class="team-bubble mode-placeholder-bubble"></div>
+    
+          <!-- Progress -->
+          <div class="team-bubble survivor-progress-bubble">
+    
+            <p class="survivor-label">התקדמות</p>
+    
+            <strong id="survivorCurrentProgress"
+                    class="survivor-progress-number">0</strong>
+    
+            <strong id="survivorMyFinalProgress"
+                    class="survivor-eliminated-progress"
+                    hidden>0</strong>
+    
+          </div>
+    
+          <!-- Rewards -->
+          <div class="team-bubble survivor-rewards-bubble">
+    
+            <h2>אם מסתיים היום</h2>
+    
+            <div class="survivor-rewards-grid">
+    
+              <div class="survivor-reward">
+                <span>מקום ראשון</span>
+                <strong id="survivorFirstPrize">100</strong>
+              </div>
+    
+              <div class="survivor-reward">
+                <span>מקום שני</span>
+                <strong id="survivorSecondPrize">60</strong>
+              </div>
+    
+              <div class="survivor-reward">
+                <span>מקום שלישי</span>
+                <strong id="survivorThirdPrize">30</strong>
+              </div>
+    
+            </div>
+    
+          </div>
+    
+        </div>
+    
+        <!-- Competitors -->
+        <div class="survivor-players">
+    
+          <h2>מתחרים</h2>
+          <ul id="survivorCompetitorsList"></ul>
+    
+        </div>
+    
+        <!-- Eliminated -->
+        <div class="survivor-players survivor-eliminated-list">
+    
+          <h2>פסולים</h2>
+          <ul id="survivorEliminatedList"></ul>
+    
         </div>
     
       </div>
     
     </section>
+
     
     
     <!-- RISK -->
