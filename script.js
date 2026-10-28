@@ -82,6 +82,8 @@ const AVATAR_LEVEL_EMOJIS = [
 const SELECTED_AVATAR_LEVEL_KEY = "levelup_selected_avatar_level";
 const SELECTED_NAME_STYLE_KEY = "levelup_selected_name_style";
 const USER_COINS_KEY = "levelup_user_coins";
+const DAILY_COIN_BUDGET = 40;
+const DAILY_COIN_DATA_KEY = "levelup_daily_coin_data";
 
 const HOME_DIVIDERS_KEY = "levelup_home_dividers";
 const HOME_ORDER_KEY = "levelup_home_order";
@@ -3712,6 +3714,119 @@ function addUserCoins(amount) {
   saveUserCoins(currentCoins + amount);
 }
 
+
+function getDailyCoinState() {
+  const today = getTodayKey();
+
+  let data;
+
+  try {
+    data = JSON.parse(
+      localStorage.getItem(DAILY_COIN_DATA_KEY) || "{}"
+    );
+
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+      data = {};
+    }
+  } catch (error) {
+    data = {};
+  }
+
+  // Freeze today's eligible goals and their targets.
+  // If there were no eligible goals, allow the first one to be added.
+  if (
+    !data[today] ||
+    (data[today].goals.length === 0 && data[today].paid === 0)
+  ) {
+    data[today] = {
+      paid: 0,
+      goals: goals
+        .filter(function(goal) {
+          return isGoalRequiredToday(goal);
+        })
+        .map(function(goal) {
+          return {
+            id: goal.id,
+            type: goal.type,
+            target: Math.max(1, Number(goal.target) || 1),
+            value: Math.max(
+              0,
+              Number((goal.records || {})[today] || 0)
+            )
+          };
+        })
+    };
+
+    localStorage.setItem(
+      DAILY_COIN_DATA_KEY,
+      JSON.stringify(data)
+    );
+  }
+
+  return {
+    today: today,
+    data: data,
+    day: data[today]
+  };
+}
+
+
+function updateDailyCoins() {
+  const state = getDailyCoinState();
+  const day = state.day;
+
+  // Update progress, but keep the day's original
+  // tasks and targets unchanged.
+  day.goals.forEach(function(item) {
+    const goal = goals.find(function(g) {
+      return g.id === item.id;
+    });
+
+    if (goal) {
+      item.value = Math.max(
+        0,
+        Number((goal.records || {})[state.today] || 0)
+      );
+    }
+  });
+
+  let totalProgress = 0;
+
+  day.goals.forEach(function(item) {
+    const target = item.type === "yesno"
+      ? 1
+      : item.target;
+
+    const progress = Math.min(
+      1,
+      Math.max(0, item.value / target)
+    );
+
+    totalProgress += progress;
+  });
+
+  const earned = day.goals.length > 0
+    ? Math.floor(
+        DAILY_COIN_BUDGET * totalProgress / day.goals.length + 1e-9
+      )
+    : 0;
+
+  const difference = earned - day.paid;
+
+  day.paid = earned;
+
+  localStorage.setItem(
+    DAILY_COIN_DATA_KEY,
+    JSON.stringify(state.data)
+  );
+
+  if (difference !== 0) {
+    saveUserCoins(getUserCoins() + difference);
+  }
+
+  return difference;
+}
+
 function getHomeDividers() {
   try {
     return JSON.parse(localStorage.getItem(HOME_DIVIDERS_KEY) || "[]");
@@ -5189,6 +5304,7 @@ function setTodayValue(goalId, newValue) {
   });
 
   saveGoals(goals);
+  updateDailyCoins();
   syncPlayer();
   updateAppBadge();
   updateHomeProgressRing();
@@ -5854,6 +5970,7 @@ function addGoal(event) {
     records: {}
   };
 
+  getDailyCoinState();
   goals.push(newGoal);
   saveGoals(goals);
   syncPlayer();
@@ -5952,6 +6069,8 @@ function editGoal(event) {
     }
   }
 
+  getDailyCoinState();
+  
   goals = goals.map(function(goal) {
     if (goal.id !== currentGoalId) return goal;
 
@@ -5975,7 +6094,8 @@ async function deleteCurrentGoal() {
   if (!currentGoalId) return;
 
   const goalIdToDelete = currentGoalId;
-
+  getDailyCoinState();
+  
   try {
     await deleteAllGoalImages(goalIdToDelete);
   } catch (error) {}
@@ -6068,6 +6188,7 @@ document.addEventListener("DOMContentLoaded", function() {
   applyGeneralBackground();
   preloadDayCompleteDragonVideo();
   initializeQuickRankingSwipe();
+  updateDailyCoins();
   
   if (!getPlayerName()) {
     showScreen("nameScreen", false);
