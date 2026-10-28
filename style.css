@@ -6688,3 +6688,138 @@ body.interactive-page-swipe .bottom-tab-bar {
   color: #ffffff;
   font-weight: 900;
 }
+
+
+/* Risk */
+
+#riskScreen [hidden] {
+  display: none !important;
+}
+
+/* Bet bubble */
+
+.risk-wager-bubble,
+.risk-progress-bubble {
+  text-align: center;
+}
+
+.risk-wager-bubble h2,
+.risk-progress-bubble p {
+  margin: 0 0 22px;
+  color: white;
+  font-size: 23px;
+  font-weight: 900;
+}
+
+/* Plus and minus */
+
+.risk-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.risk-stepper button {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+
+  border: 1px solid rgba(255,255,255,0.3);
+  background: rgba(10, 5, 30, 0.45);
+  color: white;
+
+  font-size: 36px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.risk-stepper button:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.risk-selected-days {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.risk-selected-days strong {
+  color: white;
+  font-size: 85px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.risk-selected-days span {
+  margin-top: 8px;
+  color: #f0dfff;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* Start */
+
+.risk-start-button {
+  width: 100%;
+  margin-top: 25px;
+  padding: 15px;
+
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 18px;
+
+  background: rgba(255,255,255,0.16);
+  color: white;
+
+  font-size: 21px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* Progress */
+
+.risk-progress-bubble strong {
+  display: block;
+  direction: ltr;
+
+  color: white;
+  font-size: 75px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+/* Money bubble */
+
+.risk-money-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  direction: rtl;
+}
+
+.risk-money-stat {
+  min-width: 0;
+  padding: 20px 10px;
+  border-radius: 20px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+
+  background: rgba(15, 5, 35, 0.38);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+}
+
+.risk-money-stat span {
+  font-size: 23px;
+  font-weight: 900;
+}
+
+.risk-money-stat strong {
+  font-size: 36px;
+  font-weight: 900;
+}
