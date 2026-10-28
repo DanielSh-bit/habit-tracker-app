@@ -209,7 +209,7 @@
 
     
     
-    <!-- RISK -->
+    
     <section class="screen" id="riskScreen">
     
       <div class="team-layout">
@@ -222,13 +222,71 @@
         <h1 class="team-title">Risk</h1>
     
         <div class="team-bubbles">
-          <div class="team-bubble mode-placeholder-bubble"></div>
-          <div class="team-bubble mode-placeholder-bubble"></div>
+    
+          <!-- Bet -->
+          <div class="team-bubble risk-wager-bubble"
+               id="riskWagerPanel">
+    
+            <h2>הימור</h2>
+    
+            <div class="risk-stepper" dir="ltr">
+    
+              <button type="button"
+                      id="riskMinusButton"
+                      aria-label="הפחתת יום">−</button>
+    
+              <div class="risk-selected-days">
+                <strong id="riskDaysValue">5</strong>
+                <span>ימים</span>
+              </div>
+    
+              <button type="button"
+                      id="riskPlusButton"
+                      aria-label="הוספת יום">+</button>
+    
+            </div>
+    
+            <button type="button"
+                    id="riskStartButton"
+                    class="risk-start-button">התחל</button>
+    
+          </div>
+    
+          <!-- Progress after starting -->
+          <div class="team-bubble risk-progress-bubble"
+               id="riskProgressPanel"
+               hidden>
+    
+            <p>התקדמות</p>
+            <strong id="riskProgressValue">0/5</strong>
+    
+          </div>
+    
+          <!-- Money -->
+          <div class="team-bubble risk-money-bubble">
+    
+            <div class="risk-money-grid">
+    
+              <div class="risk-money-stat">
+                <span>רווח</span>
+                <strong id="riskRewardAmount">50</strong>
+              </div>
+    
+              <div class="risk-money-stat">
+                <span>הפסד</span>
+                <strong id="riskPenaltyAmount">25</strong>
+              </div>
+    
+            </div>
+    
+          </div>
+    
         </div>
     
       </div>
     
     </section>
+
 
 
     <div class="menu-overlay" id="menuOverlay"></div>
