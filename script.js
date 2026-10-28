@@ -2373,6 +2373,10 @@ function showScreen(screenId, addToHistory = true) {
 
   if (!$(screenId)) return;
 
+  if (screenId !== "homeScreen") {
+    cancelHomeCoinsFlash();
+  }
+  
   currentScreenId = screenId;
 
   document.querySelectorAll(".screen").forEach(function(screen) {
@@ -2385,6 +2389,7 @@ function showScreen(screenId, addToHistory = true) {
     currentGoalId = null;
     applyGeneralBackground();
     renderHome();
+    updateHomeCoinsDisplay();
   }
 
   if (screenId === "rankingScreen") {
@@ -3700,13 +3705,85 @@ function renderProfile() {
   }
 }
 
+
+let homeCoinsDisplayedValue = null;
+let homeCoinsFlashTimer = null;
+
+function cancelHomeCoinsFlash() {
+  if (homeCoinsFlashTimer !== null) {
+    clearTimeout(homeCoinsFlashTimer);
+    homeCoinsFlashTimer = null;
+  }
+
+  const display = $("homeCoinsDisplay");
+
+  if (display) {
+    display.classList.remove("home-coins-flash");
+  }
+}
+
+function updateHomeCoinsDisplay() {
+  const display = $("homeCoinsDisplay");
+  const valueElement = $("homeCoinsValue");
+
+  if (!display || !valueElement) return;
+
+  const currentCoins = getUserCoins();
+
+  // First load - show the balance without animation.
+  if (homeCoinsDisplayedValue === null) {
+    homeCoinsDisplayedValue = currentCoins;
+    valueElement.textContent = String(currentCoins);
+    return;
+  }
+
+  // Don't update outside the home screen.
+  if (
+    currentScreenId !== "homeScreen" ||
+    !$("homeScreen").classList.contains("active")
+  ) {
+    return;
+  }
+
+  // No change or an animation is already running.
+  if (
+    currentCoins === homeCoinsDisplayedValue ||
+    homeCoinsFlashTimer !== null
+  ) {
+    return;
+  }
+
+  // Flash twice before changing the displayed number.
+  display.classList.add("home-coins-flash");
+
+  homeCoinsFlashTimer = setTimeout(function() {
+    homeCoinsFlashTimer = null;
+    display.classList.remove("home-coins-flash");
+
+    if (
+      currentScreenId !== "homeScreen" ||
+      !$("homeScreen").classList.contains("active")
+    ) {
+      return;
+    }
+
+    homeCoinsDisplayedValue = getUserCoins();
+
+    valueElement.textContent = String(homeCoinsDisplayedValue);
+  }, 700);
+}
+
+
 function getUserCoins() {
   return Math.max(0, Number(localStorage.getItem(USER_COINS_KEY) || 0));
 }
 
 function saveUserCoins(coins) {
   const cleanCoins = Math.max(0, Math.floor(Number(coins) || 0));
+
   localStorage.setItem(USER_COINS_KEY, String(cleanCoins));
+
+  updateHomeCoinsDisplay();
 }
 
 function addUserCoins(amount) {
@@ -6189,6 +6266,7 @@ document.addEventListener("DOMContentLoaded", function() {
   preloadDayCompleteDragonVideo();
   initializeQuickRankingSwipe();
   updateDailyCoins();
+  updateHomeCoinsDisplay();
   
   if (!getPlayerName()) {
     showScreen("nameScreen", false);
