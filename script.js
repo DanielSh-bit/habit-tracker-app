@@ -4648,6 +4648,77 @@ function openCollectiveChallengeInfo(challenge) {
   overlay.hidden = false;
 }
 
+
+function initializeRiskScreen() {
+  const daysValue = $("riskDaysValue");
+  const minusButton = $("riskMinusButton");
+  const plusButton = $("riskPlusButton");
+  const startButton = $("riskStartButton");
+  const wagerPanel = $("riskWagerPanel");
+  const progressPanel = $("riskProgressPanel");
+
+  if (!daysValue || !minusButton || !plusButton ||
+      !startButton || !wagerPanel || !progressPanel) return;
+
+  const daysKey = "levelup_risk_selected_days";
+  const startedKey = "levelup_risk_started";
+
+  let selectedDays = Number(localStorage.getItem(daysKey));
+
+  if (!Number.isInteger(selectedDays)) {
+    selectedDays = 5;
+  }
+
+  selectedDays = Math.max(5, Math.min(99, selectedDays));
+
+  let started = localStorage.getItem(startedKey) === "true";
+
+  function renderRisk() {
+    daysValue.textContent = String(selectedDays);
+
+    minusButton.disabled = selectedDays <= 5;
+    plusButton.disabled = selectedDays >= 99;
+
+    // Temporary demonstration amounts
+    $("riskRewardAmount").textContent = String(selectedDays * 10);
+    $("riskPenaltyAmount").textContent = String(selectedDays * 5);
+
+    wagerPanel.hidden = started;
+    progressPanel.hidden = !started;
+
+    $("riskProgressValue").textContent = `0/${selectedDays}`;
+  }
+
+  minusButton.addEventListener("click", function() {
+    if (started || selectedDays <= 5) return;
+
+    selectedDays--;
+    localStorage.setItem(daysKey, String(selectedDays));
+    renderRisk();
+  });
+
+  plusButton.addEventListener("click", function() {
+    if (started || selectedDays >= 99) return;
+
+    selectedDays++;
+    localStorage.setItem(daysKey, String(selectedDays));
+    renderRisk();
+  });
+
+  startButton.addEventListener("click", function() {
+    if (started) return;
+
+    started = true;
+    localStorage.setItem(daysKey, String(selectedDays));
+    localStorage.setItem(startedKey, "true");
+
+    renderRisk();
+  });
+
+  renderRisk();
+}
+
+
 function renderCollectiveChallenges() {
   const grid = $("goalsGrid");
   if (!grid) return;
@@ -6077,7 +6148,9 @@ document.addEventListener("DOMContentLoaded", function() {
   on("riskBackButton", "click", function() {
     showScreen("homeScreen");
   });
-    
+
+  initializeRiskScreen();
+  
   on("bottomCalendarTab", "click", function() {
     showScreen("dailyCalendarScreen");
   });
