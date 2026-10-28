@@ -6823,3 +6823,51 @@ body.interactive-page-swipe .bottom-tab-bar {
   font-size: 36px;
   font-weight: 900;
 }
+
+
+/* Home coins display */
+
+#homeScreen .home-coins-display {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 82px);
+  right: 12px;
+  z-index: 150;
+
+  width: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  color: #111827;
+  font-size: 15px;
+  font-weight: 900;
+  direction: ltr;
+
+  pointer-events: none;
+}
+
+.home-coins-display strong {
+  font-size: 17px;
+  font-weight: 900;
+}
+
+/* Two yellow flashes */
+
+@keyframes homeCoinsYellowFlash {
+  0%, 100% {
+    color: #111827;
+    text-shadow: none;
+  }
+
+  50% {
+    color: #ffcc00;
+    text-shadow:
+      0 0 8px #ffcc00,
+      0 0 16px rgba(255, 204, 0, 0.7);
+  }
+}
+
+.home-coins-display.home-coins-flash strong {
+  animation: homeCoinsYellowFlash 0.35s ease-in-out 2;
+}
